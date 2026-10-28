@@ -1,0 +1,89 @@
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const escText=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ld=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const D=NoorData;
+const UI={en:{home:'Home',quran:'Quran',duas:'Duas',namaz:'Namaz',hadith:'Hadith',tasbih:'Tasbih',names:'99 Names',bookmarks:'Saved',sources:'Sources'},ur:{home:'ہوم',quran:'قرآن',duas:'دعائیں',namaz:'نماز',hadith:'حدیث',tasbih:'تسبیح',names:'اسماء الحسنیٰ',bookmarks:'محفوظ',sources:'ماخذ'},ar:{home:'الرئيسية',quran:'القرآن',duas:'الأدعية',namaz:'الصلاة',hadith:'الحديث',tasbih:'المسبحة',names:'الأسماء الحسنى',bookmarks:'المحفوظات',sources:'المصادر'}};
+const V=Object.keys(UI.en);
+let st={lang:ld('lang','en'),lay:ld('lay',{ar:1,tr:1,en:1,ur:1}),fs:ld('fs',30),bm:ld('bm',[]),lr:ld('lr',null),surah:1,hl:0,sq:'',q:'',step:0,cnt:ld('cnt',0),di:0,city:0,asr:1,mth:'18,17',duaSel:-1};
+window.NoorReaderState=st;
+const route=()=>location.hash.slice(2).split('/')[0]||'home';
+const demo=t=>`<div class="demo">⚠ DEMONSTRATION — ${t}</div>`;
+const isBm=k=>st.bm.includes(k);
+const CITIES=[['Tirupati, India',13.6288,79.4192,5.5],['Mecca',21.4225,39.8262,3],['Karachi',24.8607,67.0011,5],['Dhaka',23.8103,90.4125,6],['Dubai',25.2048,55.2708,4],['London',51.5074,-.1278,1],['New York',40.7128,-74.006,-4]];
+/* prayer maths (astronomical formulas, computed on device) */
+const R=Math.PI/180,sin=x=>Math.sin(x*R),cos=x=>Math.cos(x*R),tan=x=>Math.tan(x*R),acos=x=>Math.acos(x)/R,fx=(x,a)=>x-a*Math.floor(x/a);
+function times(y,m,d,lat,lng,tz,fa,ia,af){const D0=Date.UTC(y,m,d,12)/864e5+2440587.5-2451545,g=fx(357.529+.98560028*D0,360),q=fx(280.459+.98564736*D0,360),Lm=fx(q+1.915*sin(g)+.02*sin(2*g),360),e=23.439-3.6e-7*D0,RA=fx(Math.atan2(cos(e)*sin(Lm),cos(Lm))/R,360)/15,eq=q/15-RA,dec=Math.asin(sin(e)*sin(Lm))/R,mid=12-fx(eq+12,24)+12-lng/15+tz;
+const an=a=>{const c=(-sin(a)-sin(dec)*sin(lat))/(cos(dec)*cos(lat));return Math.abs(c)>1?NaN:acos(c)/15},aa=-Math.atan(1/(af+tan(Math.abs(lat-dec))))/R;
+return{Fajr:mid-an(fa),Sunrise:mid-an(.833),Dhuhr:mid+.0333,Asr:mid+an(aa),Maghrib:mid+an(.833),Isha:mid+an(ia)}}
+const hm=h=>{if(isNaN(h))return'—';const m=Math.round(fx(h,24)*60);return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+let loc=CITIES[0],P=null;
+function prayer(){const[fa,ia]=st.mth.split(',').map(Number),n=new Date(Date.now()+loc[3]*36e5);
+P=times(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate(),loc[1],loc[2],loc[3],fa,ia,+st.asr);
+const t=$('#tt');if(t)t.innerHTML=Object.entries(P).map(([k,v])=>`<tr data-k="${k}"><td>${k}</td><td>${hm(v)}</td></tr>`).join('');tick()}
+function tick(){if(!P||!$('#nx'))return;const n=new Date,h=fx(n.getUTCHours()+n.getUTCMinutes()/60+n.getUTCSeconds()/3600+loc[3],24);let nk='Fajr',nt=fx(P.Fajr,24)+24;
+for(const k of['Fajr','Dhuhr','Asr','Maghrib','Isha'])if(fx(P[k],24)>h){nk=k;nt=fx(P[k],24);break}
+const m=Math.round((nt-h)*60);$('#nx').textContent=`${nk} · ${hm(nt)} · ${Math.floor(m/60)}h ${m%60}m`;$$('#tt tr').forEach(r=>r.classList.toggle('next',r.dataset.k===nk))}
+function hijri(){try{return new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric'}).format(new Date)}catch(e){return'—'}}
+const stub=(t,note,items,sel)=>`<h1>${t}</h1>${demo(note)}<div class="grid">${items.map((x,i)=>`<div class="card"${sel?` data-act="${sel}" data-i="${i}" tabindex="0" role="button"`:''}><b>${x}</b><div class="mut"><span class="chip">Data not connected</span></div></div>`).join('')}</div>`;
+const tmpl=(title)=>`<div class="card pat" style="margin-top:14px"><h3>${title}</h3>${['Original Arabic','Roman transliteration','English translation','Urdu translation','Source & reference','Grading (only if verified)','When recited'].map(f=>`<p><b>${f}:</b> <span class="ph">[pending verified source]</span></p>`).join('')}</div>`;
+const views={
+home(){const lr=st.lr?`<p>Continue: <a href="#/quran" data-act="sel" data-i="${st.lr-1}">Surah ${st.lr} · ${D.surahs[st.lr-1].name}</a></p>`:'<p class="mut">No reading history yet.</p>';
+return `<section class="hero" aria-label="Welcome">${Array.from({length:45},()=>`<i class="star" style="left:${Math.random()*100}%;top:${Math.random()*75}%;animation-delay:-${Math.random()*6}s"></i>`).join('')}
+<svg class="moon" viewBox="0 0 100 100" aria-hidden="true"><path d="M62 8a42 42 0 1 0 30 70A36 36 0 0 1 62 8z" fill="#D4AF6A"/></svg>
+<svg class="lan" style="inset-inline-start:12%" viewBox="0 0 22 60" aria-hidden="true"><path d="M11 0v14M4 14h14l2 26H2zM6 40h10l-2 10H8z" fill="#D4AF6A" opacity=".85"/></svg>
+<svg class="lan" style="inset-inline-start:25%;animation-delay:-3s" viewBox="0 0 22 60" aria-hidden="true"><path d="M11 0v22M4 22h14l2 26H2zM6 48h10l-2 8H8z" fill="#D4AF6A" opacity=".7"/></svg>
+<h1 class="ar" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</h1><p style="font-size:1.25rem">Your Peaceful Companion on the Path of Islam</p><p class="ar" style="color:var(--gold);font-size:1.2rem" dir="ltr">One Ummah. One Journey. A Life Connected to Allah.</p>
+<p><a class="btn p" href="#/quran">Open Quran reader</a><a class="btn" href="#/duas">Explore Duas</a><a class="btn" href="#/namaz">Learn Namaz</a></p>
+<svg viewBox="0 0 900 150" style="display:block;width:100%;max-width:800px;margin:auto" aria-hidden="true"><ellipse cx="450" cy="120" rx="300" ry="45" fill="#D4AF6A" opacity=".25"/><g fill="#022C22"><path d="M300 150V95q150-100 300 0v55z"/><rect x="240" y="55" width="16" height="95"/><path d="M240 55l8-26 8 26z"/><rect x="644" y="55" width="16" height="95"/><path d="M644 55l8-26 8 26z"/><rect y="138" width="900" height="12"/></g></svg></section>
+<h2>Today</h2><div class="grid">
+<div class="card pat"><h3>Hijri date</h3><div class="big">${hijri()}</div><div class="mut">Calculated (Umm al-Qura); local sighting may differ. <span class="chip live">live</span></div></div>
+<div class="card"><h3>Next prayer</h3><div class="big" id="nx">…</div><div class="mut">${loc[0]} · UTC${loc[3]>=0?'+':''}${loc[3]}</div></div>
+<div class="card"><h3>Continue reading</h3>${lr}</div>
+<div class="card"><h3>Daily Ayah / Hadith / Dua</h3>${demo('Not connected — requires verified datasets. Nothing is shown rather than invented.')}</div></div>
+<h2>Prayer times</h2><div class="card"><div class="row"><select id="city" class="c" aria-label="City">${CITIES.map((c,i)=>`<option value="${i}"${c===loc?' selected':''}>${c[0]}</option>`).join('')}</select><select id="mth" class="c" aria-label="Method"><option value="18,17">Muslim World League</option><option value="19.5,17.5">ISNA-style</option></select><select id="asr" class="c" aria-label="Asr"><option value="1">Asr: Standard</option><option value="2">Asr: Hanafi</option></select></div><table id="tt"></table><p class="mut">Computed on your device; verify with your local mosque. Calculation parameters are approximations pending review.</p></div>
+<h2>Explore</h2><div class="grid">${[['quran','Quran reader','prototype UI'],['duas','Duas library','structure only'],['namaz','Namaz learning','structure only'],['hadith','Hadith','structure only'],['tasbih','Tasbih','working'],['names','99 Names','structure only']].map(([k,n,s])=>`<a class="card" href="#/${k}" style="text-decoration:none"><b>${n}</b><br><span class="chip ${s==='working'?'live':''}">${s}</span></a>`).join('')}</div>`},
+quran(){return `<div class="hide-p"><h1>Holy Quran — reader</h1>${D.mode==='demo'?demo('114 Surah names and Ayah counts are metadata only. Quran text is not connected yet; this is not the Quran.'):demo('Arabic dataset loaded and structurally checked. Translations, transliteration, and audio are not connected. Structural checks do not independently prove textual authenticity.')}</div>
+<div class="qr"><aside class="hide-p"><input id="sq" class="c" style="width:100%;margin-bottom:6px" placeholder="Filter Surah by name or number" aria-label="Filter Surah" value="${st.sq}"><div id="sl" role="list"></div><button class="c" style="width:100%;margin-top:6px" disabled title="Needs verified Juz boundaries">Juz navigation (needs dataset)</button></aside>
+<section><div class="row hide-p" id="lt">${[['ar','Arabic'],['tr','Transliteration'],['en','English'],['ur','Urdu']].map(([k,n])=>`<button class="c ${st.lay[k]?'on':''}" data-act="lay" data-l="${k}" aria-pressed="${!!st.lay[k]}">${n}</button>`).join('')}<button class="c" data-act="fs" data-d="-2" aria-label="Smaller">A−</button><button class="c" data-act="fs" data-d="2" aria-label="Larger">A+</button><button class="c" data-act="peace">Peaceful mode</button><button class="c" disabled title="Audio source not connected">⟲ Repeat</button></div>
+<button class="c" data-act="peace" style="display:none" id="pp">Exit</button><h2 id="sh"></h2><div id="ay" aria-live="polite"><p class="mut">Loading…</p></div></section></div>`},
+duas(){return stub('Duas library','Category structure only. No Dua text, translation, source or grading is included.',D.duaCategories,'dua')+(st.duaSel>=0?tmpl(D.duaCategories[st.duaSel]):'')},
+namaz(){const f=[['Fajr',2],['Dhuhr',4],['Asr',4],['Maghrib',3],['Isha',4]];const s=D.prayerSteps[st.step];
+return `<h1>Learn Namaz</h1>${demo('Instructional content pending scholarly review. Obligatory rak‘ah counts below are widely agreed; Sunnah, Witr and school-specific differences are not yet included.')}
+<div class="grid">${f.map(([n,r])=>`<div class="card"><b>${n}</b><div class="big">${r}</div><div class="mut">obligatory rak‘ahs</div></div>`).join('')}</div>
+<div class="card pat" style="margin-top:14px"><div class="mut">Step ${st.step+1} of 12</div><h2>${s}</h2><p class="ph">[Illustration, Arabic, transliteration, Urdu & English meaning, audio — pending verified content]</p><div class="row"><button class="c" data-act="step" data-d="-1">Previous</button><button class="c" data-act="step" data-d="1">Next</button></div><p class="mut">Teaching aid only — it does not judge whether a real prayer is valid.</p></div>`},
+hadith(){return stub('Hadith collections','Collection list only. No Hadith text, narrator, number or grading is included.',D.hadithCollections)+tmpl('Hadith entry template')},
+tasbih(){const d=D.dhikr[st.di];return `<h1>Digital Tasbih</h1><div class="card" style="max-width:420px;margin:auto;text-align:center"><div class="ar" dir="rtl" style="font-size:1.8rem">${d[0]}</div><div class="mut">${d[1]}</div><button class="tas" data-act="tap" id="tp" aria-label="Count">${st.cnt}</button><div class="row" style="justify-content:center"><select id="ds" class="c" aria-label="Dhikr">${D.dhikr.map((x,i)=>`<option value="${i}"${i===st.di?' selected':''}>${x[1]}</option>`).join('')}</select><button class="c" data-act="rs">Reset</button></div><p class="mut">Target 33 · Personal aid only, not a religious requirement. Saved on this device.</p></div>`},
+names(){return `<h1>99 Names of Allah</h1>${demo('Placeholder grid. Arabic names, meanings and explanations will be added from a reviewed source — none are shown here.')}<div class="names">${Array.from({length:99},(_,i)=>`<div class="card"><b>${i+1}</b><div class="mut ph">pending</div><button class="c" data-act="bm" data-k="n:${i+1}">${isBm('n:'+(i+1))?'★':'☆'}</button></div>`).join('')}</div>`},
+bookmarks(){return `<h1>Saved</h1><p class="mut">Private to this browser.</p>${st.bm.length?st.bm.map(k=>`<div class="card row">${label(k)} <button class="c" data-act="bm" data-k="${k}">Remove ★</button></div>`).join(''):'<p class="mut">Nothing saved yet.</p>'}`},
+sources(){return `<h1>Sources & status</h1><div class="card"><h3>Planned sources (not yet connected)</h3><p><b>Arabic text:</b> Tanzil Project Uthmani text — <a href="https://tanzil.net" rel="noopener">tanzil.net</a>, CC BY 3.0, verbatim only, attribution and link required.</p><p><b>English / Urdu:</b> Saheeh International / Fateh Muhammad Jalandhari — Tanzil translations are for non-commercial use; permission for this site is unconfirmed, so licensed alternatives may be used.</p><p><b>Transliteration, audio, Hadith, Duas, 99 Names:</b> source and licence still to be selected and verified.</p></div><div class="card" style="margin-top:12px"><h3>Honest status</h3><p>The complete Quran and all Islamic content are <b>not</b> available in this prototype. Only Surah names and ayah counts are present, and they are to be validated against the dataset (114 Surahs / 6,236 ayahs).</p></div>`},
+search(){const q=st.q.toLowerCase(),r=[];D.surahs.forEach(s=>{if(s.name.toLowerCase().includes(q)||String(s.no)===q)r.push(`<a class="card" href="#/quran" data-act="sel" data-i="${s.no-1}" style="display:block;margin:6px 0">Surah ${s.no} · ${s.name} (${s.count})</a>`)});
+D.duaCategories.concat(D.hadithCollections).forEach(x=>{if(x.toLowerCase().includes(q))r.push(`<div class="card" style="margin:6px 0">${x} <span class="chip">data not connected</span></div>`)});
+return `<h1>Search “${st.q.replace(/</g,'&lt;')}”</h1>${demo('Searches Surah names and category titles only. Verse-text search needs the verified dataset.')}${r.join('')||'<p class="mut">No results.</p>'}`}};
+function label(k){const[t,a,b]=k.split(':');return t==='q'?`Surah ${a} · ${D.surahs[a-1].name} · Ayah ${b}`:`Name of Allah #${a} (placeholder)`}
+function fillList(){const q=st.sq.toLowerCase(),el=$('#sl');if(!el)return;el.innerHTML=D.surahs.filter(s=>!q||s.name.toLowerCase().includes(q)||String(s.no)===q).map(s=>`<button data-act="sel" data-i="${s.no-1}" class="${s.no===st.surah?'on':''}">${s.no}. ${s.name}<span class="mut">${s.count}</span></button>`).join('')||'<p class="mut">No match</p>'}
+function loadAyahs(){const s=D.surahs[st.surah-1],h=$('#sh'),box=$('#ay');if(!h)return;h.textContent=`Surah ${s.no} · ${s.name} · ${s.count} ayahs`;box.innerHTML='<p class="mut">Loading…</p>';
+D.getAyahs(s.no).then(r=>{if(!$('#ay'))return;const L=st.lay;$('#ay').innerHTML=(r.status==='demo'?demo(`Showing ${r.ayahs.length} placeholder rows of ${s.count}. Layout preview only.`):r.status==='imported'?`<div class="demo">Dataset loaded and structurally checked. Text authenticity and reuse permissions still require independent confirmation.</div>`:'')+r.ayahs.map(a=>{const k=`q:${s.no}:${a.n}`;return `<article class="ay ${st.hl===a.n?'hl':''}" data-act="hl" data-n="${a.n}"><div class="row"><span class="num">${a.n}</span><button class="c" data-act="play" disabled title="Audio source not connected">▶</button><button class="c" data-act="bm" data-k="${k}" aria-label="Bookmark">${isBm(k)?'★':'☆'}</button></div>${L.ar&&a.ar?`<p class="ar" dir="rtl" lang="ar" style="font-size:${st.fs}px">${escText(a.ar)}</p>`:''}${L.tr&&a.tr?`<p>${escText(a.tr)}</p>`:''}${L.en&&a.en?`<p>${escText(a.en)}</p>`:''}${L.ur&&a.ur?`<p class="ur" dir="rtl" lang="ur">${escText(a.ur)}</p>`:''}</article>`}).join('')}).catch(()=>{$('#ay').innerHTML='<p class="demo">Could not load this Surah. Please retry.</p>'})}
+function render(){const r=route(),v=V.includes(r)||r==='search'?r:'home';document.documentElement.lang=st.lang;document.documentElement.dir=st.lang==='en'?'ltr':'rtl';$('#lang').value=st.lang;
+$('#nav').innerHTML=V.map(k=>`<a href="#/${k}" class="${k===v?'on':''}">${UI[st.lang][k]}</a>`).join('');
+$('#bn').innerHTML=['home','quran','namaz','tasbih','bookmarks'].map(k=>`<a href="#/${k}" class="${k===v?'on':''}">${UI[st.lang][k]}</a>`).join('');
+$('#view').innerHTML=views[v]()+`<footer class="mut" style="margin:30px 0;text-align:center">Prototype · Quran text will be sourced from <a href="https://tanzil.net" rel="noopener">Tanzil.net</a> (not yet connected)</footer>`;
+if(v==='home'){$('#mth').value=st.mth;$('#asr').value=st.asr;prayer()}if(v==='quran'){fillList();loadAyahs()}}
+window.NoorRender=render;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+if(a==='theme'){const r=document.documentElement,dk=getComputedStyle(r).getPropertyValue('--bg').trim()==='#022C22';r.dataset.theme=dk?'light':'dark'}
+else if(a==='rm')document.body.classList.toggle('rm');
+else if(a==='peace'){document.body.classList.toggle('peace');$('#pp').style.display=document.body.classList.contains('peace')?'inline-block':'none'}
+else if(a==='lay'){st.lay[b.dataset.l]=st.lay[b.dataset.l]?0:1;sv('lay',st.lay);render()}
+else if(a==='fs'){st.fs=Math.max(20,Math.min(60,st.fs+ +b.dataset.d));sv('fs',st.fs);loadAyahs()}
+else if(a==='sel'){st.surah=+b.dataset.i+1;st.hl=0;st.lr=st.surah;sv('lr',st.lr);if(route()!=='quran'){location.hash='#/quran'}else{fillList();loadAyahs()}}
+else if(a==='hl'&&!e.target.closest('button')){st.hl=+b.dataset.n;$$('.ay').forEach(x=>x.classList.toggle('hl',+x.dataset.n===st.hl))}
+else if(a==='bm'){const k=b.dataset.k;st.bm=isBm(k)?st.bm.filter(x=>x!==k):[...st.bm,k];sv('bm',st.bm);b.textContent=isBm(k)?'★':'☆';if(route()==='bookmarks')render()}
+else if(a==='dua'){st.duaSel=+b.dataset.i;render()}
+else if(a==='step'){st.step=Math.max(0,Math.min(11,st.step+ +b.dataset.d));render()}
+else if(a==='tap'){st.cnt++;sv('cnt',st.cnt);$('#tp').textContent=st.cnt;if(navigator.vibrate)navigator.vibrate(st.cnt%33?10:[40,40,40])}
+else if(a==='rs'){st.cnt=0;sv('cnt',0);render()}});
+document.addEventListener('input',e=>{if(e.target.id==='sq'){st.sq=e.target.value;fillList()}});
+document.addEventListener('change',e=>{const i=e.target.id;if(i==='lang'){st.lang=e.target.value;sv('lang',st.lang);render()}
+if(i==='city'){loc=CITIES[+e.target.value];render()}if(i==='mth'||i==='asr'){st[i]=e.target.value;prayer()}if(i==='ds'){st.di=+e.target.value;render()}});
+$('#gs').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.value.trim()){st.q=e.target.value.trim();location.hash='#/search';render()}});
+addEventListener('hashchange',render);setInterval(tick,1000);render();
