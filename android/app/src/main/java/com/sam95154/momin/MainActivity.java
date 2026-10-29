@@ -165,12 +165,29 @@ public class MainActivity extends Activity {
         String coordinates = locationSaved
                 ? p.getString(PrayerScheduler.KEY_LAT, "?") + ", " + p.getString(PrayerScheduler.KEY_LON, "?")
                 : "not saved yet";
+        int alarmCount = p.getInt("scheduled_count", 0);
+        long nextAt = p.getLong("next_alarm_at", 0L);
+        String nextPrayer = p.getString("next_alarm_prayer", "");
+        String nextAlarm = nextAt > 0
+                ? nextPrayer + " · " + android.text.format.DateFormat.getDateFormat(this).format(new java.util.Date(nextAt))
+                  + " " + android.text.format.DateFormat.getTimeFormat(this).format(new java.util.Date(nextAt))
+                : "none scheduled";
+        StringBuilder prayerStates = new StringBuilder();
+        for (int i = 0; i < PrayerScheduler.PRAYERS.length; i++) {
+            String key = PrayerScheduler.PRAYERS[i];
+            prayerStates.append(PrayerScheduler.TITLES[i]).append(": ")
+                    .append(p.getBoolean(key, true) ? "on" : "off");
+            if (i < PrayerScheduler.PRAYERS.length - 1) prayerStates.append(" · ");
+        }
         StringBuilder message = new StringBuilder();
         message.append("Prayer reminders: ").append(p.getBoolean(PrayerScheduler.KEY_ENABLED, false) ? "enabled" : "disabled").append("\n")
                 .append("Location: ").append(coordinates).append("\n")
                 .append("Notifications permission: ").append(notifications ? "allowed" : "not allowed").append("\n")
                 .append("Exact alarm access: ").append(exact ? "allowed" : "not allowed — alarms may be delayed").append("\n")
-                .append("Sound mode: ").append(sound).append("\n\n")
+                .append("Sound mode: ").append(sound).append("\n")
+                .append("Upcoming alarms scheduled: ").append(alarmCount).append("\n")
+                .append("Next alarm: ").append(nextAlarm).append("\n")
+                .append("Per-prayer settings: ").append(prayerStates).append("\n\n")
                 .append("Make sure location and notification choices are saved inside this Android app. Background playback can still be affected by battery controls, Do Not Disturb, manufacturer restrictions, or force-stop.");
 
         LinearLayout panel = new LinearLayout(this);
