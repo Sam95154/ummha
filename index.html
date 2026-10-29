@@ -156,6 +156,122 @@ main{min-width:0}.top{height:70px;background:#ffffffd9;border-bottom:1px solid v
     font-size:12px;
   }
 }
+
+/* QURAN READER SETTINGS MODAL FIX */
+.quran-reader .reader-settings{
+  position:fixed;
+  z-index:60;
+  top:max(86px,calc(env(safe-area-inset-top) + 74px));
+  left:50%;
+  right:auto;
+  transform:translateX(-50%);
+  width:min(520px,calc(100vw - 28px));
+  max-width:520px;
+  max-height:calc(100vh - 108px);
+  max-height:calc(100dvh - 108px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  box-sizing:border-box;
+  padding:20px clamp(16px,4vw,24px);
+  background:#fffdf5;
+  color:#30271f;
+  border:1px solid #d9cdb4;
+  border-radius:20px;
+  box-shadow:0 18px 48px rgba(0,0,0,.34);
+  font:14px/1.45 var(--sans);
+  -webkit-text-size-adjust:100%;
+}
+.quran-reader .reader-settings::before{
+  content:"Reading settings";
+  display:block;
+  margin:0 0 12px;
+  padding:0 0 12px;
+  color:#30271f;
+  border-bottom:1px solid #e7ddc8;
+  font-size:17px;
+  font-weight:700;
+  line-height:1.3;
+}
+.quran-reader .reader-settings[hidden]{display:none}
+.quran-reader .reader-settings .reader-setting{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  min-width:0;
+  padding:12px 0;
+  color:#30271f;
+}
+.quran-reader .reader-settings .reader-setting>span{
+  flex:1 1 auto;
+  min-width:0;
+  color:#30271f;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+.quran-reader .reader-settings .reader-setting select{
+  flex:0 1 220px;
+  width:50%;
+  min-width:0;
+  max-width:220px;
+  padding:10px 30px 10px 11px;
+  border:1px solid #cfc3aa;
+  border-radius:10px;
+  background:#fff;
+  color:#30271f;
+  font:500 13px/1.35 var(--sans);
+  outline-color:#24543d;
+}
+.quran-reader .reader-settings .reader-setting select option{
+  background:#fff;
+  color:#30271f;
+}
+.quran-reader .reader-settings .reader-setting input[type=range]{
+  flex:0 1 220px;
+  width:48%;
+  max-width:220px;
+  min-width:90px;
+  accent-color:#24543d;
+}
+.quran-reader .reader-settings .reader-setting input[type=checkbox]{
+  flex:0 0 20px;
+  width:20px;
+  height:20px;
+  margin:0 4px;
+  accent-color:#24543d;
+}
+@media(max-width:480px){
+  .quran-reader .reader-settings{
+    top:max(74px,calc(env(safe-area-inset-top) + 64px));
+    width:calc(100vw - 24px);
+    max-height:calc(100vh - 92px);
+    max-height:calc(100dvh - 92px);
+    padding:17px 16px;
+    border-radius:18px;
+  }
+  .quran-reader .reader-settings .reader-setting{
+    align-items:flex-start;
+    gap:12px;
+    padding:12px 0;
+  }
+  .quran-reader .reader-settings .reader-setting>span{
+    font-size:13px;
+  }
+  .quran-reader .reader-settings .reader-setting select{
+    flex-basis:54%;
+    width:54%;
+    max-width:54%;
+    font-size:12px;
+  }
+  .quran-reader .reader-settings .reader-setting input[type=range]{
+    flex-basis:48%;
+    width:48%;
+    min-width:80px;
+  }
+}
+
 </style><link rel="stylesheet" href="./noor-v5.css"></head><body><div class="layout"><aside class="sidebar"><a class="brand" href="#" onclick="go('home');return false"><span class="logo">☾</span>Noor</a><div class="nav-label">YOUR DAY</div><div class="nav" id="sideNav"></div><div class="nav-label">EXPLORE</div><div class="nav" id="moreNav"></div><div class="sidebar-bottom"><div class="location">⌖ &nbsp;YOUR LOCATION<b id="locationName">London, United Kingdom</b></div><div class="profile"><div class="avatar">S</div><div><b>Samira</b><small>Free account</small></div><button class="plain" style="margin-left:auto" onclick="go(&quot;settings&quot;)">⚙</button></div></div></aside><main><header class="top"><div class="crumb"><span id="crumb">Home</span> <span id="hijriTop" style="margin-left:12px"></span></div><div class="topright"><button class="iconbtn" title="Notifications" onclick="toast(&quot;You’re all caught up&quot;)">♧</button><button class="iconbtn" title="Settings" onclick="go(&quot;settings&quot;)">⚙</button><div class="avatar">S</div></div></header><div class="content" id="view"></div></main></div><nav class="mobilebar" id="mobileNav"></nav><div class="toast" id="toast"></div>
 <script>
 const pages=[['home','⌂','Home'],['prayers','◷','Prayer times'],['quran','▤','Quran'],['qibla','◎','Qibla'],['duas','♡','Duas'],['tasbeeh','◉','Tasbeeh'],['calendar','▦','Calendar'],['settings','⚙','Settings']];
