@@ -114,3 +114,6 @@ body.app-sepia{--bg:#eee5cf;--paper:#fff7e4;--ink:#382e22;--muted:#817464;--line
 .momin-settings-page #settingsTranslationStatusV6{margin:2px 0 14px;font-size:11px;line-height:1.5}
 @media(max-width:700px){.momin-settings-page .settings-save-actions{margin-top:14px}.momin-settings-page .settings-save-btn{width:100%;min-height:46px}}
 
+
+/* Suppress the previous modal pseudo-heading; V8 provides its own Settings header. */
+.quran-reader .reader-settings.momin-reader-settings-v8::before{display:none!important;content:none!important}
