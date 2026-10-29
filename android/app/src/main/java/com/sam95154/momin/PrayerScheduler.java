@@ -36,13 +36,19 @@ final class PrayerScheduler {
             boolean changed=diff(p,KEY_LAT,lat)||diff(p,KEY_LON,lon)||diff(p,KEY_ENABLED,o.optBoolean("notifications",true))
               ||diff(p,KEY_SOUND,sound(o.optString("sound","azan")) )||diff(p,KEY_TZ,zone(o.optString("timezone","UTC")))
               ||diff(p,KEY_METHOD,o.optString("method","3"))||diff(p,KEY_MADHAB,o.optString("madhab","standard"))||diff(p,KEY_LEAD,lead(o.optInt("reminderMinutes",0)));
+            boolean master=o.optBoolean("notifications",true);
             e.putString(KEY_LAT,Double.toString(lat));e.putString(KEY_LON,Double.toString(lon));
-            e.putBoolean(KEY_ENABLED,o.optBoolean("notifications",true));e.putString(KEY_SOUND,sound(o.optString("sound","azan")));
+            e.putBoolean(KEY_ENABLED,master);e.putString(KEY_SOUND,sound(o.optString("sound","azan")));
             e.putString(KEY_TZ,zone(o.optString("timezone","UTC")));e.putString(KEY_METHOD,o.optString("method","3"));
             e.putString(KEY_MADHAB,o.optString("madhab","standard"));e.putInt(KEY_LEAD,lead(o.optInt("reminderMinutes",0)));
             e.putString("city",o.optString("city",""));e.putString("country",o.optString("country",""));
-            for(String prayer:PRAYERS)e.putBoolean(prayer,o.optBoolean(prayer,o.optBoolean("notifications",true)));
-            e.apply();if(changed)scheduleUpcoming(context);
+            for(String prayer:PRAYERS) {
+                boolean enabled=o.optBoolean(prayer,master);
+                if(diff(p,prayer,enabled)) changed=true;
+                e.putBoolean(prayer,enabled);
+            }
+            e.apply();
+            if(changed)scheduleUpcoming(context);
         } catch(Exception ex){Log.w("MOMIN-PrayerScheduler","Could not sync native prayer preferences",ex);}
     }
     private static boolean diff(SharedPreferences p,String key,boolean v){return !p.contains(key)||p.getBoolean(key,!v)!=v;}

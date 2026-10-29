@@ -109,7 +109,7 @@ public class MainActivity extends Activity {
                 "var num=function(){for(var i=0;i<arguments.length;i++){var n=Number(arguments[i]);if(arguments[i]!==null&&arguments[i]!==undefined&&arguments[i]!==''&&isFinite(n))return n;}return null};" +
                 "var lat=num(get('noor-latitude',null),store.latitude,cache&&cache.latitude,meta.latitude);" +
                 "var lon=num(get('noor-longitude',null),store.longitude,cache&&cache.longitude,meta.longitude);var master=get('noor-notifications','true')!=='false';" +
-                "var method=String((cache&&cache.method)||(store&&store.method)||get('noor-method','3')||'3');" +
+                "var method=String((store&&store.method)||get('noor-method',null)||(cache&&cache.method)||'3');" +
                 "var p={latitude:lat,longitude:lon,timezone:String(meta.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'),method:method,madhab:get('noor-asr-method','standard'),notifications:master," +
                 "fajr:get('noor-notify-fajr',master?'true':'false')!=='false',dhuhr:get('noor-notify-dhuhr',master?'true':'false')!=='false',asr:get('noor-notify-asr',master?'true':'false')!=='false'," +
                 "maghrib:get('noor-notify-maghrib',master?'true':'false')!=='false',isha:get('noor-notify-isha',master?'true':'false')!=='false'," +
