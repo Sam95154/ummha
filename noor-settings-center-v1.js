@@ -136,8 +136,8 @@
   };
   window.openMominFounderPageV1=function(){
     try{
-      if(typeof window.mominFounderPageV1==="function"){go("founder");return}
-      notify("Founder page is not ready. Refresh MOMIN and try again.");
+      if(typeof window.openMominFounderRouteV1==="function"){window.openMominFounderRouteV1();return}
+      notify("Founder page navigation is not ready. Refresh MOMIN and try again.");
     }catch(e){
       notify("Unable to open the Founder page. Please refresh MOMIN and try again.");
     }
