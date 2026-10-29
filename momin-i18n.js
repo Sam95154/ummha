@@ -51,6 +51,7 @@
     var key = lang + "|" + source;
     if (lang === "en") return Promise.resolve(source);
     if (cache[key]) return Promise.resolve(cache[key]);
+    if (get("momin-privacy-online-translation", "true") === "false") return Promise.resolve(fallback(source, lang));
     if (pending[key]) return pending[key];
     var url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + encodeURIComponent(lang) + "&dt=t&q=" + encodeURIComponent(source);
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
