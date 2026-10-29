@@ -7,7 +7,7 @@
   var CACHE_KEY = "momin-i18n-cache-v1";
   var RTL = { ar: true, ks: true, sd: true, ur: true };
   var SUPPORTED = [
-    "en","as","bn","brx","doi","gu","hi","kn","ks","gom","mai","ml","mni-Mtei",
+    "en","as","bn","brx","doi","gu","hi","kn","ks","kok","mai","ml","mni",
     "mr","ne","or","pa","sa","sat","sd","ta","te","ur","ar"
   ];
   var epoch = 0, queue = [], running = 0, scanTimer = 0, scanPending = false;
