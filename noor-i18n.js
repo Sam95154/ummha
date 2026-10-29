@@ -204,16 +204,16 @@
     return '<div class="card" style="margin-top:16px" id="noorAccessibilitySettings">' +
       '<h3>Accessibility</h3><p class="sub">Adjust the app to make reading and navigation more comfortable.</p>' +
       '<div class="setting"><div><b>Text size</b><small>Make interface text easier to read</small></div>' +
-      '<select id="noorTextSize" aria-label="Text size" onchange="setAppAccessibilityV5(\\'textSize\\',this.value)">' +
+      '<select id="noorTextSize" aria-label="Text size" onchange="setAppAccessibilityV5(\'textSize\',this.value)">' +
       '<option value="normal"' + (textSize === 'normal' ? ' selected' : '') + '>Standard</option>' +
       '<option value="large"' + (textSize === 'large' ? ' selected' : '') + '>Large</option>' +
       '<option value="xlarge"' + (textSize === 'xlarge' ? ' selected' : '') + '>Extra large</option></select></div>' +
       '<div class="setting"><div><b>High contrast</b><small>Increase text and border contrast</small></div>' +
       '<input class="toggle" type="checkbox" id="noorHighContrast" aria-label="High contrast" ' + (accessibility.highContrast ? 'checked ' : '') +
-      'onchange="setAppAccessibilityV5(\\'highContrast\\',this.checked)"></div>' +
+      'onchange="setAppAccessibilityV5(\'highContrast\',this.checked)"></div>' +
       '<div class="setting"><div><b>Reduce motion</b><small>Reduce animations and transitions</small></div>' +
       '<input class="toggle" type="checkbox" id="noorReduceMotion" aria-label="Reduce motion" ' + (accessibility.reduceMotion ? 'checked ' : '') +
-      'onchange="setAppAccessibilityV5(\\'reduceMotion\\',this.checked)"></div></div>';
+      'onchange="setAppAccessibilityV5(\'reduceMotion\',this.checked)"></div></div>';
   }
 
   if (typeof window.settingsPage === 'function') {
