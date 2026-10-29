@@ -1106,7 +1106,7 @@ openSurah=function(n){quranView='reader';readerLoading=true;readSurah(n);window.
 returnToQuranLibrary=function(){quranView='library';readerLoading=false;stopAudio();render();window.scrollTo(0,0)};
 </script>
 <!-- NOOR QURAN HUB V4 END -->
-<script src="./noor-v5.js?v=quran-settings-tabs-v8"></script><script src="./noor-duas.js?v=duas-quran-icon-v2"></script><script src="./noor-quran-header.js?v=plate-v1"></script><script src="./noor-tasbih.js?v=tasbih-v1"></script><script src="./noor-qibla-finder.js?v=design-v1"></script><script src="./noor-quran-settings-v8.js?v=2"></script><script id="noor-mosques-calendar-v1-inline">/* MOMIN Nearby Mosques + Hijri Calendar V1 */
+<script src="./noor-v5.js?v=quran-settings-tabs-v8"></script><script src="./noor-duas.js?v=duas-favorite-heart-v3"></script><script src="./noor-quran-header.js?v=plate-v1"></script><script src="./noor-tasbih.js?v=tasbih-v1"></script><script src="./noor-qibla-finder.js?v=design-v1"></script><script src="./noor-quran-settings-v8.js?v=2"></script><script id="noor-mosques-calendar-v1-inline">/* MOMIN Nearby Mosques + Hijri Calendar V1 */
 (function(){
 "use strict";
 var mosqueV1={radius:3000,coords:null,items:[],loading:false,error:"",query:"",initialized:false,lastKey:"",searchToken:0,cityLabel:""};
@@ -1633,6 +1633,34 @@ html[data-theme] .dua-bottom-nav a svg.dua-nav-quran-icon{
  fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round
 }
 html[data-theme] .dua-bottom-nav a{gap:3px}
+
+/* Duas header saved/favorites action — gold heart with a tactile active state. */
+html[data-theme] .dua-top-actions .dua-favorite-trigger{
+ display:grid!important;place-items:center!important;flex:0 0 42px!important;
+ width:42px!important;height:42px!important;border-radius:50%!important;
+ border:1px solid rgba(213,177,94,.48)!important;
+ background:radial-gradient(circle at 32% 24%,rgba(244,219,155,.2),transparent 54%),linear-gradient(145deg,rgba(217,177,91,.14),rgba(106,75,27,.08))!important;
+ color:#dfbd6c!important;box-shadow:0 4px 14px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,240,194,.1)!important;
+ transition:transform .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease!important
+}
+html[data-theme] .dua-top-actions .dua-favorite-trigger .dua-header-heart{
+ display:block!important;width:22px!important;height:22px!important;
+ fill:transparent!important;stroke:currentColor!important;stroke-width:1.65!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+ filter:drop-shadow(0 1px 1px rgba(0,0,0,.12));transition:fill .18s ease,transform .18s ease!important
+}
+html[data-theme] .dua-top-actions .dua-favorite-trigger:hover,
+html[data-theme] .dua-top-actions .dua-favorite-trigger:focus-visible{
+ transform:translateY(-1px) scale(1.04);
+ border-color:#e6c575!important;background:linear-gradient(145deg,#f2d991,#b88a35)!important;
+ color:#21170a!important;box-shadow:0 7px 20px rgba(181,138,57,.27)!important;outline:2px solid rgba(223,189,108,.25);outline-offset:2px
+}
+html[data-theme] .dua-top-actions .dua-favorite-trigger:hover .dua-header-heart,
+html[data-theme] .dua-top-actions .dua-favorite-trigger:focus-visible .dua-header-heart,
+html[data-theme] .dua-top-actions .dua-favorite-trigger:active .dua-header-heart{fill:currentColor!important}
+html[data-theme] .dua-top-actions .dua-favorite-trigger:active{transform:scale(.94)}
+@media(prefers-reduced-motion:reduce){html[data-theme] .dua-top-actions .dua-favorite-trigger,html[data-theme] .dua-top-actions .dua-favorite-trigger .dua-header-heart{transition:none!important}}
+
 @media(max-width:360px){
  html[data-theme] .dua-shortcuts-grid-v1{gap:8px!important}
  html[data-theme] .dua-shortcuts-grid-v1>a{grid-template-columns:28px minmax(0,1fr)!important;padding:10px 8px!important;column-gap:7px!important}
