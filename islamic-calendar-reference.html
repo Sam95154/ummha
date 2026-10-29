@@ -150,6 +150,7 @@ nav a[aria-current] svg{color:var(--accent)!important}
   applyMominCalendarTheme(saved);
   window.addEventListener("storage",function(event){
     if(event.key==="noor-theme")applyMominCalendarTheme(event.newValue||"Dark");
+    if(event.key==="noor-hijri-adjustment"&&window.MominCalendarSettingsV1)window.MominCalendarSettingsV1.setHijriAdjustment(event.newValue);
   });
 })();
 </script>
@@ -201,16 +202,17 @@ nav a[aria-current] svg{color:var(--accent)!important}
 <script>
 var HN=["Muḥarram","Ṣafar","Rabīʿ al-awwal","Rabīʿ al-thānī","Jumādá al-ūlá","Jumādá al-ākhirah","Rajab","Shaʿbān","Ramaḍān","Shawwāl","Dhū al-Qaʿdah","Dhū al-Ḥijjah"];
 var RULES=[[1,1,"Islamic New Year","Start of the Hijri year","new"],[1,10,"Day of Ashura","Recommended day of fasting","fast"],[3,12,"Mawlid al-Nabi","Birth of the Prophet ﷺ, observed by many","night"],[7,27,"Isra and Miʿraj","The Night Journey","night"],[8,15,"Mid-Shaʿbān","Night of Barāʾah","night"],[9,1,"Ramadan begins","First day of fasting","fast"],[9,27,"Laylat al-Qadr","Commonly sought on the 27th night","night"],[10,1,"Eid al-Fitr","Festival of breaking the fast","eid"],[12,9,"Day of Arafah","Recommended fast for those not on Hajj","fast"],[12,10,"Eid al-Adha","Festival of sacrifice","eid"]];
+var hijriAdjustment=0;try{var savedHijriAdjustment=Number(localStorage.getItem("noor-hijri-adjustment")||"0");if(savedHijriAdjustment===-1||savedHijriAdjustment===0||savedHijriAdjustment===1)hijriAdjustment=savedHijriAdjustment}catch(_){}
 var F=new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn",{day:"numeric",month:"numeric",year:"numeric"});
-function hij(d){var p={};F.formatToParts(d).forEach(function(x){p[x.type]=x.value});return{d:+p.day,m:+p.month,y:parseInt(p.year||p.relatedYear)}}
+function hij(d){var shifted=new Date(+d);shifted.setDate(shifted.getDate()+hijriAdjustment);var p={};F.formatToParts(shifted).forEach(function(x){p[x.type]=x.value});return{d:+p.day,m:+p.month,y:parseInt(p.year||p.relatedYear)}}
 function D(y,m,d){return new Date(y,m,d,12)}
 function key(d){return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate()}
 function hs(h){return h.d+" "+HN[h.m-1]+" "+h.y+" AH"}
 function G(d,o){return d.toLocaleDateString("en-GB",o)}
 var now=new Date(),T=D(now.getFullYear(),now.getMonth(),now.getDate());
 var EV={},LIST=[];
-for(var d=D(2026,0,1);d<=D(2028,11,31);d=D(d.getFullYear(),d.getMonth(),d.getDate()+1)){
-  var h=hij(d);RULES.forEach(function(r){if(r[0]===h.m&&r[1]===h.d){var e={date:d,h:h,n:r[2],t:r[3],k:r[4]};EV[key(d)]=e;LIST.push(e)}})}
+function rebuildHijriEvents(){EV={};LIST=[];for(var d=D(2026,0,1);d<=D(2028,11,31);d=D(d.getFullYear(),d.getMonth(),d.getDate()+1)){var h=hij(d);RULES.forEach(function(r){if(r[0]===h.m&&r[1]===h.d){var e={date:d,h:h,n:r[2],t:r[3],k:r[4]};EV[key(d)]=e;LIST.push(e)}})}}
+rebuildHijriEvents();
 var $=function(i){return document.getElementById(i)};
 var view={y:T.getFullYear(),m:T.getMonth()},sel=T,hy=hij(T).y;
 var diff=function(a,b){return Math.round((a-b)/864e5)};
@@ -263,6 +265,7 @@ $("list").onclick=function(ev){var b=ev.target.closest(".it");if(!b)return;var d
   var dir=(d.getFullYear()*12+d.getMonth())-(view.y*12+view.m);view.y=d.getFullYear();view.m=d.getMonth();render(dir);
   $("calendar").scrollIntoView({behavior:"smooth",block:"start"})};
 render();hero();tabs();list();
+window.MominCalendarSettingsV1={setHijriAdjustment:function(value){var n=Number(value);if(n!==-1&&n!==0&&n!==1)n=0;hijriAdjustment=n;rebuildHijriEvents();hy=hij(T).y;$("todayH").textContent=hs(hij(T));hero();tabs();list();render()}};
 </script>
 
 <script>
