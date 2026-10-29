@@ -3,6 +3,22 @@
 var primaryTabsV5=[['home','⌂','Home'],['prayers','◷','Prayers'],['quran','▤','Quran'],['journey','◉','Journey']];
 var moreTabsV5=[['qibla','◎','Qibla'],['duas','♡','Duas'],['mosques','⌖','Mosques'],['giving','♧','Giving'],['tasbeeh','◉','Tasbeeh'],['inspiration','✧','Inspiration'],['calendar','▦','Calendar'],['settings','⚙','Settings']];
 var pageNamesV5={home:'Home',prayers:'Prayers',quran:'Quran',journey:'My Journey',qibla:'Qibla',duas:'Duas',mosques:'Mosques',giving:'Giving',tasbeeh:'Tasbih',calendar:'Calendar',inspiration:'Inspiration',settings:'Settings',profile:'Profile',notifications:'Notifications'};
+/* Restore GPS coordinates saved by the location button. */
+(function restoreSavedCoordinatesV5(){
+  try {
+    var savedLat = localStorage.getItem('noor-latitude');
+    var savedLon = localStorage.getItem('noor-longitude');
+    if (savedLat !== null && savedLon !== null && savedLat.trim() !== '' && savedLon.trim() !== '') {
+      var lat = Number(savedLat), lon = Number(savedLon);
+      if (Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+        API_STORE.latitude = lat;
+        API_STORE.longitude = lon;
+        API_STORE.city = localStorage.getItem('noor-city') || 'My location';
+        API_STORE.country = localStorage.getItem('noor-country') || '';
+      }
+    }
+  } catch (_) {}
+})();
 var quranTranslationsV5=[
  {id:'en.sahih',label:'English — Saheeh International',language:'en',dir:'ltr'},
  {id:'en.yusufali',label:'English — Yusuf Ali',language:'en',dir:'ltr'},
@@ -60,7 +76,125 @@ function mapsMosqueUrlV5(){var place=API_STORE.latitude!==null?API_STORE.latitud
 function openGoogleMapsMosquesV5(){var url=mapsMosqueUrlV5();window.open(url,'_blank','noopener,noreferrer')}
 function mosquesPageV5(){var place=currentLocationLabelV5();return title('Mosques near me','Find nearby prayer spaces with Google Maps',API_STORE.latitude!==null?'Device location':'Location ready')+'<div class="card mosque-map-card"><div><div class="mosque-map-icon">🕌</div><h2 style="font:600 24px var(--serif);margin:12px 0 4px">Mosques around '+escapeAppHtmlV5(place)+'</h2><p>Google Maps will show the mosque locations, opening hours, and directions for this area.</p><div class="map-actions"><button class="map-primary" onclick="openGoogleMapsMosquesV5()">Open nearby mosques in Google Maps ↗</button><button class="map-secondary" onclick="setLocation()">Use current location</button></div></div></div><div class="grid g2" style="margin-top:14px"><div class="card"><h3>Using your location</h3><p class="sub" style="line-height:1.7;margin:8px 0 0">'+(API_STORE.latitude!==null?'Using device coordinates for the Maps search and prayer calculations.':'Use your device location, or enter your city and country in Prayer settings.')+'</p><button class="smallbtn" style="margin-top:12px" onclick="go(\'prayers\')">Prayer location settings →</button></div><div class="card"><h3>Directions</h3><p class="sub" style="line-height:1.7;margin:8px 0 0">Choose a mosque in Google Maps to see its route and current travel details.</p><button class="smallbtn" style="margin-top:12px" onclick="openGoogleMapsMosquesV5()">Search on Google Maps →</button></div></div>'}
 mosquesPage=mosquesPageV5;
-qiblaPage=function(){var angle=Number(liveQibla)||118,place=currentLocationLabelV5();return title('Qibla direction','Face the Kaaba wherever you are',escapeAppHtmlV5(place)+' · '+Math.round(angle)+'°')+'<div class="grid g2"><div class="card"><div class="rowbetween"><div><h3>Compass direction</h3><div class="sub">The marker points toward Makkah</div></div><span class="tag">'+Math.round(angle)+'° from north</span></div><div class="compass-wrap"><div class="compass"><div class="needle" style="transform:rotate('+angle+'deg)"><span class="kaaba">⌂</span></div><span class="center-dot"></span></div></div><div style="text-align:center"><button class="smallbtn" onclick="toast(\'Keep the phone flat and away from magnetic objects\')">Compass guidance</button></div></div><div class="card"><h3>About your Qibla</h3><p class="sub" style="line-height:1.8;margin-top:12px">The Qibla is the direction of the Kaaba in Makkah. The bearing is calculated for '+escapeAppHtmlV5(place)+'.</p><div class="setting"><b>Direction</b><span>'+Math.round(angle)+'° from north</span></div><div class="setting"><b>Location</b><span>'+escapeAppHtmlV5(place)+'</span></div><p class="settings-note">For best accuracy, keep your phone flat and calibrate its compass away from magnetic objects.</p><button class="smallbtn" onclick="setLocation()">Update location</button></div></div>'};
+/* Qibla: calculate from the actual selected coordinates and rotate the dial with device heading. */
+var qiblaHeadingV5 = null, qiblaCompassRequestedV5 = false, qiblaOrientationHandlerV5 = null;
+function normalizeQiblaDegreesV5(value) {
+  var number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  return ((number % 360) + 360) % 360;
+}
+function validQiblaCoordinatesV5(lat, lon) {
+  if (lat === null || lat === undefined || lon === null || lon === undefined || lat === '' || lon === '') return null;
+  lat = Number(lat); lon = Number(lon);
+  return Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180 ? { latitude: lat, longitude: lon } : null;
+}
+function qiblaCoordinatesV5() {
+  var pair = validQiblaCoordinatesV5(API_STORE.latitude, API_STORE.longitude);
+  if (pair) return pair;
+  if (livePrayer && livePrayer.meta) {
+    pair = validQiblaCoordinatesV5(livePrayer.meta.latitude, livePrayer.meta.longitude);
+    if (pair) return pair;
+  }
+  try {
+    var cache = JSON.parse(localStorage.getItem('noor-prayer-cache') || 'null');
+    if (cache && cache.city === API_STORE.city && cache.country === API_STORE.country && cache.data && cache.data.meta) {
+      pair = validQiblaCoordinatesV5(cache.data.meta.latitude, cache.data.meta.longitude);
+      if (pair) return pair;
+    }
+  } catch (_) {}
+  return null;
+}
+function calculateQiblaBearingV5(latitude, longitude) {
+  var kaabaLat = 21.422487 * Math.PI / 180;
+  var kaabaLon = 39.826206 * Math.PI / 180;
+  var userLat = Number(latitude) * Math.PI / 180;
+  var userLon = Number(longitude) * Math.PI / 180;
+  var deltaLon = kaabaLon - userLon;
+  var y = Math.sin(deltaLon);
+  var x = Math.cos(userLat) * Math.tan(kaabaLat) - Math.sin(userLat) * Math.cos(deltaLon);
+  return normalizeQiblaDegreesV5(Math.atan2(y, x) * 180 / Math.PI);
+}
+function currentQiblaBearingV5() {
+  var coords = qiblaCoordinatesV5();
+  if (coords) {
+    var computed = calculateQiblaBearingV5(coords.latitude, coords.longitude);
+    if (computed !== null) {
+      liveQibla = computed;
+      try { localStorage.setItem('noor-qibla', String(computed)); } catch (_) {}
+      return computed;
+    }
+  }
+  if (liveQibla !== null && liveQibla !== undefined && Number.isFinite(Number(liveQibla))) return normalizeQiblaDegreesV5(liveQibla);
+  var cached = localStorage.getItem('noor-qibla');
+  return cached !== null && cached.trim() !== '' && Number.isFinite(Number(cached)) ? normalizeQiblaDegreesV5(cached) : null;
+}
+function qiblaCardinalV5(degrees) {
+  var directions = ['N','NE','E','SE','S','SW','W','NW'];
+  return directions[Math.round(normalizeQiblaDegreesV5(degrees) / 45) % 8];
+}
+function updateQiblaCompassUIV5() {
+  var dial = document.getElementById('qiblaDialV5');
+  if (dial) dial.style.transform = 'rotate(' + (qiblaHeadingV5 === null ? 0 : -qiblaHeadingV5) + 'deg)';
+  var status = document.getElementById('qiblaCompassStatusV5');
+  if (status) {
+    if (qiblaHeadingV5 !== null) status.textContent = 'Live compass active · phone facing ' + qiblaCardinalV5(qiblaHeadingV5) + ' (' + Math.round(qiblaHeadingV5) + '°)';
+    else if (qiblaCompassRequestedV5) status.textContent = 'Waiting for compass data… If it does not appear, check browser permissions or use the bearing below.';
+    else status.textContent = 'Enable the live compass to align the Qibla marker with your phone.';
+  }
+  var button = document.getElementById('qiblaEnableCompassV5');
+  if (button) button.style.display = qiblaHeadingV5 !== null ? 'none' : '';
+}
+function startQiblaCompassV5() {
+  if (!window.isSecureContext) { toast('Live compass requires a secure HTTPS connection.'); return; }
+  var Orientation = window.DeviceOrientationEvent;
+  if (!Orientation) { toast('This browser does not provide a device compass. Use the calculated bearing instead.'); return; }
+  function beginListening() {
+    if (qiblaCompassRequestedV5) { toast('Compass is already enabled. Turn your phone slowly to align the marker.'); return; }
+    qiblaCompassRequestedV5 = true;
+    qiblaOrientationHandlerV5 = function (event) {
+      var heading = null;
+      if (typeof event.webkitCompassHeading === 'number' && event.webkitCompassHeading >= 0) {
+        heading = event.webkitCompassHeading;
+      } else if (event.absolute === true && typeof event.alpha === 'number') {
+        heading = 360 - event.alpha;
+      }
+      heading = normalizeQiblaDegreesV5(heading);
+      if (heading === null) return;
+      qiblaHeadingV5 = heading;
+      updateQiblaCompassUIV5();
+    };
+    window.addEventListener('deviceorientation', qiblaOrientationHandlerV5, true);
+    window.addEventListener('deviceorientationabsolute', qiblaOrientationHandlerV5, true);
+    updateQiblaCompassUIV5();
+    toast('Compass enabled. Keep the phone flat and turn it slowly.');
+    window.setTimeout(function () {
+      if (qiblaHeadingV5 === null) {
+        var status = document.getElementById('qiblaCompassStatusV5');
+        if (status) status.textContent = 'No absolute compass reading was received. Your phone/browser may not support a live compass; use the calculated bearing below.';
+      }
+    }, 5000);
+  }
+  if (typeof Orientation.requestPermission === 'function') {
+    Orientation.requestPermission().then(function (permission) {
+      if (permission === 'granted') beginListening();
+      else toast('Compass permission was not granted. You can still use the calculated bearing.');
+    }).catch(function () { toast('Could not enable the compass. Check browser permissions.'); });
+  } else beginListening();
+}
+var qiblaCompassStylesV5 = document.createElement('style');
+qiblaCompassStylesV5.textContent = '.qibla-compass:before,.qibla-compass:after{content:none!important}.qibla-dial{position:absolute;inset:0;border-radius:50%;transition:transform .12s linear}.qibla-north,.qibla-south{position:absolute;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700}.qibla-north{top:15px;color:var(--green)}.qibla-south{bottom:15px;color:var(--muted)}.qibla-compass .needle{position:absolute;top:calc(50% - 102.5px);left:calc(50% - 1.5px)}.qibla-compass .center-dot{top:calc(50% - 5px);left:calc(50% - 5px)}.qibla-compass-status{font-size:12px;line-height:1.6;color:var(--muted);text-align:center;margin:9px auto 4px;max-width:320px}';
+document.head.appendChild(qiblaCompassStylesV5);
+qiblaPage = function () {
+  var angle = currentQiblaBearingV5(), place = currentLocationLabelV5();
+  var coordinates = qiblaCoordinatesV5();
+  var bearingText = angle === null ? 'Set location' : Math.round(angle) + '° ' + qiblaCardinalV5(angle);
+  var heading = qiblaHeadingV5 === null ? 0 : qiblaHeadingV5;
+  var dialMarkup = angle === null
+    ? '<div class="qibla-no-bearing">Choose a city or allow location access to calculate your Qibla bearing.</div>'
+    : '<div class="compass qibla-compass"><div class="qibla-dial" id="qiblaDialV5" style="transform:rotate(' + (-heading) + 'deg)"><span class="qibla-north">N</span><span class="qibla-south">S</span><div class="needle" style="transform:rotate(' + angle + 'deg)"><span class="kaaba">⌂</span></div><span class="center-dot"></span></div></div>';
+  return title('Qibla direction', 'Calculated from your selected location', angle === null ? 'Bearing unavailable' : bearingText + ' from north')
+    + '<div class="grid g2"><div class="card"><div class="rowbetween"><div><h3>Qibla compass</h3><div class="sub">The marker points toward the Kaaba</div></div><span class="tag">' + (angle === null ? '—' : Math.round(angle) + '°') + '</span></div><div class="compass-wrap">' + dialMarkup + '</div><div style="text-align:center"><button class="smallbtn" id="qiblaEnableCompassV5" onclick="startQiblaCompassV5()" ' + (qiblaHeadingV5 !== null ? 'style="display:none"' : '') + '>Enable live compass</button><p class="qibla-compass-status" id="qiblaCompassStatusV5">' + (qiblaHeadingV5 !== null ? 'Live compass active · phone facing ' + qiblaCardinalV5(qiblaHeadingV5) + ' (' + Math.round(qiblaHeadingV5) + '°)' : 'Enable the live compass to align the Qibla marker with your phone.') + '</p></div></div><div class="card"><h3>About your Qibla</h3><p class="sub" style="line-height:1.8;margin-top:12px">' + (angle === null ? 'Choose a city in Prayer times or enable GPS location to calculate a direction to the Kaaba in Makkah.' : 'The calculated initial bearing to the Kaaba is <b>' + Math.round(angle) + '° ' + qiblaCardinalV5(angle) + '</b> clockwise from north for ' + escapeAppHtmlV5(place) + '.') + '</p><div class="setting"><b>Direction</b><span>' + (angle === null ? '—' : Math.round(angle) + '° ' + qiblaCardinalV5(angle)) + '</span></div><div class="setting"><b>Location</b><span>' + escapeAppHtmlV5(place) + '</span></div><p class="settings-note">' + (coordinates ? 'Bearing computed from the saved coordinates for this location.' : 'A saved bearing may be shown until location coordinates are available. Set or refresh your location for the best result.') + ' Keep your phone flat and away from magnetic objects. A device compass can be affected by nearby magnets and sensor quality.</p><button class="smallbtn" onclick="go(\'prayers\')">Update location →</button></div></div>';
+};
 var oldDuaListV5=duaList;duaList=function(filter){var f=String(filter||'').trim().toLowerCase(),favorites=JSON.parse(localStorage.getItem('noor-dua-favorites')||'[]');return duas.map(function(d,i){return{d:d,i:i}}).filter(function(x){return !f||x.d.join(' ').toLowerCase().includes(f)}).map(function(x){var d=x.d,i=x.i,saved=favorites.indexOf(i)>=0;return '<article class="card dua"><div class="rowbetween"><h3>'+escapeAppHtmlV5(d[0])+'</h3><button class="smallbtn" aria-label="'+(saved?'Remove saved dua':'Save dua')+'" onclick="toggleDuaFavoriteV5('+i+')">'+(saved?'♥ Saved':'♡ Save')+'</button></div><div class="arabic" lang="ar">'+escapeAppHtmlV5(d[1])+'</div><p>'+escapeAppHtmlV5(d[2])+'</p><span class="sub">Arabic · English meaning</span></article>'}).join('')||'<div class="card"><p class="sub">No duas match that search. Try another word.</p></div>'};
 filterDuas=function(filter){var box=document.getElementById('duaList');if(box)box.innerHTML=duaList(filter)};
 function toggleDuaFavoriteV5(index){var saved=JSON.parse(localStorage.getItem('noor-dua-favorites')||'[]'),at=saved.indexOf(index);if(at>=0)saved.splice(at,1);else saved.push(index);localStorage.setItem('noor-dua-favorites',JSON.stringify(saved));var input=document.getElementById('duaSearch');filterDuas(input?input.value:'');toast(at>=0?'Dua removed from saved items':'Dua saved on this device')}
