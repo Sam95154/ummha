@@ -56,20 +56,37 @@ function currentLocationLabelV5(){var city=String(API_STORE.city||'').trim(),cou
 function setLocationStatusV5(message){var el=document.getElementById('locationStatusV5');if(el)el.textContent=message}
 async function reverseGeocodeLocationV5(lat,lon){
   var url='https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+encodeURIComponent(lat)+'&longitude='+encodeURIComponent(lon)+'&localityLanguage=en';
-  try{
-    var data=await getJSON(url);
+  function clean(value){return String(value||'').trim()}
+  function chooseBigCity(data){
     var admin=data.localityInfo&&Array.isArray(data.localityInfo.administrative)?data.localityInfo.administrative:[];
-    var area=admin.find(function(x){return /city|town|village|municipality|district/i.test(String(x.description||''))});
-    var city=String(data.city||data.locality||data.localityName||(area&&area.name)||'').trim();
-    var country=String(data.countryName||'').trim();
+    var info=data.localityInfo&&Array.isArray(data.localityInfo.informative)?data.localityInfo.informative:[];
+    var area=admin.find(function(x){return /city|town|village|municipality|district|county|locality|administrative area level 2/i.test(String(x.description||x.name||''))});
+    var city=clean(data.city)||clean(data.locality)||clean(data.localityName)||clean(data.town)||clean(data.village)||clean(data.municipality)||clean(area&&area.name);
+    if(!city){
+      var candidate=admin.find(function(x){return Number(x.adminLevel)>=6&&Number(x.adminLevel)<=8})||admin.find(function(x){return /city|town|village|municipality|district|county|locality/i.test(String(x.description||''))});
+      city=clean(candidate&&candidate.name);
+    }
+    if(!city&&info.length)city=clean(info.find(function(x){return /city|town|village|municipality|district|county|locality/i.test(String(x.description||x.name||''))})?.name);
+    var country=clean(data.countryName);
+    return city&&country?{city:city,country:country}:null;
+  }
+  try{
+    var data=await getJSON(url),found=chooseBigCity(data);
+    if(found)return found;
+  }catch(_){}
+  try{
+    var osm=await getJSON('https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=12&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lon));
+    var a=osm.address||{};
+    var city=clean(a.city)||clean(a.town)||clean(a.village)||clean(a.municipality)||clean(a.locality)||clean(a.city_district)||clean(a.borough)||clean(a.suburb)||clean(a.county)||clean(a.state_district);
+    var country=clean(a.country);
     if(city&&country)return {city:city,country:country};
   }catch(_){}
   try{
-    var osm=await getJSON('https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=10&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lon));
-    var a=osm.address||{};
-    var osmCity=String(a.city||a.town||a.village||a.municipality||a.locality||a.suburb||a.county||a.state_district||'').trim();
-    var osmCountry=String(a.country||'').trim();
-    if(osmCity&&osmCountry)return {city:osmCity,country:osmCountry};
+    var photon=await getJSON('https://photon.komoot.io/reverse?lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lon)+'&lang=en');
+    var feature=photon.features&&photon.features[0],p=feature&&feature.properties||{};
+    var city=clean(p.city)||clean(p.town)||clean(p.village)||clean(p.locality)||clean(p.district)||clean(p.county)||clean(p.name);
+    var country=clean(p.country);
+    if(city&&country)return {city:city,country:country};
   }catch(_){}
   return null;
 }
@@ -99,7 +116,7 @@ function hijriLabelV5(){if(!livePrayer||!livePrayer.date||!livePrayer.date.hijri
 function weekStripV5(){var now=new Date(),start=new Date(now);start.setDate(now.getDate()-((now.getDay()+6)%7));return '<div class="prayer-calendar-strip">'+Array.from({length:7},function(_,i){var d=new Date(start);d.setDate(start.getDate()+i);return '<div class="prayer-day '+(d.toDateString()===now.toDateString()?'active':'')+'">'+d.toLocaleDateString('en',{weekday:'short'})+'<strong>'+d.getDate()+'</strong></div>'}).join('')+'</div>'}
 function homeV5(){var state=prayerStateV5(),h=livePrayer&&livePrayer.date&&livePrayer.date.hijri,name=localStorage.getItem('noor-name')||'Samira',location=currentLocationLabelV5(),tools=[['qibla','🕋','Qibla'],['duas','🤲','Duas'],['mosques','🕌','Mosques'],['tasbeeh','📿','Tasbih'],['quran','📖','Quran'],['giving','💚','Giving'],['inspiration','✨','Inspiration'],['calendar','▦','Calendar']];return '<div class="home-date-row"><div><h1>Assalamu alaikum, '+escapeAppHtmlV5(name)+'</h1><p>Today, '+dateText()+' · '+(h?h.day+' '+h.month.en+' '+h.year+' AH':'Islamic date loading')+'</p></div><button class="location-chip" onclick="go(\'prayers\')">⌖ '+escapeAppHtmlV5(location)+' · Change</button></div><div class="grid g2"><div class="card hero-card"><div class="home-prayer-state"><span class="now-dot"></span> NOW · '+(state?escapeAppHtmlV5(state.active):'PRAYER TIMES')+'</div><h2 style="font:500 34px var(--serif);margin:17px 0 4px">'+(state?escapeAppHtmlV5(state.active):'Set your location')+'</h2><div class="sub">'+(state?formatPrayerTime(livePrayer.timings[state.active])+' · Next '+escapeAppHtmlV5(state.next)+' '+formatPrayerTime(state.nextTime)+(state.tomorrow?' tomorrow':''):'Prayer times will appear after your location is selected')+'</div><div class="timer">'+(state?state.remaining+' until '+escapeAppHtmlV5(state.next):'Choose GPS or enter your city to begin')+'</div><button class="btn-light" onclick="go(\'prayers\')">View all prayer times →</button></div><div class="card"><div class="rowbetween"><div><h3>Prayer tracker</h3><div class="sub">Your daily salah progress</div></div><span class="tag">'+Object.values(done).filter(Boolean).length+' of 5</span></div><div class="progress"><i style="width:'+Object.values(done).filter(Boolean).length*20+'%"></i></div><div class="prayerrows">'+prayerRowsV5()+'</div></div></div><div class="sectionhead"><h2>Features</h2><button class="plain" onclick="go(\'settings\')">Settings →</button></div><div class="home-tools">'+tools.map(function(x){return '<button class="home-tool" onclick="go(\''+x[0]+'\')"><span class="feature-icon">'+x[1]+'</span><b>'+x[2]+'</b></button>'}).join('')+'</div><div class="sectionhead"><h2>Continue Quran</h2><button class="plain" onclick="go(\'quran\')">Open →</button></div><button class="card rowbetween" style="width:100%;text-align:left" onclick="go(\'quran\')"><span><b>'+escapeAppHtmlV5(selectedSurah)+'</b><small class="sub" style="display:block;margin-top:4px">Arabic · translation · full-surah recitation</small></span><span class="tag">Read →</span></button><div class="sectionhead"><h2>Daily reflection</h2><button class="plain" onclick="go(\'inspiration\')">Open →</button></div><div class="card soft"><b>“For indeed, with hardship comes ease.”</b><p class="sub" style="margin:7px 0 0">Ash-Sharh · 94:5</p></div>'}
 home=homeV5;
-prayersPage=function(){var state=prayerStateV5(),t=livePrayer&&livePrayer.timings,methodOpts=Object.keys(PRAYER_METHODS).map(function(n){return '<option value="'+PRAYER_METHODS[n]+'" '+(API_STORE.method===PRAYER_METHODS[n]?'selected':'')+'>'+escapeAppHtmlV5(n)+'</option>'}).join(''),schedule=t?['Fajr','Dhuhr','Asr','Maghrib','Isha'].map(function(n){return '<span class="prayer-pill">'+n+' · '+formatPrayerTime(t[n])+'</span>'}).join(''):'<span class="prayer-pill">Select a location to calculate times</span>';return title('Prayer times','Daily times and salah tracker',hijriLabelV5())+weekStripV5()+'<div class="grid g2"><div class="card hero-card"><div class="home-prayer-state"><span class="now-dot"></span> '+(state?'NOW · '+escapeAppHtmlV5(state.active):'LOCAL PRAYER SCHEDULE')+'</div><h2 style="font:500 31px var(--serif);margin:17px 0 5px">'+(state?'Next: '+escapeAppHtmlV5(state.next):'Set your location')+'</h2><div class="sub">'+(state?formatPrayerTime(state.nextTime)+(state.tomorrow?' · tomorrow':'')+' · '+state.remaining+' remaining':'Prayer times are calculated for your selected location')+'</div><div class="statrow" style="flex-wrap:wrap">'+schedule+'</div></div><div class="card"><div class="rowbetween"><div><h3>Today’s prayers</h3><div class="sub">Tap a circle after you complete salah</div></div><span class="tag">'+Object.values(done).filter(Boolean).length+' of 5</span></div><div class="progress"><i style="width:'+Object.values(done).filter(Boolean).length*20+'%"></i></div><div class="prayerrows">'+prayerRowsV5()+'</div></div></div><div class="sectionhead"><h2>Location & calculation</h2></div><div class="card"><div class="setting"><div><b>Location</b><small id="settingLocation">'+escapeAppHtmlV5(currentLocationLabelV5())+'</small></div><button class="smallbtn" onclick="setLocation()">Use current location</button></div><div class="grid g2"><label>City<input id="cityInput" class="search" style="margin:8px 0" value="'+escapeAppHtmlV5(API_STORE.latitude!==null?'':API_STORE.city)+'"></label><label>Country<input id="countryInput" class="search" style="margin:8px 0" value="'+escapeAppHtmlV5(API_STORE.country)+'"></label></div><div class="rowbetween" style="gap:12px;flex-wrap:wrap"><label class="sub">Calculation method <select id="methodInput" style="padding:10px;border:1px solid var(--line);border-radius:9px;margin-left:8px">'+methodOpts+'</select></label><button class="smallbtn" onclick="applyPrayerSettings()">Update prayer times</button></div><p id="locationStatusV5" class="settings-note" role="status">Use current location to detect your town and country, or enter them manually. Prayer times will update after a location is set.</p><p class="settings-note">Prayer calculations can differ from local mosque timetables. Confirm times with your local authority. Your location is requested only when you tap “Use current location.”</p></div><div class="sectionhead"><h2>Find a mosque</h2><button class="plain" onclick="go(\'mosques\')">Nearby →</button></div><div class="card soft rowbetween" style="gap:12px;flex-wrap:wrap"><span><b>Prayer space near you</b><small class="sub" style="display:block;margin-top:4px">Search Google Maps using your current location or city.</small></span><button class="smallbtn" onclick="go(\'mosques\')">Find mosques →</button></div>'};
+prayersPage=function(){var state=prayerStateV5(),t=livePrayer&&livePrayer.timings,methodOpts=Object.keys(PRAYER_METHODS).map(function(n){return '<option value="'+PRAYER_METHODS[n]+'" '+(API_STORE.method===PRAYER_METHODS[n]?'selected':'')+'>'+escapeAppHtmlV5(n)+'</option>'}).join(''),schedule=t?['Fajr','Dhuhr','Asr','Maghrib','Isha'].map(function(n){return '<span class="prayer-pill">'+n+' · '+formatPrayerTime(t[n])+'</span>'}).join(''):'<span class="prayer-pill">Select a location to calculate times</span>';return title('Prayer times','Daily times and salah tracker',hijriLabelV5())+weekStripV5()+'<div class="grid g2"><div class="card hero-card"><div class="home-prayer-state"><span class="now-dot"></span> '+(state?'NOW · '+escapeAppHtmlV5(state.active):'LOCAL PRAYER SCHEDULE')+'</div><h2 style="font:500 31px var(--serif);margin:17px 0 5px">'+(state?'Next: '+escapeAppHtmlV5(state.next):'Set your location')+'</h2><div class="sub">'+(state?formatPrayerTime(state.nextTime)+(state.tomorrow?' · tomorrow':'')+' · '+state.remaining+' remaining':'Prayer times are calculated for your selected location')+'</div><div class="statrow" style="flex-wrap:wrap">'+schedule+'</div></div><div class="card"><div class="rowbetween"><div><h3>Today’s prayers</h3><div class="sub">Tap a circle after you complete salah</div></div><span class="tag">'+Object.values(done).filter(Boolean).length+' of 5</span></div><div class="progress"><i style="width:'+Object.values(done).filter(Boolean).length*20+'%"></i></div><div class="prayerrows">'+prayerRowsV5()+'</div></div></div><div class="sectionhead"><h2>Location & calculation</h2></div><div class="card"><div class="setting"><div><b>Location</b><small id="settingLocation">'+escapeAppHtmlV5(currentLocationLabelV5())+'</small></div><button class="smallbtn" onclick="setLocation()">Use current location</button></div><div class="grid g2"><label>City<input id="cityInput" class="search" style="margin:8px 0" value="'+escapeAppHtmlV5(API_STORE.latitude!==null?'':API_STORE.city)+'"></label><label>Country<input id="countryInput" class="search" style="margin:8px 0" value="'+escapeAppHtmlV5(API_STORE.country)+'"></label></div><div class="rowbetween" style="gap:12px;flex-wrap:wrap"><label class="sub">Calculation method <select id="methodInput" style="padding:10px;border:1px solid var(--line);border-radius:9px;margin-left:8px">'+methodOpts+'</select></label><button class="smallbtn" onclick="applyPrayerSettings()">Update prayer times</button></div><p id="methodStatusV5" class="settings-note" role="status"></p><p id="locationStatusV5" class="settings-note" role="status">Use current location to detect your town and country, or enter them manually. Prayer times will update after a location is set.</p><p class="settings-note">Prayer calculations can differ from local mosque timetables. Confirm times with your local authority. Your location is requested only when you tap “Use current location.”</p></div><div class="sectionhead"><h2>Find a mosque</h2><button class="plain" onclick="go(\'mosques\')">Nearby →</button></div><div class="card soft rowbetween" style="gap:12px;flex-wrap:wrap"><span><b>Prayer space near you</b><small class="sub" style="display:block;margin-top:4px">Search Google Maps using your current location or city.</small></span><button class="smallbtn" onclick="go(\'mosques\')">Find mosques →</button></div>'};
 function useCurrentLocationV5(){
   if(!navigator.geolocation){toast('This browser does not support GPS location. Enter your city and country instead.');return}
   if(!window.isSecureContext&&location.hostname!=='localhost'){toast('Current location requires a secure HTTPS connection.');return}
@@ -362,7 +379,7 @@ render();
     if(/iran|islamic republic of iran/.test(c))return "7";
     if(/saudi arabia|kingdom of saudi arabia/.test(c))return "4";
     if(/egypt/.test(c))return "5";
-    if(/india|pakistan|bangladesh|afghanistan|nepal|sri lanka/.test(c))return "1";
+    if(/india|pakistan|bangladesh|afghanistan/.test(c))return "1";
     if(/united states|usa|canada/.test(c))return "2";
     if(/singapore/.test(c))return "11";
     if(/united arab emirates|uae|emirates/.test(c))return "16";
@@ -380,7 +397,6 @@ render();
     if(/france/.test(c))return "12";
     if(/bahrain|oman|yemen|united arab emirates|united arab|saudi|iraq/.test(c))return "8";
     if(/united kingdom|ireland|germany|spain|italy|netherlands|belgium|switzerland|austria|sweden|norway|denmark|finland|poland|greece|europe/.test(c))return "3";
-    if(/new zealand|australia|mexico/.test(c))return "3";
     return "3";
   }
   function methodNameV6(id){return methodById[String(id)]||methodById["3"]}
@@ -401,10 +417,17 @@ render();
   syncLocationLabels=function(){
     if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
     oldSyncLocationMethodsV6();
-    var status=document.getElementById("methodStatusV5"),picker=document.getElementById("methodInput");
+    var city=String(API_STORE.city||"").trim(),country=String(API_STORE.country||"").trim();
+    var generic=/^(current location|my location|locating city[.…]*|choose your location)$/i;
+    var cityField=document.getElementById("cityInput"),countryField=document.getElementById("countryInput");
+    if(cityField&&!generic.test(city))cityField.value=city;
+    if(countryField&&country)countryField.value=country;
+    var picker=document.getElementById("methodInput"),status=document.getElementById("methodStatusV5");
     var auto=(API_STORE.methodMode||"auto")!=="manual";
     if(picker)picker.value=auto?"auto":String(API_STORE.method||"3");
-    if(status)status.textContent=auto?"Auto-detect selected "+methodNameV6(API_STORE.method)+" based on "+(API_STORE.country||"your detected region")+".": "Manual method: "+methodNameV6(API_STORE.method)+".";
+    if(status)status.textContent=auto
+      ? "Automatic method: "+methodNameV6(API_STORE.method)+(country?" for "+country+".":" (MWL fallback until your country is detected).")
+      : "Manual method: "+methodNameV6(API_STORE.method)+".";
   };
   var oldPrayerPageMethodsV6=prayersPage;
   prayersPage=function(){
