@@ -164,4 +164,17 @@ window.increment=function(){window.tsbTap()};
 window.resetCounter=function(){window.tsbReset()};
 document.addEventListener('keydown',function(e){if(typeof page==='undefined'||page!=='tasbeeh')return;var t=e.target&&e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||t==='BUTTON'||t==='A')return;if(e.target&&e.target.id==='tsbStage')return;if(e.key===' '||e.key==='Enter'){e.preventDefault();window.tsbTap()}});
 save();
+
+/* Settings Center bridge: update active Tasbeeh controls without requiring a reload. */
+window.MominTasbihSettingsV1={
+  setPreferences:function(prefs){
+    if(!prefs||typeof prefs!=="object")return;
+    if(typeof prefs.sound==="boolean")st.sound=prefs.sound;
+    if(typeof prefs.haptic==="boolean")st.haptic=prefs.haptic;
+    save();
+    var soundButton=$("tsbSnd"),hapticButton=$("tsbHap");
+    if(soundButton)soundButton.classList.toggle("on",st.sound);
+    if(hapticButton)hapticButton.classList.toggle("on",st.haptic);
+  }
+};
 })();
