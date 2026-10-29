@@ -88,6 +88,74 @@ main{min-width:0}.top{height:70px;background:#ffffffd9;border-bottom:1px solid v
     overflow-wrap:anywhere;
   }
 }
+
+/* QURAN RECENTS MOBILE ALIGNMENT FIX */
+@media(max-width:700px){
+  .quran-library .recent-list{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:10px;
+    overflow:visible;
+    padding:0 0 4px;
+  }
+  .quran-library .recent-card{
+    display:grid;
+    grid-template-columns:104px minmax(0,1fr);
+    grid-template-rows:auto auto auto;
+    align-items:center;
+    gap:4px 14px;
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    flex:initial;
+    padding:12px;
+    border:1px solid #2b6963;
+    border-radius:18px;
+    background:#164d49;
+    color:#f6f6ef;
+    text-align:left;
+    box-sizing:border-box;
+  }
+  .quran-library .recent-arabic-box{
+    grid-column:1;
+    grid-row:1 / span 3;
+    width:100%;
+    min-width:0;
+    height:100px;
+    padding:5px;
+    overflow:hidden;
+    border-radius:14px;
+    font-size:clamp(20px,5.1vw,26px);
+    line-height:1.5;
+    text-align:center;
+    overflow-wrap:normal;
+    word-break:normal;
+    box-sizing:border-box;
+  }
+  .quran-library .recent-card strong{
+    grid-column:2;
+    grid-row:1;
+    min-width:0;
+    margin-top:0;
+    font-size:17px;
+    line-height:1.3;
+    overflow-wrap:anywhere;
+  }
+  .quran-library .recent-card small{
+    grid-column:2;
+    grid-row:2;
+    min-width:0;
+    margin-top:0;
+    font-size:13px;
+  }
+  .quran-library .recent-card em{
+    grid-column:2;
+    grid-row:3;
+    min-width:0;
+    margin-top:4px;
+    font-size:12px;
+  }
+}
 </style><link rel="stylesheet" href="./noor-v5.css"></head><body><div class="layout"><aside class="sidebar"><a class="brand" href="#" onclick="go('home');return false"><span class="logo">☾</span>Noor</a><div class="nav-label">YOUR DAY</div><div class="nav" id="sideNav"></div><div class="nav-label">EXPLORE</div><div class="nav" id="moreNav"></div><div class="sidebar-bottom"><div class="location">⌖ &nbsp;YOUR LOCATION<b id="locationName">London, United Kingdom</b></div><div class="profile"><div class="avatar">S</div><div><b>Samira</b><small>Free account</small></div><button class="plain" style="margin-left:auto" onclick="go(&quot;settings&quot;)">⚙</button></div></div></aside><main><header class="top"><div class="crumb"><span id="crumb">Home</span> <span id="hijriTop" style="margin-left:12px"></span></div><div class="topright"><button class="iconbtn" title="Notifications" onclick="toast(&quot;You’re all caught up&quot;)">♧</button><button class="iconbtn" title="Settings" onclick="go(&quot;settings&quot;)">⚙</button><div class="avatar">S</div></div></header><div class="content" id="view"></div></main></div><nav class="mobilebar" id="mobileNav"></nav><div class="toast" id="toast"></div>
 <script>
 const pages=[['home','⌂','Home'],['prayers','◷','Prayer times'],['quran','▤','Quran'],['qibla','◎','Qibla'],['duas','♡','Duas'],['tasbeeh','◉','Tasbeeh'],['calendar','▦','Calendar'],['settings','⚙','Settings']];
