@@ -1405,4 +1405,43 @@ home=function(){
 /* Render once after registering the enhanced pages. */
 if(typeof render==="function")render();
 })();
-</script></body></html>
+</script>
+<style id="momin-reference-calendar-shell-v1">
+/* Calendar-only shell: the embedded reference page owns its own design and navigation. */
+body:has(.momin-calendar-frame-shell){overflow:hidden}
+body:has(.momin-calendar-frame-shell) .layout{display:block!important;grid-template-columns:1fr!important;width:100%;height:100dvh;min-height:100dvh;padding-bottom:0!important;overflow:hidden}
+body:has(.momin-calendar-frame-shell) .sidebar,
+body:has(.momin-calendar-frame-shell) .top,
+body:has(.momin-calendar-frame-shell) .mobilebar{display:none!important}
+body:has(.momin-calendar-frame-shell) main{width:100%;height:100dvh;min-height:0;overflow:hidden}
+body:has(.momin-calendar-frame-shell) .content{max-width:none!important;width:100%;height:100%;min-height:0;margin:0;padding:0!important;overflow:hidden}
+body:has(.momin-calendar-frame-shell) #view{width:100%;height:100%;min-height:0;margin:0;padding:0}
+.momin-calendar-frame-shell{display:block;width:100%;height:100dvh;min-height:0;overflow:hidden;background:#f3f1e8}
+.momin-calendar-frame{display:block;width:100%;height:100%;min-height:100dvh;border:0;background:#f3f1e8}
+@supports not selector(body:has(.momin-calendar-frame-shell)){
+ .momin-calendar-frame-shell{height:100vh}
+ .momin-calendar-frame{height:100vh;min-height:100vh}
+}
+</style>
+<script id="momin-reference-calendar-integration-v1">
+/* MOMIN REFERENCE CALENDAR IFRAME INTEGRATION V1 */
+(function(){
+  "use strict";
+  calendarPage=function(){
+    return '<div class="momin-calendar-frame-shell"><iframe class="momin-calendar-frame" title="Islamic calendar" src="./islamic-calendar-reference.html"></iframe></div>';
+  };
+  window.addEventListener("message",function(event){
+    if(event.origin!==window.location.origin)return;
+    var frame=document.querySelector(".momin-calendar-frame");
+    if(!frame||event.source!==frame.contentWindow)return;
+    var data=event.data;
+    if(!data||data.type!=="momin-calendar-navigation")return;
+    if(["home","prayers","quran"].indexOf(data.page)<0)return;
+    if(typeof go==="function")go(data.page);
+  });
+  /* Re-render only if the user is already on Calendar during a hot reload. */
+  if(typeof page!=="undefined"&&page==="calendar"&&typeof render==="function")render();
+})();
+</script>
+
+</body></html>
