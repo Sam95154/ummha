@@ -64,10 +64,16 @@ final class PrayerScheduler {
         AlarmManager am=(AlarmManager)app.getSystemService(Context.ALARM_SERVICE);if(am==null)return;
         ZoneId zone;try{zone=ZoneId.of(p.getString(KEY_TZ,ZoneId.systemDefault().getId()));}catch(Exception e){zone=ZoneId.systemDefault();}
         LocalDate today=LocalDate.now(zone);cancelWindow(app,am,today);
-        if(!p.getBoolean(KEY_ENABLED,false)||!p.contains(KEY_LAT)||!p.contains(KEY_LON))return;
+        if(!p.getBoolean(KEY_ENABLED,false)||!p.contains(KEY_LAT)||!p.contains(KEY_LON)){
+            recordScheduleState(p,0,0L,"");
+            return;
+        }
         double lat,lon;try{lat=Double.parseDouble(p.getString(KEY_LAT,"0"));lon=Double.parseDouble(p.getString(KEY_LON,"0"));}catch(Exception e){return;}
         Coordinates coords=new Coordinates(lat,lon);CalculationParameters params=params(p.getString(KEY_METHOD,"3"),p.getString(KEY_MADHAB,"standard"));
         int minutes=lead(p.getInt(KEY_LEAD,0));long now=System.currentTimeMillis();
+        int scheduledCount=0;
+        long earliest=Long.MAX_VALUE;
+        String nextPrayer="";
         for(int offset=0;offset<DAYS_AHEAD;offset++){
             LocalDate day=today.plusDays(offset);PrayerTimes times;
             try{times=new PrayerTimes(coords,new DateComponents(day.getYear(),day.getMonthValue(),day.getDayOfMonth()),params);}catch(Exception e){Log.w("MOMIN-PrayerScheduler","Calculation failed for "+day,e);continue;}
@@ -76,8 +82,15 @@ final class PrayerScheduler {
                 if(!p.getBoolean(PRAYERS[i],true)||dates[i]==null)continue;
                 long at=dates[i].getTime()-minutes*60000L;if(at<=now+15000L)continue;
                 scheduleOne(app,am,day,i,at,TITLES[i]);
+                scheduledCount++;
+                if(at<earliest){earliest=at;nextPrayer=TITLES[i];}
             }
         }
+        recordScheduleState(p,scheduledCount,earliest==Long.MAX_VALUE?0L:earliest,nextPrayer);
+    }
+    private static void recordScheduleState(SharedPreferences p,int count,long nextAt,String nextPrayer){
+        p.edit().putInt("scheduled_count",count).putLong("next_alarm_at",nextAt)
+                .putString("next_alarm_prayer",nextPrayer).putLong("last_schedule_at",System.currentTimeMillis()).apply();
     }
     private static CalculationParameters params(String id,String madhab){
         CalculationMethod m;
