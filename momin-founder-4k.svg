@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2880" height="3840" viewBox="0 0 2880 3840" role="img" aria-labelledby="title desc">
+  <title id="title">MOMIN founder portrait</title>
+  <desc id="desc">High-resolution portrait display of the founder wearing a brown traditional outfit and white kufi.</desc>
+  <rect width="2880" height="3840" fill="#f7f3e8"/>
+  <image href="./momin-founder.jpg" x="0" y="0" width="2880" height="3840" preserveAspectRatio="xMidYMid slice"/>
+</svg>
