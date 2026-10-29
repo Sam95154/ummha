@@ -1855,5 +1855,19 @@ html.momin-scale-larger .momin-settings-center-v1{font-size:1.12em}
 }
 @media(max-width:360px){.momin-sc-row{grid-template-columns:1fr;gap:8px}.momin-sc-control{justify-content:stretch}.momin-sc-control select,.momin-sc-control input:not([type=checkbox]){max-width:none}.momin-sc-actions{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.momin-sc-chevron,.momin-sc-switch span,.momin-sc-switch span:before{transition:none!important}}
+
+/* MOMIN ACCESSIBILITY CONTROLS V1 — contrast and larger text apply to the full app. */
+html.momin-high-contrast[data-theme="dark"]{--muted:#eee4d1!important;--line:#a58a59!important;--accent:#f1d58e!important;--accent-soft:#332817!important}
+html.momin-high-contrast[data-theme="light"]{--muted:#4d4029!important;--line:#8b744b!important;--accent:#79551c!important;--accent-soft:#eee0bc!important}
+html.momin-high-contrast[data-theme="sepia"]{--muted:#54452f!important;--line:#92784c!important;--accent:#7c5518!important;--accent-soft:#e7d3a4!important}
+html.momin-high-contrast body :is(.card,.quick,.dua,.panel,.surahrow,.prayerrow,.setting,.momin-sc-group,.momin-sc-hero,.mq-dial-card,.mq-result,.mq-form){
+ border-color:var(--line)!important
+}
+html.momin-high-contrast body :is(a,button,input,select,textarea):focus-visible{
+ outline:3px solid var(--accent)!important;outline-offset:3px!important
+}
+html.momin-high-contrast body a:not(.brand){text-decoration-thickness:1px;text-underline-offset:2px}
+html.momin-scale-large body :is(h1,h2,h3,h4,p,small,button,input,select,textarea,label,.sub,.crumb,.nav-label,.setting b,.setting small,.momin-sc-copy b,.momin-sc-copy small,.content a,.card h3){font-size:1.08em!important}
+html.momin-scale-larger body :is(h1,h2,h3,h4,p,small,button,input,select,textarea,label,.sub,.crumb,.nav-label,.setting b,.setting small,.momin-sc-copy b,.momin-sc-copy small,.content a,.card h3){font-size:1.16em!important}
 </style>
 </body></html>
