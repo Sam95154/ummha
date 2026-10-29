@@ -499,7 +499,7 @@
     var status = document.getElementById('noorLanguageStatus');
     if (status && activeRequests === 0 && translationQueue.length === 0) {
       if (failuresThisPass > 0) {
-        updateLanguageStatus('Language saved. Connect to the internet to translate any remaining text.');
+        updateLanguageStatus('Language saved. Some text may remain in English if the translation service is unavailable or does not support this language.');
       } else {
         updateLanguageStatus('Language updated.');
       }
