@@ -22,6 +22,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.Toast;
+import android.view.Menu;
+import android.view.MenuItem;
 
 public class MainActivity extends Activity {
     private static final String START_URL = "https://noor-ul-islam-dua.onrender.com/";
@@ -98,6 +100,84 @@ public class MainActivity extends Activity {
                 .setPositiveButton("Open alarm settings", (d, w) -> {
                     try { startActivity(new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + getPackageName()))); } catch (Exception ignored) { }
                 }).setNegativeButton("Not now", null).show();
+    }
+
+    @Override public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, 9101, 0, "Prayer alarm status");
+        menu.add(0, 9102, 1, "Test Makkah Azan");
+        menu.add(0, 9103, 2, "Open Alarms & reminders");
+        menu.add(0, 9104, 3, "Notification settings");
+        return true;
+    }
+
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case 9101: showNativePrayerStatus(); return true;
+            case 9102: testNativeAzan(); return true;
+            case 9103: openExactAlarmSettings(); return true;
+            case 9104: openNotificationSettings(); return true;
+            default: return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void showNativePrayerStatus() {
+        SharedPreferences p = getSharedPreferences(PrayerScheduler.PREFS, MODE_PRIVATE);
+        boolean notifications = Build.VERSION.SDK_INT < 33 ||
+                checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+        boolean exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || (am != null && am.canScheduleExactAlarms());
+        boolean locationSaved = p.contains(PrayerScheduler.KEY_LAT) && p.contains(PrayerScheduler.KEY_LON);
+        String sound = p.getString(PrayerScheduler.KEY_SOUND, "azan");
+        String message =
+                "Prayer reminders: " + (p.getBoolean(PrayerScheduler.KEY_ENABLED, false) ? "enabled" : "disabled") + "\n" +
+                "Location saved for native alarms: " + (locationSaved ? "yes" : "no") + "\n" +
+                "Notifications permission: " + (notifications ? "allowed" : "not allowed") + "\n" +
+                "Exact alarm access: " + (exact ? "allowed" : "not allowed — alarms may be delayed") + "\n" +
+                "Sound mode: " + sound + "\n\n" +
+                "For background Azan, save location and notification settings inside MOMIN, allow notifications, and enable Alarms & reminders. Battery controls, Do Not Disturb and force-stop can still affect playback.";
+        new AlertDialog.Builder(this)
+                .setTitle("MOMIN · Android prayer alarms")
+                .setMessage(message)
+                .setPositiveButton("Open alarm settings", (dialog, which) -> openExactAlarmSettings())
+                .setNeutralButton("Test Azan", (dialog, which) -> testNativeAzan())
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private void openExactAlarmSettings() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            Toast.makeText(this, "This Android version does not need special exact-alarm access.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        try {
+            startActivity(new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + getPackageName())));
+        } catch (Exception ex) {
+            Toast.makeText(this, "Open Android Settings → Apps → MOMIN → Alarms & reminders.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void openNotificationSettings() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+            startActivity(intent);
+        } catch (Exception ex) {
+            try { startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()))); }
+            catch (Exception ignored) { Toast.makeText(this, "Open Android Settings → Apps → MOMIN → Notifications.", Toast.LENGTH_LONG).show(); }
+        }
+    }
+
+    private void testNativeAzan() {
+        try {
+            Intent intent = new Intent(this, AdhanPlaybackService.class)
+                    .setAction(AdhanPlaybackService.ACTION_PLAY)
+                    .putExtra(PrayerAlarmReceiver.EXTRA_PRAYER, "Test");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent);
+            else startService(intent);
+            Toast.makeText(this, "Native Makkah Azan test started. Use the persistent notification's Stop Azan action to stop it.", Toast.LENGTH_LONG).show();
+        } catch (Exception ex) {
+            Toast.makeText(this, "Could not start Azan playback. Check notification and audio permissions.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void syncSettingsFromWebsite() {
