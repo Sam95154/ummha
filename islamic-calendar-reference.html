@@ -100,6 +100,60 @@ nav a[aria-current]{color:var(--ink);font-weight:700}nav a[aria-current] svg{col
 @keyframes rise{from{opacity:0;transform:translateY(16px)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rp{stroke-dashoffset:var(--off)!important}}
 </style>
+
+<style id="momin-black-gold-calendar-theme-v1">
+/* Match the standalone calendar to MOMIN's black-and-gold theme without changing its layout or logo. */
+:root[data-theme="light"]{
+ color-scheme:light;--bg:#f5f1e7;--surface:#fffdf8;--ink:#211d17;--muted:#71695b;--line:#e4dac5;
+ --accent:#a87b2e;--accent-ink:#18130b;--gold:#b58a39;--glow:rgba(181,138,57,.18);
+ --nav:rgba(255,253,248,.94);--cell:#f1e4c4
+}
+:root[data-theme="dark"]{
+ color-scheme:dark;--bg:#0d0c0a;--surface:#191713;--ink:#f5eddb;--muted:#b5a78e;--line:#3d3426;
+ --accent:#e1bd67;--accent-ink:#191309;--gold:#dfbd6c;--glow:rgba(223,189,108,.22);
+ --nav:rgba(13,12,10,.94);--cell:#2b2418
+}
+:root[data-theme="sepia"]{
+ color-scheme:light;--bg:#eee4cf;--surface:#fff7e6;--ink:#33291c;--muted:#7c6f5a;--line:#dac9a9;
+ --accent:#9c7029;--accent-ink:#fffaf0;--gold:#ad8031;--glow:rgba(173,128,49,.18);
+ --nav:rgba(255,247,230,.94);--cell:#ead8b1
+}
+body{background:var(--bg)!important;color:var(--ink)!important;transition:background-color .22s ease,color .22s ease}
+.next{background:radial-gradient(110% 120% at 0% 0%,var(--glow),transparent 65%),var(--surface)!important}
+.rp{stroke:var(--gold)!important}
+.c.fri .g{color:var(--accent)!important}
+.c.now{background:linear-gradient(135deg,#e7cd8d 0%,#c49a4a 52%,#9b702d 100%)!important;color:#201608!important}
+.c.now .h,.c.now .g{color:#201608!important}
+.c.now::before{border-color:var(--accent)!important}
+.c.sel{box-shadow:inset 0 0 0 1.5px var(--accent)!important}
+.detail{background:var(--cell)!important}
+.detail .tag{color:var(--gold)!important}
+.it.eid .db{background:linear-gradient(135deg,#e7cd8d,#c49a4a)!important;color:#201608!important}
+.it.eid .db span{color:#201608!important}
+.when.soon{background:var(--accent)!important;color:var(--accent-ink)!important}
+.tabs button[aria-pressed="true"]{background:var(--accent)!important;color:var(--accent-ink)!important;border-color:var(--accent)!important}
+.ib:hover{background:var(--cell)!important;border-color:var(--gold)!important}
+nav{background:var(--nav)!important;border-color:var(--line)!important}
+nav a[aria-current]{color:var(--ink)!important}
+nav a[aria-current] svg{color:var(--accent)!important}
+</style>
+<script id="momin-black-gold-calendar-theme-controller-v1">
+(function(){
+  "use strict";
+  function applyMominCalendarTheme(value){
+    var theme=String(value||"Dark").toLowerCase();
+    if(["light","dark","sepia"].indexOf(theme)<0)theme="dark";
+    document.documentElement.setAttribute("data-theme",theme);
+  }
+  var saved="Dark";
+  try{saved=localStorage.getItem("noor-theme")||"Dark"}catch(_){}
+  applyMominCalendarTheme(saved);
+  window.addEventListener("storage",function(event){
+    if(event.key==="noor-theme")applyMominCalendarTheme(event.newValue||"Dark");
+  });
+})();
+</script>
+
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><g id="lg" viewBox="0 0 1 1"><path fill="#21675f" fill-rule="evenodd" d="M610 1061L612 1062L624 1059L661 1055L711 1055L735 1057L782 1064L804 1069L862 1087L898 1103L916 1113L936 1127L947 1137L956 1149L960 1162L972 1182L982 1191L989 1195L997 1197L1003 1197L1014 1193L1028 1181L1035 1171L1042 1152L1047 1143L1063 1127L1096 1106L1116 1096L1146 1084L1195 1069L1204 1068L1217 1064L1264 1057L1288 1055L1338 1055L1368 1058L1389 1062L1382 1058L1352 1047L1340 1040L1327 1038L1264 1038L1240 1040L1193 1047L1167 1053L1166 1052L1169 1050L1176 1049L1185 1045L1234 1035L1281 1030L1325 1029L1308 1024L1302 1024L1279 1019L1276 1017L1276 1015L1281 1011L1264 1011L1245 1014L1235 1014L1195 1021L1162 1030L1134 1040L1100 1056L1081 1067L1060 1082L1035 1104L1015 1127L1002 1147L999 1148L985 1128L965 1105L943 1085L926 1072L924 1072L901 1057L877 1045L831 1028L804 1021L765 1014L735 1011L718 1011L724 1016L723 1018L674 1029L718 1030L766 1035L817 1046L822 1048L824 1050L823 1051L801 1046L759 1040L746 1040L734 1038L672 1038L659 1040L645 1048ZM774 995L799 995L834 998L863 1004L897 1015L926 1028L952 1043L982 1064L998 1078L1003 1077L1025 1058L1052 1040L1073 1028L1102 1015L1136 1004L1159 999L1201 995L1225 996L1223 993L1189 977L1173 972L1144 967L1099 968L1066 976L1029 992L1001 1010L996 1009L970 992L944 980L911 970L891 967L855 967L826 972L802 980ZM718 926L718 973L765 974L766 923L769 911L776 897L787 886L801 878L817 874L845 873L855 841L867 817L884 792L902 774L917 764L928 759L947 755L973 745L990 735L998 728L1001 728L1009 735L1033 748L1052 755L1076 761L1086 766L1102 778L1120 798L1135 822L1147 848L1153 871L1155 873L1171 873L1192 876L1208 883L1220 893L1225 900L1232 916L1233 971L1235 974L1281 973L1281 923L1279 910L1272 888L1266 876L1255 861L1241 848L1225 838L1210 832L1191 828L1188 825L1175 796L1164 778L1147 756L1133 742L1118 730L1103 721L1086 714L1058 707L1041 699L1032 692L1012 670L1002 650L1001 645L998 645L994 657L982 677L964 695L944 706L913 714L899 720L877 733L865 743L847 762L833 781L822 800L811 825L808 828L796 830L781 835L764 844L749 856L734 875L726 891L721 906Z"/><path fill="#b98a2e" fill-rule="evenodd" d="M999 545L994 561L991 565L972 565L971 566L973 569L982 575L987 580L987 583L985 586L984 592L981 599L983 600L992 594L993 592L998 589L1001 589L1017 600L1018 598L1012 580L1025 569L1027 569L1028 566L1027 565L1008 565L1006 563L1003 552L1001 549L1001 546ZM969 530L953 545L947 556L944 566L944 575L943 576L944 591L947 600L953 611L961 620L970 627L988 634L994 634L995 635L1011 634L1031 626L1043 615L1046 611L1047 607L1044 608L1038 613L1027 618L1019 620L1003 620L992 617L981 611L970 601L969 598L963 591L962 586L959 581L959 576L958 575L958 558L962 545L972 530Z"/></g></svg>
