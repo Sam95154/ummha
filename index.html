@@ -725,6 +725,12 @@ body.dua-app-mode .toast{bottom:20px;z-index:50}
   }
 }
 
+
+/* Desktop expansion for the explicitly styled shortcut grid */
+@media(min-width:701px){
+ .dua-app-mode .dua-shortcuts-grid-v1{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+
 </style></head><body><div class="layout"><aside class="sidebar"><a class="brand" href="#" onclick="go('home');return false"><span class="logo">☾</span>Noor</a><div class="nav-label">YOUR DAY</div><div class="nav" id="sideNav"></div><div class="nav-label">EXPLORE</div><div class="nav" id="moreNav"></div><div class="sidebar-bottom"><div class="location">⌖ &nbsp;YOUR LOCATION<b id="locationName">London, United Kingdom</b></div><div class="profile"><div class="avatar">S</div><div><b>Samira</b><small>Free account</small></div><button class="plain" style="margin-left:auto" onclick="go(&quot;settings&quot;)">⚙</button></div></div></aside><main><header class="top"><div class="crumb"><span id="crumb">Home</span> <span id="hijriTop" style="margin-left:12px"></span></div><div class="topright"><button class="iconbtn" title="Notifications" onclick="toast(&quot;You’re all caught up&quot;)">♧</button><button class="iconbtn" title="Settings" onclick="go(&quot;settings&quot;)">⚙</button><div class="avatar">S</div></div></header><div class="content" id="view"></div></main></div><nav class="mobilebar" id="mobileNav"></nav><div class="toast" id="toast"></div>
 <script>
 const pages=[['home','⌂','Home'],['prayers','◷','Prayer times'],['quran','▤','Quran'],['qibla','◎','Qibla'],['duas','♡','Duas'],['tasbeeh','◉','Tasbeeh'],['calendar','▦','Calendar'],['settings','⚙','Settings']];
