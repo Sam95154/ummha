@@ -119,7 +119,14 @@ var entries = [
     return '<div class="dua-art art-' + escapeDuaV1(art || "dawn") + (extra ? " " + extra : "") + '" aria-hidden="true"><span>' + escapeDuaV1(icon || "☾") + '</span><i class="art-star s1"></i><i class="art-star s2"></i><i class="art-hill h1"></i><i class="art-hill h2"></i></div>';
   }
   function navDuaV1(active) {
-    return '<nav class="dua-bottom-nav" aria-label="App navigation"><a href="#/home">⌂<span>Home</span></a><a href="#/quran">۞<span>Quran</span></a><a class="' + (active === "duas" ? "on" : "") + '" href="#/duas">☾<span>Duas</span></a><a href="#/tasbih">◉<span>Tasbih</span></a><a class="' + (active === "saved" ? "on" : "") + '" href="#/dua-special/bookmarks">☆<span>Saved</span></a></nav>';
+    var quranIcon = '<svg class="dua-nav-quran-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 7.4C9.7 5.7 6.6 5.4 3.5 6.2v11.2c3.1-.8 6.2-.5 8.5 1.3 2.3-1.8 5.4-2.1 8.5-1.3V6.2c-3.1-.8-6.2-.5-8.5 1.2Z"/><path d="M12 7.4v11.3M6.2 9.1c1.6-.2 3.2.1 4.5 1M17.8 9.1c-1.6-.2-3.2.1-4.5 1"/><path d="M15.9 2.8a4 4 0 0 0 3.8 6.4A4.7 4.7 0 1 1 15.9 2.8Z"/><path d="m20.8 1.5.45 1.1 1.2.1-.9.8.3 1.2-1.05-.65-1.05.65.3-1.2-.9-.8 1.2-.1z"/></svg>';
+    return '<nav class="dua-bottom-nav" aria-label="App navigation">' +
+      '<a href="#/home" aria-label="Home">⌂<span>Home</span></a>' +
+      '<a href="#/quran" aria-label="Quran">' + quranIcon + '<span>Quran</span></a>' +
+      '<a class="' + (active === "duas" ? "on" : "") + '" href="#/duas" aria-label="Duas">☾<span>Duas</span></a>' +
+      '<a href="#/tasbih" aria-label="Tasbih">◉<span>Tasbih</span></a>' +
+      '<a class="' + (active === "saved" ? "on" : "") + '" href="#/dua-special/bookmarks" aria-label="Saved">☆<span>Saved</span></a>' +
+      '</nav>';
   }
   function duaLandingViewV1() {
     var cats = duaCategoriesV1;
