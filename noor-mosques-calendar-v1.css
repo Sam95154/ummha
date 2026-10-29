@@ -15,7 +15,6 @@
 .mosque-action-v1:active{transform:translateY(1px)}
 .mosque-action-v1.primary-v1{background:linear-gradient(135deg,#d9c079,#b99649);color:#192b22;border-color:#ecd69a;box-shadow:0 5px 14px #00000019}
 .mosque-action-v1.secondary-v1{background:#0a5147;color:#ecf7f0;border-color:#24695c}
-.mom in-mosque-hero-v1 .mosque-find-button-v1{margin-top:14px}
 .momin-mosque-hero-v1 .mosque-find-button-v1{position:relative;z-index:1;width:100%;margin-top:14px;min-height:48px}
 .momin-mosque-filters-v1{padding:19px 18px;border:1px solid var(--line);border-radius:23px;background:var(--paper);margin-bottom:14px}
 .momin-mosque-section-head-v1{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
@@ -154,3 +153,9 @@
  .momin-cal-footnote-v1{padding:10px 3px}
 }
 @media(prefers-reduced-motion:reduce){.mosque-loader-v1,.momin-cal-day-v1{animation:none!important;transition:none!important}}
+
+.momin-area-search-v1{margin-top:13px;padding:12px;border:1px solid var(--line);border-radius:15px;background:var(--bg)}
+.momin-area-search-v1>label{display:block;margin-bottom:8px;color:var(--muted);font-size:11px;font-weight:750}
+.momin-area-search-v1>div{display:flex;align-items:center;gap:7px;min-width:0}
+.momin-area-search-v1 input{width:100%;min-width:0;flex:1;height:42px;margin:0!important;padding:0 11px!important;border:1px solid var(--line)!important;border-radius:11px!important;background:var(--paper)!important;color:var(--ink)!important;font-size:12px}
+.momin-area-search-v1 button{flex:0 0 auto;min-height:42px;padding:9px 12px;border:1px solid #b99b52;border-radius:11px;background:#0b5b4c;color:#fff4d7;font-size:11px;font-weight:800}

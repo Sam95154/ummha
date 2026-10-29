@@ -122,6 +122,35 @@ async function useCurrentMosqueLocationV1(){
   mosqueV1.loading=false;setMosqueStatusV1("Location needed");renderMosqueResultsV1();
  },{enableHighAccuracy:true,timeout:15000,maximumAge:120000});
 }
+
+window.searchMosqueAreaV1=async function(){
+ var input=document.getElementById("mosqueAreaInputV1"),query=String(input&&input.value||"").trim();
+ if(!query){toastV1("Enter a town, city or area to search.");return}
+ var status=document.getElementById("mosqueLocationStatusV1");
+ if(status)status.textContent="Finding area…";
+ var host=document.getElementById("mosqueResultsV1");
+ if(host)host.innerHTML='<div class="mosque-state-v1"><span class="mosque-loader-v1"></span><b>Finding '+escV1(query)+'</b><p>Locating the area to search nearby mosques.</p></div>';
+ try{
+  var response=await fetch("https://photon.komoot.io/api/?q="+encodeURIComponent(query)+"&limit=5&lang=en");
+  if(!response.ok)throw Error("Area search is temporarily unavailable.");
+  var data=await response.json(),features=data.features||[];
+  var item=features.find(function(f){var p=f.properties||{};return p.city||p.town||p.village||p.county||p.name})||features[0];
+  if(!item)throw Error("We could not find that town or city. Check its spelling and try again.");
+  var p=item.properties||{},raw=item.geometry&&item.geometry.coordinates;
+  var coords=validCoordsV1(raw&&raw[1],raw&&raw[0]);
+  if(!coords)throw Error("That search result did not include usable map coordinates.");
+  mosqueV1.coords=coords;
+  mosqueV1.cityLabel=[p.name&&p.name.toLowerCase()!==query.toLowerCase()?p.name:"",p.city||p.town||p.village||p.county||"",p.state||"",p.country||""].filter(Boolean).filter(function(v,i,a){return a.indexOf(v)===i}).join(", ")||query;
+  mosqueV1.error="";mosqueV1.items=[];mosqueV1.query="";
+  var current=document.getElementById("mosqueCurrentPlaceV1");if(current)current.textContent=mosqueV1.cityLabel;
+  var search=document.querySelector(".momin-mosque-search-v1 input");if(search)search.value="";
+  paintMosqueMapV1();await searchNearbyMosquesV1();
+ }catch(e){
+  mosqueV1.loading=false;mosqueV1.error=e&&e.message||"Area search failed. Please try again.";
+  if(status)status.textContent="Area search unavailable";
+  renderMosqueResultsV1();
+ }
+};
 window.useCurrentMosqueLocationV1=useCurrentMosqueLocationV1;
 window.searchNearbyMosquesV1=searchNearbyMosquesV1;
 window.setMosqueRadiusV1=function(radius){
@@ -152,7 +181,7 @@ function mosquesPageMominV1(){
  return title("Mosques near me","Nearby mosque matches · distance sorted",place)+
  '<section class="momin-mosque-hero-v1"><div class="momin-mosque-hero-top-v1"><div class="momin-mosque-glyph-v1">⌖</div><div class="momin-mosque-hero-copy-v1"><span class="momin-eyebrow-v1">LOCAL PRAYER SPACES</span><h2>Find a mosque nearby</h2><p>Real map matches around your current location — right here in MOMIN.</p></div></div><div class="momin-mosque-location-v1"><span class="momin-location-pulse-v1"></span><span class="momin-mosque-place-text-v1" id="mosqueCurrentPlaceV1">'+place+'</span><span class="momin-location-status-v1" id="mosqueLocationStatusV1">Location ready</span></div><button class="mosque-action-v1 primary-v1 mosque-find-button-v1" onclick="useCurrentMosqueLocationV1()">⌖ <span>Use my current location</span></button></section>'+
  '<section class="momin-mosque-filters-v1"><div class="momin-mosque-section-head-v1"><div><span class="momin-eyebrow-v1">DISCOVER</span><h2>Nearby matches</h2></div><span id="mosqueMatchCountV1" class="momin-match-count-v1">Waiting for location</span></div><div class="momin-radius-row-v1" role="group" aria-label="Search distance">'+mosqueRadiusOptions.map(function(r){return '<button type="button" data-mosque-radius-v1="'+r+'" class="'+(mosqueV1.radius===r?"active":"")+'" aria-pressed="'+(mosqueV1.radius===r)+'" onclick="setMosqueRadiusV1('+r+')">'+(r/1000)+' km</button>'}).join("")+'</div><label class="momin-mosque-search-v1"><span>⌕</span><input type="search" aria-label="Search nearby mosques" placeholder="Search mosque name or area" value="'+escV1(mosqueV1.query)+'" oninput="filterNearbyMosquesV1(this.value)"><button type="button" aria-label="Clear mosque search" onclick="filterNearbyMosquesV1(&quot;&quot;);var x=document.querySelector(&quot;.momin-mosque-search-v1 input&quot;);if(x)x.value=&quot;&quot;">×</button></label></section>'+
- '<section class="momin-mosque-map-wrap-v1" id="mosqueMapWrapV1" hidden><iframe id="mosqueMapFrameV1" title="Map of the area around your location" loading="lazy" referrerpolicy="no-referrer" src="about:blank"></iframe><div class="momin-map-caption-v1">Map data © OpenStreetMap contributors <a id="mosqueMapFullV1" href="https://www.openstreetmap.org/" target="_blank" rel="noopener">Open map ↗</a></div></section>'+
+ '<div class="momin-area-search-v1"><label for="mosqueAreaInputV1">GPS unavailable? Search a town or city</label><div><input id="mosqueAreaInputV1" type="search" placeholder="Enter town or city" onkeydown="if(event.key===&quot;Enter&quot;){event.preventDefault();searchMosqueAreaV1()}"><button type="button" onclick="searchMosqueAreaV1()">Search area</button></div></div><section class="momin-mosque-map-wrap-v1" id="mosqueMapWrapV1" hidden><iframe id="mosqueMapFrameV1" title="Map of the area around your location" loading="lazy" referrerpolicy="no-referrer" src="about:blank"></iframe><div class="momin-map-caption-v1">Map data © OpenStreetMap contributors <a id="mosqueMapFullV1" href="https://www.openstreetmap.org/" target="_blank" rel="noopener">Open map ↗</a></div></section>'+
  '<section class="momin-mosque-results-v1" id="mosqueResultsV1"><div class="mosque-state-v1"><b>Finding nearby prayer spaces</b><p>Use your current location to see nearby results here.</p></div></section>'+
  '<p class="momin-osm-attribution-v1">Nearby places are sourced from OpenStreetMap. Listings, names and opening hours depend on community mapping; please confirm mosque details locally.</p>';
 }
@@ -227,4 +256,6 @@ home=function(){
  /* place the strip near the end of the home view, before the last closing wrapper */
  return result.replace(/<\/div>\s*$/,mini+"</div>");
 };
+/* Render once after registering the enhanced pages. */
+if(typeof render==="function")render();
 })();
