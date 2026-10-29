@@ -1602,6 +1602,50 @@ html[data-theme] .tsb .tsb-count,.tsb .tsb-ar,html[data-theme] .tsb .tsb-tr{colo
 @media(prefers-reduced-motion:no-preference){
   .card,.quick,.smallbtn,.iconbtn,.nav button,.tag,.chip{transition:background-color .22s ease,color .22s ease,border-color .22s ease,box-shadow .22s ease}
 }
+/* The Dua library has its own green-tinted component stylesheet; remap its full component set. */
+html[data-theme] .dua-page{
+  color:var(--ink)!important;
+  background:radial-gradient(ellipse at 20% 0%,rgba(198,157,74,.14),transparent 42%),linear-gradient(180deg,var(--bg),var(--paper))!important
+}
+html[data-theme] .dua-topbar,html[data-theme] .dua-detail-top{
+  background:var(--paper)!important;border-color:var(--line)!important
+}
+html[data-theme] .dua-topbar h1,html[data-theme] .dua-topbar .dua-back,
+html[data-theme] .dua-page h1,html[data-theme] .dua-page h2,html[data-theme] .dua-page h3,
+html[data-theme] .dua-page .dua-reference,html[data-theme] .dua-page .dua-chapter-context,
+html[data-theme] .dua-page .dua-empty-state h2{color:var(--ink)!important}
+html[data-theme] .dua-page p,html[data-theme] .dua-page small,
+html[data-theme] .dua-page .dua-note,html[data-theme] .dua-page .dua-detail-pager,
+html[data-theme] .dua-page .dua-chapter-context p,html[data-theme] .dua-page .dua-category-copy p{
+ color:var(--muted)!important
+}
+html[data-theme] .dua-category-card,html[data-theme] .dua-feature-card,html[data-theme] .dua-essential-card,
+html[data-theme] .dua-reading-card,html[data-theme] .dua-search-result,html[data-theme] .dua-settings-panel,
+html[data-theme] .dua-entry-row,html[data-theme] .dua-list-row,html[data-theme] .dua-detail-progress,
+html[data-theme] .dua-shortcut,html[data-theme] .dua-special-card,html[data-theme] .dua-chapter-list,
+html[data-theme] .dua-detail-actions button,html[data-theme] .dua-card-actions button{
+ background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important
+}
+html[data-theme] .dua-category-copy h3,html[data-theme] .dua-feature-copy h3,
+html[data-theme] .dua-page .dua-list-row strong,html[data-theme] .dua-page .dua-entry-row strong{color:var(--ink)!important}
+html[data-theme] .dua-page .dua-art{border-color:var(--line)!important}
+html[data-theme] .dua-page .dua-tag,html[data-theme] .dua-page .dua-eyebrow{
+ color:var(--accent)!important
+}
+html[data-theme] .dua-page .dua-primary-cta,html[data-theme] .dua-page .dua-read-btn,
+html[data-theme] .dua-page .dua-entry-open,html[data-theme] .dua-page button.primary{
+ background:linear-gradient(135deg,#e7cd8d,#c49a4a 58%,#9b702d)!important;
+ color:#21170a!important;border-color:#b3893d!important
+}
+html[data-theme] .dua-page .dua-bottom-nav{
+ background:var(--nav, var(--paper))!important;border-color:var(--line)!important
+}
+html[data-theme] .dua-page .dua-bottom-nav a,html[data-theme] .dua-page .dua-bottom-nav button{
+ color:var(--muted)!important
+}
+html[data-theme] .dua-page .dua-bottom-nav .active,html[data-theme] .dua-page .dua-bottom-nav [aria-current]{
+ color:var(--accent)!important
+}
 </style>
 <script id="momin-theme-controller-v1">
 /* Persistent shared appearance mode; replaces the legacy body-invert theme behavior. */
