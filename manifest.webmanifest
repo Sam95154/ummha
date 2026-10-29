@@ -1,0 +1,18 @@
+{
+  "name": "MOMIN — Where Faith Meets Devotion",
+  "short_name": "MOMIN",
+  "description": "A Muslim daily companion for prayer, Quran, duas, Qibla and Tasbih.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "./momin-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
