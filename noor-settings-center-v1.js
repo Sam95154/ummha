@@ -73,14 +73,14 @@
     if(repeat&&window.MominQuranSettingsV8)window.MominQuranSettingsV8.repeat(repeat.checked);else if(repeat)put("noor-quran-repeat-v8",repeat.checked);
     if(next&&window.MominQuranSettingsV8)window.MominQuranSettingsV8.next(next.checked);else if(next)put("noor-quran-auto-next-v8",next.checked);
     if(theme&&window.MominQuranSettingsV8)window.MominQuranSettingsV8.theme(theme.value);else if(theme)put("noor-quran-theme",theme.value);
-    if(awake&&window.MominQuranSettingsV8)window.MominQuranSettingsV8.keepAwake(awake.checked);
+    if(awake)put("noor-keep-awake-v8",awake.checked?"true":"false");
     if(typeof window.saveReadingAppearanceV6==="function")window.saveReadingAppearanceV6();
     notify("Quran defaults saved. The selected translation is used when opening a surah.");
   };
   function applyAccessibility(){var root=document.documentElement;root.classList.toggle("momin-reduce-motion",get("noor-reduce-motion","false")==="true");root.classList.toggle("momin-high-contrast",get("noor-high-contrast","false")==="true");root.classList.remove("momin-scale-large","momin-scale-larger");var scale=get("noor-interface-scale","normal");if(scale==="large"||scale==="larger")root.classList.add("momin-scale-"+scale)}
 
   function effectiveThemePreferenceV1(value){
-    if(value!=="System")return value==="Light"||value==="Sepia"?"Light".replace(value==="Sepia"?"Light":"Light",value):"Dark";
+    if(value==="Light"||value==="Sepia")return value;if(value==="Dark")return "Dark";
     try{return window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"Light":"Dark"}catch(_){return "Dark"}
   }
   window.saveSettingsThemeV1=function(value){
@@ -102,6 +102,7 @@
     if(systemThemeMediaV1.addEventListener)systemThemeMediaV1.addEventListener("change",syncSystemThemePreferenceV1);
     else if(systemThemeMediaV1.addListener)systemThemeMediaV1.addListener(syncSystemThemePreferenceV1);
   }catch(_){}
+  syncSystemThemePreferenceV1();
 
   window.saveAppearancePrefsV1=function(){var theme=document.getElementById("settingsTheme");if(theme)window.saveSettingsThemeV1(theme.value);var reduce=document.getElementById("settingsReduceMotionV1"),contrast=document.getElementById("settingsHighContrastV1");if(reduce)put("noor-reduce-motion",reduce.checked);if(contrast)put("noor-high-contrast",contrast.checked);applyAccessibility();notify("Appearance preferences saved.")};
   window.saveLanguageAccessibilityV1=function(){var language=document.getElementById("settingsAppLanguage"),scale=document.getElementById("settingsInterfaceScaleV1"),reduce=document.getElementById("settingsReduceMotionLangV1");if(language){put("noor-language",language.value);document.documentElement.lang=language.value}if(scale)put("noor-interface-scale",scale.value);if(reduce)put("noor-reduce-motion",reduce.checked);applyAccessibility();notify("Language and accessibility preferences saved. Some interface translations are still in progress.")};
