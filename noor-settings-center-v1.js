@@ -41,16 +41,7 @@
       '.momin-about-transparency{border-color:rgba(197,160,82,.3)}'+
       '.momin-about-transparency p+p{margin-top:8px}'+
       '.momin-about-footer{padding:10px 0 3px;text-align:center;font-size:10px!important;font-style:italic}'+
-      '.momin-founder-card{display:grid;grid-template-columns:minmax(130px,210px) minmax(0,1fr);align-items:center;gap:18px;margin:18px 0 10px;padding:15px;border:1px solid rgba(197,160,82,.55);border-radius:20px;background:radial-gradient(120% 130% at 100% 0%,rgba(220,185,104,.16),transparent 65%),linear-gradient(135deg,var(--paper),var(--bg));box-shadow:0 7px 22px rgba(116,84,33,.07)}'+
-      '.momin-founder-photo-frame{overflow:hidden;aspect-ratio:3/4;border:1px solid rgba(197,160,82,.5);border-radius:15px;background:#f7f3e8}'+
-      '.momin-founder-photo{display:block;width:100%;height:100%;object-fit:cover;object-position:center 24%}'+
-      '.momin-founder-copy{min-width:0}'+
-      '.momin-founder-copy h4{margin:0 0 9px;font-size:20px;line-height:1.25;font-family:Georgia,serif}'+
-      '.momin-founder-bio{margin:0 0 14px!important;font-size:12px!important;line-height:1.75!important}'+
-      '.momin-founder-name{margin:12px 0 9px;font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--ink)}'+
-      '.momin-founder-role{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border:1px solid rgba(197,160,82,.35);border-radius:13px;background:var(--accent-soft);color:var(--ink);font-size:11px;line-height:1.5;font-weight:700}'+
-      '.momin-founder-role span{color:var(--accent);font-size:16px;line-height:1}'+
-      '@media(max-width:600px){.momin-about-identity{gap:12px;padding:14px;border-radius:15px}.momin-about-identity>img{width:60px;height:60px;flex-basis:60px;border-radius:14px}.momin-about-identity h3{font-size:22px}.momin-about-features{grid-template-columns:1fr}.momin-about-feature{padding:11px}.momin-about-v1 p{font-size:11px}.momin-founder-card{grid-template-columns:minmax(0,1fr);gap:14px;padding:13px}.momin-founder-photo-frame{width:min(100%,260px);aspect-ratio:3/4;margin:0 auto}.momin-founder-copy h4{font-size:19px}.momin-founder-name{font-size:17px}.momin-founder-bio{font-size:12px!important}}';
+      '@media(max-width:600px){.momin-about-identity{gap:12px;padding:14px;border-radius:15px}.momin-about-identity>img{width:60px;height:60px;flex-basis:60px;border-radius:14px}.momin-about-identity h3{font-size:22px}.momin-about-features{grid-template-columns:1fr}.momin-about-feature{padding:11px}.momin-about-v1 p{font-size:11px}}';
     document.head.appendChild(style);
   }
   function detailsPage(){
@@ -101,7 +92,6 @@
       '<article class="momin-about-feature"><span aria-hidden="true">文</span><div><b>Personalization & Accessibility</b><p>Adjust appearance, language preference, text size and other supported reading settings.</p></div></article></div>'+
       '<div class="momin-about-transparency"><h4>Privacy & transparency</h4><p>This version runs in guest mode and does not provide an MOMIN account or cloud sync. Supported preferences and activity records are stored in your browser. Some features use external online services, and background notifications are not guaranteed.</p><p>Prayer timings can vary by calculation method. Hijri dates can vary with local moon-sighting practices, so confirm important timings and dates with a trusted local mosque.</p></div>'+
       '<p class="momin-about-footer">Made to support your daily journey of faith.</p>'+
-      '<section class="momin-founder-card" aria-labelledby="momin-founder-heading"><div class="momin-founder-photo-frame"><img class="momin-founder-photo" src="./momin-founder.jpg?v=founder-v1" alt="Shaik Sameer Basha, founder of MOMIN" loading="lazy"></div><div class="momin-founder-copy"><p class="momin-about-kicker">THE PERSON BEHIND MOMIN</p><h4 id="momin-founder-heading">About the Founder</h4><p class="momin-founder-bio">I’m Shaik Sameer Basha, the creator of MOMIN. I built MOMIN with the aim of bringing everyday Islamic tools together in one accessible place, combining my interest in technology with a commitment to making faith-supporting features easier to use.</p><div class="momin-founder-name">Shaik Sameer Basha</div><div class="momin-founder-role"><span aria-hidden="true">✦</span> Artificial Intelligence and Data Science Engineer</div></div></section>'+
       '</section>'+
       row("Share MOMIN","Share the app link",button("Share MOMIN","shareMominV1()","primary"))+
       row("Privacy & Data","Learn what is stored on this device and what online features may share.",button("View privacy details","showMominPrivacySummaryV1()"));
