@@ -11,3 +11,99 @@ body{background:var(--bg);color:var(--ink)}
 body.app-light{--bg:#f6f8f3;--paper:#fff;--ink:#17271f;--muted:#75847b;--line:#e1e9df;--green:#087a54;--green2:#125e45;--mint:#e6f0e7;--lime:#d5eaa8;--gold:#bd9b5e;--shadow:0 12px 35px #173d3110;color:var(--ink);background:var(--bg)}body.app-light .sidebar,body.app-light .top,body.app-light .mobilebar{background:#fff;border-color:var(--line);color:var(--ink)}body.app-light .card,body.app-light .quick,body.app-light .journey-stat,body.app-light .dua{background:#fff;border-color:var(--line);color:var(--ink)}body.app-light .nav button{color:#66736a}body.app-light .nav button.active{background:var(--mint);color:var(--green)}body.app-light .location-chip{background:#f4f7f0;color:var(--ink);border-color:var(--line)}body.app-light .hero-card{background:linear-gradient(135deg,#184d3c,#0d392d);color:white}body.app-light .prayerrow{border-color:var(--line)}body.app-light .verse{background:#f5f3e9;border-color:#e9e4d4;color:var(--ink)}body.app-light .smallbtn,body.app-light .chip,body.app-light .setting select,body.app-light .search,body.app-light input:not([type=checkbox]):not([type=range]),body.app-light select,body.app-light textarea{background:#fff;border-color:var(--line);color:var(--ink)}body.app-light .mobilebar button{color:#79857c}body.app-light .mobilebar button.active{color:var(--green)}
 body.app-sepia{--bg:#eee5cf;--paper:#fff7e4;--ink:#382e22;--muted:#817464;--line:#ded1b5;--green:#47754e;--green2:#315d42;--mint:#e9e2cc;--lime:#dce8bd;--gold:#bd9b5e;color:var(--ink);background:var(--bg)}body.app-sepia .sidebar,body.app-sepia .top,body.app-sepia .mobilebar{background:#f8f0dc;border-color:var(--line);color:var(--ink)}body.app-sepia .card,body.app-sepia .quick,body.app-sepia .journey-stat,body.app-sepia .dua{background:#fff7e4;border-color:var(--line);color:var(--ink)}body.app-sepia .hero-card{background:linear-gradient(135deg,#315d42,#173b2d);color:#fff}body.app-sepia .smallbtn,body.app-sepia .chip,body.app-sepia .setting select,body.app-sepia .search,body.app-sepia input:not([type=checkbox]):not([type=range]),body.app-sepia select,body.app-sepia textarea{background:#fffaf0;border-color:var(--line);color:var(--ink)}
 @media(max-width:700px){.home-date-row h1{font-size:23px}.home-date-row{align-items:flex-start;flex-direction:column}.home-tools{display:flex;overflow-x:auto;padding-bottom:5px;scrollbar-width:thin}.home-tool{flex:0 0 88px;min-height:90px}.prayer-calendar-strip{gap:4px}.prayer-day{padding:8px 1px;font-size:10px}.prayer-day strong{font-size:14px}.current-prayer{padding:9px 7px}}
+
+
+/* MOMIN SETTINGS ALIGNMENT FIX — consistent label/control columns */
+.momin-settings-page{width:100%;min-width:0}
+.momin-settings-page>.grid.g2{align-items:start;gap:16px}
+.momin-settings-page>.grid.g2>.card{min-width:0;padding:clamp(18px,2.5vw,28px)}
+.momin-settings-page>.grid.g2>.card>h3{margin:0 0 18px;font-size:clamp(20px,2.2vw,24px);line-height:1.25}
+.momin-settings-page .setting{
+  display:grid;
+  grid-template-columns:minmax(0,0.95fr) minmax(0,1.05fr);
+  align-items:center;
+  column-gap:clamp(12px,2vw,22px);
+  row-gap:8px;
+  min-width:0;
+  padding:17px 0;
+}
+.momin-settings-page .setting>div:first-child,
+.momin-settings-page .setting>span:first-child{
+  min-width:0;
+  max-width:100%;
+}
+.momin-settings-page .setting b{display:block;line-height:1.35;overflow-wrap:anywhere}
+.momin-settings-page .setting small{
+  display:block;
+  margin-top:5px;
+  line-height:1.45;
+  max-width:34ch;
+  overflow-wrap:anywhere;
+}
+.momin-settings-page .setting>select,
+.momin-settings-page .setting>input:not([type=checkbox]),
+.momin-settings-page .setting>.method-settings-control,
+.momin-settings-page .setting>button,
+.momin-settings-page .setting>span:last-child{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  justify-self:stretch;
+}
+.momin-settings-page .setting>select,
+.momin-settings-page .setting>.method-settings-control select{
+  box-sizing:border-box;
+  min-width:0;
+  width:100%;
+  max-width:100%;
+  padding:11px 12px;
+  line-height:1.35;
+  text-overflow:ellipsis;
+}
+.momin-settings-page .setting>.method-settings-control{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+}
+.momin-settings-page .setting>.method-settings-control select{min-width:0}
+.momin-settings-page .setting>.method-settings-control .smallbtn{
+  width:auto;
+  min-width:0;
+  max-width:100%;
+  padding:11px 12px;
+  white-space:nowrap;
+}
+.momin-settings-page .setting>.toggle,
+.momin-settings-page .setting>input[type=checkbox]{
+  width:20px;
+  height:20px;
+  justify-self:end;
+}
+.momin-settings-page .setting>.smallbtn{width:auto;justify-self:end}
+.momin-settings-page .setting>span:last-child{overflow-wrap:anywhere;text-align:right}
+.momin-settings-page .settings-note{line-height:1.55;overflow-wrap:anywhere}
+@media(max-width:700px){
+  .momin-settings-page>.grid.g2{grid-template-columns:minmax(0,1fr);gap:14px}
+  .momin-settings-page>.grid.g2>.card{padding:18px 16px}
+  .momin-settings-page .setting{
+    grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr);
+    column-gap:12px;
+    padding:15px 0;
+  }
+  .momin-settings-page .setting b{font-size:14px}
+  .momin-settings-page .setting small{font-size:12px;max-width:24ch}
+  .momin-settings-page .setting>select,
+  .momin-settings-page .setting>.method-settings-control select{
+    font-size:12px;
+    padding:10px 8px;
+  }
+  .momin-settings-page .setting>.method-settings-control{grid-template-columns:minmax(0,1fr) auto;gap:6px}
+  .momin-settings-page .setting>.method-settings-control .smallbtn{padding:10px 9px;font-size:11px}
+}
+@media(max-width:380px){
+  .momin-settings-page .setting{grid-template-columns:minmax(0,0.78fr) minmax(0,1.22fr);column-gap:9px}
+  .momin-settings-page .setting>.method-settings-control{grid-template-columns:minmax(0,1fr)}
+  .momin-settings-page .setting>.method-settings-control .smallbtn{justify-self:start}
+}
+
