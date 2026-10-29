@@ -22,6 +22,14 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.Toast;
+import android.widget.LinearLayout;
+import android.widget.Button;
+import android.widget.TextView;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.view.Gravity;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -80,6 +88,28 @@ public class MainActivity extends Activity {
             }
         });
         root.addView(webView, new FrameLayout.LayoutParams(-1, -1));
+
+        // A compact native-only control remains available even when the website's own menus are closed.
+        TextView alarmTools = new TextView(this);
+        alarmTools.setText("Azan tools  ⋯");
+        alarmTools.setTextColor(Color.WHITE);
+        alarmTools.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        alarmTools.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        alarmTools.setGravity(Gravity.CENTER);
+        alarmTools.setPadding(dp(16), dp(11), dp(16), dp(11));
+        alarmTools.setMinHeight(dp(44));
+        alarmTools.setContentDescription("Open Android background Azan tools");
+        GradientDrawable pill = new GradientDrawable();
+        pill.setColor(Color.rgb(24, 67, 50));
+        pill.setCornerRadius(dp(24));
+        pill.setStroke(dp(1), Color.rgb(216, 236, 170));
+        alarmTools.setBackground(pill);
+        alarmTools.setElevation(dp(8));
+        alarmTools.setOnClickListener(v -> showNativePrayerStatus());
+        FrameLayout.LayoutParams toolsParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.END);
+        toolsParams.setMargins(dp(8), dp(8), dp(14), dp(88));
+        root.addView(alarmTools, toolsParams);
         setContentView(root);
     }
 
@@ -120,6 +150,10 @@ public class MainActivity extends Activity {
         }
     }
 
+    private int dp(float value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
     private void showNativePrayerStatus() {
         SharedPreferences p = getSharedPreferences(PrayerScheduler.PREFS, MODE_PRIVATE);
         boolean notifications = Build.VERSION.SDK_INT < 33 ||
@@ -128,18 +162,56 @@ public class MainActivity extends Activity {
         boolean exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || (am != null && am.canScheduleExactAlarms());
         boolean locationSaved = p.contains(PrayerScheduler.KEY_LAT) && p.contains(PrayerScheduler.KEY_LON);
         String sound = p.getString(PrayerScheduler.KEY_SOUND, "azan");
-        String message =
-                "Prayer reminders: " + (p.getBoolean(PrayerScheduler.KEY_ENABLED, false) ? "enabled" : "disabled") + "\n" +
-                "Location saved for native alarms: " + (locationSaved ? "yes" : "no") + "\n" +
-                "Notifications permission: " + (notifications ? "allowed" : "not allowed") + "\n" +
-                "Exact alarm access: " + (exact ? "allowed" : "not allowed — alarms may be delayed") + "\n" +
-                "Sound mode: " + sound + "\n\n" +
-                "For background Azan, save location and notification settings inside MOMIN, allow notifications, and enable Alarms & reminders. Battery controls, Do Not Disturb and force-stop can still affect playback.";
+        String coordinates = locationSaved
+                ? p.getString(PrayerScheduler.KEY_LAT, "?") + ", " + p.getString(PrayerScheduler.KEY_LON, "?")
+                : "not saved yet";
+        StringBuilder message = new StringBuilder();
+        message.append("Prayer reminders: ").append(p.getBoolean(PrayerScheduler.KEY_ENABLED, false) ? "enabled" : "disabled").append("\n")
+                .append("Location: ").append(coordinates).append("\n")
+                .append("Notifications permission: ").append(notifications ? "allowed" : "not allowed").append("\n")
+                .append("Exact alarm access: ").append(exact ? "allowed" : "not allowed — alarms may be delayed").append("\n")
+                .append("Sound mode: ").append(sound).append("\n\n")
+                .append("Make sure location and notification choices are saved inside this Android app. Background playback can still be affected by battery controls, Do Not Disturb, manufacturer restrictions, or force-stop.");
+
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(dp(20), dp(10), dp(20), dp(8));
+        TextView details = new TextView(this);
+        details.setText(message.toString());
+        details.setTextColor(Color.rgb(32, 43, 37));
+        details.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        details.setLineSpacing(dp(3), 1.0f);
+        panel.addView(details, new LinearLayout.LayoutParams(-1, -2));
+
+        Button test = new Button(this);
+        test.setText("Test Makkah Azan");
+        test.setOnClickListener(v -> {
+            testNativeAzan();
+        });
+        panel.addView(test, new LinearLayout.LayoutParams(-1, -2));
+
+        Button reschedule = new Button(this);
+        reschedule.setText("Refresh prayer alarms");
+        reschedule.setOnClickListener(v -> {
+            syncSettingsFromWebsite();
+            PrayerScheduler.scheduleUpcoming(getApplicationContext());
+            Toast.makeText(this, "MOMIN rechecked the saved settings and refreshed upcoming alarms.", Toast.LENGTH_LONG).show();
+        });
+        panel.addView(reschedule, new LinearLayout.LayoutParams(-1, -2));
+
+        Button alarmPermission = new Button(this);
+        alarmPermission.setText("Open Alarms & reminders settings");
+        alarmPermission.setOnClickListener(v -> openExactAlarmSettings());
+        panel.addView(alarmPermission, new LinearLayout.LayoutParams(-1, -2));
+
+        Button notificationPermission = new Button(this);
+        notificationPermission.setText("Open notification settings");
+        notificationPermission.setOnClickListener(v -> openNotificationSettings());
+        panel.addView(notificationPermission, new LinearLayout.LayoutParams(-1, -2));
+
         new AlertDialog.Builder(this)
                 .setTitle("MOMIN · Android prayer alarms")
-                .setMessage(message)
-                .setPositiveButton("Open alarm settings", (dialog, which) -> openExactAlarmSettings())
-                .setNeutralButton("Test Azan", (dialog, which) -> testNativeAzan())
+                .setView(panel)
                 .setNegativeButton("Close", null)
                 .show();
     }
