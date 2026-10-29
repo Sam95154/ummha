@@ -1602,6 +1602,42 @@ html[data-theme] .tsb .tsb-count,.tsb .tsb-ar,html[data-theme] .tsb .tsb-tr{colo
 @media(prefers-reduced-motion:no-preference){
   .card,.quick,.smallbtn,.iconbtn,.nav button,.tag,.chip{transition:background-color .22s ease,color .22s ease,border-color .22s ease,box-shadow .22s ease}
 }
+/* Extend the same palette to specialist cards and nested controls that have their own legacy styles. */
+html[data-theme] .momin-settings-page .settings-save-btn{
+ background:linear-gradient(135deg,#e7cd8d 0%,#c49a4a 52%,#9b702d 100%)!important;
+ color:#201608!important;border-color:#b3893d!important;box-shadow:0 8px 22px rgba(155,112,45,.20)!important
+}
+html[data-theme] .quran-reader .surah-plate{
+ --sp-ink:var(--ink);--sp-muted:var(--muted);--sp-gold:var(--gold);
+ color:var(--sp-ink)!important;border-color:var(--sp-gold)!important;outline-color:var(--sp-gold)!important;
+ box-shadow:inset 0 0 0 4px rgba(255,251,226,.18),0 6px 18px rgba(0,0,0,.15)!important
+}
+html[data-theme="light"] .quran-reader .surah-plate,
+html[data-theme="sepia"] .quran-reader .surah-plate{
+ background:radial-gradient(ellipse at center,rgba(255,255,255,.32),transparent 62%),linear-gradient(100deg,#5b421c 0%,#c49a4a 13%,var(--paper) 50%,#c49a4a 87%,#5b421c 100%)!important
+}
+html[data-theme="dark"] .quran-reader .surah-plate{
+ background:radial-gradient(ellipse at center,rgba(223,189,108,.10),transparent 62%),linear-gradient(100deg,#14110c 0%,#9b702d 13%,#191713 50%,#9b702d 87%,#14110c 100%)!important
+}
+html[data-theme] .momin-mosque-location-v1,html[data-theme] .momin-mosque-search-v1,
+html[data-theme] .momin-mosque-results-v1,html[data-theme] .momin-mosque-map-wrap-v1,
+html[data-theme] .momin-mosque-section-head-v1{
+ color:var(--ink)!important;border-color:var(--line)!important
+}
+html[data-theme] .momin-mosque-search-v1 input,html[data-theme] .momin-mosque-search-v1 select,
+html[data-theme] .momin-mosque-filters-v1 input,html[data-theme] .momin-mosque-filters-v1 select{
+ background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important
+}
+html[data-theme] .momin-mosque-place-text-v1{color:var(--ink)!important}
+html[data-theme] .momin-mosque-place-text-v1 p,html[data-theme] .momin-mosque-place-text-v1 small{color:var(--muted)!important}
+html[data-theme] .momin-mosque-results-v1 button,html[data-theme] .momin-mosque-filters-v1 button,
+html[data-theme] .momin-mosque-search-v1 button{
+ background:var(--paper);color:var(--ink);border-color:var(--line)
+}
+html[data-theme] .momin-mosque-results-v1 button.primary,html[data-theme] .momin-mosque-results-v1 button[aria-pressed="true"],
+html[data-theme] .momin-mosque-filters-v1 button[aria-pressed="true"]{
+ background:linear-gradient(135deg,#e7cd8d,#c49a4a)!important;color:#201608!important;border-color:#b3893d!important
+}
 /* The Dua library has its own green-tinted component stylesheet; remap its full component set. */
 html[data-theme] .dua-page{
   color:var(--ink)!important;
