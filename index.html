@@ -272,6 +272,192 @@ main{min-width:0}.top{height:70px;background:#ffffffd9;border-bottom:1px solid v
   }
 }
 
+
+/* QURAN THEMED SURAH PLATE — mobile-safe ornament and metadata */
+.quran-reader .surah-plate{
+  --sp-ink:#183f30;
+  --sp-muted:#60735d;
+  --sp-gold:#b59a58;
+  position:relative;
+  isolation:isolate;
+  display:grid;
+  grid-template-columns:minmax(42px,.55fr) minmax(0,2fr) minmax(42px,.55fr);
+  align-items:center;
+  gap:clamp(7px,2vw,18px);
+  width:100%;
+  max-width:780px;
+  min-height:132px;
+  margin:30px auto 22px;
+  padding:28px clamp(12px,3vw,24px) 18px;
+  box-sizing:border-box;
+  overflow:hidden;
+  border:2px solid var(--sp-gold);
+  outline:1px solid var(--sp-gold);
+  outline-offset:3px;
+  background:
+    radial-gradient(ellipse at center,rgba(255,255,255,.28),transparent 62%),
+    linear-gradient(100deg,#15583e 0%,#cfe6c8 14%,#f3f1dc 50%,#cfe6c8 86%,#15583e 100%);
+  color:var(--sp-ink);
+  text-align:center;
+  box-shadow:inset 0 0 0 4px rgba(255,251,226,.85),0 6px 18px rgba(0,0,0,.08);
+}
+.quran-reader .surah-plate::before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:7px;
+  border:1px solid rgba(181,154,88,.7);
+  pointer-events:none;
+}
+.quran-reader .surah-plate .sp-c{
+  position:absolute;
+  z-index:2;
+  color:var(--sp-gold);
+  font:18px/1 Georgia,serif;
+  pointer-events:none;
+}
+.quran-reader .surah-plate .sp-c::before{content:"✧"}
+.quran-reader .surah-plate .sp-c.a{top:10px;left:12px}
+.quran-reader .surah-plate .sp-c.b{top:10px;right:12px}
+.quran-reader .surah-plate .sp-c.c{bottom:10px;left:12px}
+.quran-reader .surah-plate .sp-c.d{bottom:10px;right:12px}
+.quran-reader .surah-plate .sp-badge{
+  position:absolute;
+  z-index:2;
+  top:7px;
+  left:50%;
+  display:grid;
+  place-items:center;
+  width:22px;
+  height:22px;
+  transform:translateX(-50%);
+  color:var(--sp-gold);
+}
+.quran-reader .surah-plate .sp-badge svg{display:block;width:100%;height:100%}
+.quran-reader .surah-plate .sp-orn{
+  position:relative;
+  z-index:1;
+  display:grid;
+  place-items:center;
+  min-width:0;
+  color:var(--sp-gold);
+  opacity:.95;
+}
+.quran-reader .surah-plate .sp-orn svg{
+  display:block;
+  width:100%;
+  max-width:58px;
+  height:auto;
+  max-height:66px;
+}
+.quran-reader .surah-plate .sp-mid{
+  position:relative;
+  z-index:1;
+  min-width:0;
+  padding-top:7px;
+}
+.quran-reader .surah-plate .sp-no{
+  margin:0 0 3px;
+  color:var(--sp-muted);
+  font:700 10px/1.4 var(--sans);
+  letter-spacing:.15em;
+  text-transform:uppercase;
+}
+.quran-reader .surah-plate .sp-ar{
+  max-width:100%;
+  margin:0 auto 5px;
+  color:var(--sp-ink);
+  font:500 clamp(25px,5.4vw,35px)/1.5 'Noto Naskh Arabic','Amiri','Traditional Arabic',Georgia,serif;
+  direction:rtl;
+  unicode-bidi:plaintext;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.quran-reader .surah-plate .sp-meta{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px;
+  max-width:100%;
+  color:var(--sp-muted);
+  font:500 11px/1.5 var(--sans);
+}
+.quran-reader .surah-plate .sp-meta span{min-width:0;overflow-wrap:anywhere}
+.quran-reader .surah-plate .sp-meta b{font-weight:800}
+.quran-reader .surah-plate .sp-meta i{
+  display:block;
+  flex:0 0 3px;
+  width:3px;
+  height:3px;
+  border-radius:50%;
+  background:var(--sp-gold);
+}
+.quran-reader .surah-plate .sp-arches{
+  position:absolute;
+  z-index:0;
+  inset:9px 13%;
+  border:1px solid rgba(181,154,88,.25);
+  border-radius:48% 48% 8px 8px;
+  pointer-events:none;
+}
+.quran-reader .reader-loadstatus{
+  display:block;
+  width:100%;
+  max-width:780px;
+  margin:20px auto 18px;
+  padding:0 8px;
+  box-sizing:border-box;
+  color:var(--quran-ink);
+  font:13px/1.55 var(--sans);
+  text-align:center;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.quran-reader.reader-night .surah-plate{
+  --sp-ink:#f3e7c8;
+  --sp-muted:#d1bd86;
+  --sp-gold:#d1b56e;
+  background:
+    radial-gradient(ellipse at center,rgba(60,119,82,.34),transparent 65%),
+    linear-gradient(100deg,#0c3a2c 0%,#174a38 20%,#1d513c 50%,#174a38 80%,#0c3a2c 100%);
+  box-shadow:inset 0 0 0 4px rgba(225,207,152,.08),0 6px 18px rgba(0,0,0,.24);
+}
+.quran-reader.reader-night .surah-plate::before{border-color:rgba(209,181,110,.55)}
+.quran-reader.reader-night .surah-plate .sp-arches{border-color:rgba(209,181,110,.2)}
+.quran-reader.reader-white .surah-plate{
+  --sp-ink:#183f30;
+  --sp-muted:#60735d;
+  --sp-gold:#a88d4f;
+}
+@media(max-width:700px){
+  .quran-reader .surah-plate{
+    grid-template-columns:28px minmax(0,1fr) 28px;
+    gap:5px;
+    min-height:126px;
+    margin:24px auto 18px;
+    padding:25px 10px 16px;
+  }
+  .quran-reader .surah-plate .sp-orn svg{width:28px;max-width:28px;max-height:42px}
+  .quran-reader .surah-plate .sp-c{font-size:14px}
+  .quran-reader .surah-plate .sp-c.a{top:8px;left:8px}
+  .quran-reader .surah-plate .sp-c.b{top:8px;right:8px}
+  .quran-reader .surah-plate .sp-c.c{bottom:8px;left:8px}
+  .quran-reader .surah-plate .sp-c.d{bottom:8px;right:8px}
+  .quran-reader .surah-plate .sp-badge{top:5px;width:17px;height:17px}
+  .quran-reader .surah-plate .sp-mid{padding-top:8px}
+  .quran-reader .surah-plate .sp-no{font-size:9px;letter-spacing:.12em}
+  .quran-reader .surah-plate .sp-ar{font-size:clamp(23px,6.2vw,30px);line-height:1.55}
+  .quran-reader .surah-plate .sp-meta{font-size:10px;gap:5px}
+  .quran-reader .surah-plate .sp-arches{inset:8px 10%}
+  .quran-reader .reader-loadstatus{
+    margin:17px auto 18px;
+    padding:0 4px;
+    font-size:12px;
+    line-height:1.6;
+  }
+}
+
 </style><link rel="stylesheet" href="./noor-v5.css"></head><body><div class="layout"><aside class="sidebar"><a class="brand" href="#" onclick="go('home');return false"><span class="logo">☾</span>Noor</a><div class="nav-label">YOUR DAY</div><div class="nav" id="sideNav"></div><div class="nav-label">EXPLORE</div><div class="nav" id="moreNav"></div><div class="sidebar-bottom"><div class="location">⌖ &nbsp;YOUR LOCATION<b id="locationName">London, United Kingdom</b></div><div class="profile"><div class="avatar">S</div><div><b>Samira</b><small>Free account</small></div><button class="plain" style="margin-left:auto" onclick="go(&quot;settings&quot;)">⚙</button></div></div></aside><main><header class="top"><div class="crumb"><span id="crumb">Home</span> <span id="hijriTop" style="margin-left:12px"></span></div><div class="topright"><button class="iconbtn" title="Notifications" onclick="toast(&quot;You’re all caught up&quot;)">♧</button><button class="iconbtn" title="Settings" onclick="go(&quot;settings&quot;)">⚙</button><div class="avatar">S</div></div></header><div class="content" id="view"></div></main></div><nav class="mobilebar" id="mobileNav"></nav><div class="toast" id="toast"></div>
 <script>
 const pages=[['home','⌂','Home'],['prayers','◷','Prayer times'],['quran','▤','Quran'],['qibla','◎','Qibla'],['duas','♡','Duas'],['tasbeeh','◉','Tasbeeh'],['calendar','▦','Calendar'],['settings','⚙','Settings']];
@@ -452,4 +638,4 @@ openSurah=function(n){quranView='reader';readerLoading=true;readSurah(n);window.
 returnToQuranLibrary=function(){quranView='library';readerLoading=false;stopAudio();render();window.scrollTo(0,0)};
 </script>
 <!-- NOOR QURAN HUB V4 END -->
-<script src="./noor-v5.js?v=qibla-v3"></script><script src="./noor-duas.js?v=no-audio-v12"></script></body></html>
+<script src="./noor-v5.js?v=qibla-v3"></script><script src="./noor-duas.js?v=no-audio-v12"></script><script src="./noor-quran-header.js?v=plate-v1"></script></body></html>
