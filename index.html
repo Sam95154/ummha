@@ -1444,4 +1444,193 @@ body:has(.momin-calendar-frame-shell) #view{width:100%;height:100%;min-height:0;
 })();
 </script>
 
+
+<style id="momin-black-gold-theme-v1">
+/* MOMIN BLACK & GOLD THEME V1 — color-only overrides; existing content and layout stay unchanged. */
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f5f1e7;--paper:#fffdf8;--ink:#211d17;--muted:#71695b;--line:#e4dac5;
+  --green:#302619;--green2:#4a3820;--mint:#f0e5cc;--lime:#e8c982;--gold:#b58a39;
+  --accent:#a87b2e;--accent-ink:#18130b;--accent-soft:#f1e4c4;--shadow:0 12px 35px rgba(45,32,10,.10)
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0d0c0a;--paper:#191713;--ink:#f5eddb;--muted:#b5a78e;--line:#3d3426;
+  --green:#dfbd6c;--green2:#b58b3f;--mint:#2b2418;--lime:#f1d58e;--gold:#dfbd6c;
+  --accent:#e1bd67;--accent-ink:#191309;--accent-soft:#342a19;--shadow:0 16px 42px rgba(0,0,0,.34)
+}
+:root[data-theme="sepia"]{
+  color-scheme:light;
+  --bg:#eee4cf;--paper:#fff7e6;--ink:#33291c;--muted:#7c6f5a;--line:#dac9a9;
+  --green:#5c421e;--green2:#765527;--mint:#eadcc0;--lime:#e7ca82;--gold:#ad8031;
+  --accent:#9c7029;--accent-ink:#fffaf0;--accent-soft:#ead8b1;--shadow:0 12px 35px rgba(62,43,10,.12)
+}
+html,body{background:var(--bg)!important;color:var(--ink)!important}
+body{filter:none!important;transition:background-color .22s ease,color .22s ease}
+.layout,main,.content{color:var(--ink)}
+.sidebar,html[data-theme] body .sidebar{background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important}
+.top,html[data-theme] body .top,html[data-theme] body .mobilebar{background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important}
+.brand,.sidebar .profile b,.location b{color:var(--ink)!important}
+.nav-label{color:var(--muted)!important}
+.nav button{color:var(--muted)!important}
+.nav button:hover{background:var(--accent-soft)!important;color:var(--ink)!important}
+.nav button.active,.mobilebar button.active{background:linear-gradient(135deg,#e7cd8d,#c49a4a)!important;color:#21170a!important;border-color:#b3893d!important}
+.mobilebar button{color:var(--muted)!important}
+.sidebar .location,.location-chip{background:var(--accent-soft)!important;color:var(--ink)!important;border-color:var(--line)!important}
+.avatar{background:var(--accent-soft)!important;color:var(--accent)!important}
+.iconbtn,.smallbtn,.chip,.setting select,.search,input:not([type=checkbox]):not([type=range]),select,textarea{
+  background:var(--paper)!important;border-color:var(--line)!important;color:var(--ink)!important
+}
+.search::placeholder,textarea::placeholder{color:var(--muted)!important}
+.card,.quick,.journey-stat,.dua,.surahrow,.panel,.location-card,.mq-dial-card,.mq-result,.mq-dl,.mq-form{
+  background:var(--paper)!important;border-color:var(--line)!important;color:var(--ink)!important;box-shadow:var(--shadow)
+}
+.card h3,.sectionhead h2,.page-title h1,.content h1,.content h2,.content h3{color:var(--ink)}
+.sub,.page-title p,.setting small,.crumb,.nav-label{color:var(--muted)!important}
+.hero-card,html[data-theme] body .hero-card,html[data-theme] body.app-light .hero-card,html[data-theme] body.app-sepia .hero-card{
+  color:#fff5dd!important;background:radial-gradient(120% 130% at 100% 0%,rgba(219,180,95,.24),transparent 62%),linear-gradient(135deg,#11100e 0%,#211b13 58%,#40301a 100%)!important;border:1px solid #80612e!important
+}
+.hero-card h2,.hero-card h3,.hero-card b,.hero-card .sub,.hero-card .timer,.hero-card .prayer-pill{color:#fff1cf!important}
+.hero-card .prayer-pill,.btn-light{background:rgba(255,255,255,.09)!important;border-color:rgba(231,198,124,.34)!important}
+.tag,.chip,.location-chip{background:var(--accent-soft)!important;color:var(--accent)!important;border-color:var(--line)!important}
+.plain,.link-button,.content a:not(.brand){color:var(--accent)!important}
+.smallbtn:hover,.iconbtn:hover,.quick:hover,.dua:hover,.surahrow:hover{background:var(--accent-soft)!important;border-color:var(--accent)!important}
+button.primary,.primary,.settings-save-btn,.mq-live-btn,.mq-action-btn,.counterbtn{
+  background:linear-gradient(135deg,#e7cd8d 0%,#c49a4a 52%,#9b702d 100%)!important;
+  color:#201608!important;border:1px solid #b3893d!important;box-shadow:0 8px 22px rgba(155,112,45,.20)!important
+}
+.settings-save-btn{border-color:#b3893d!important}
+.check{background:var(--paper)!important;border-color:var(--line)!important;color:var(--ink)!important}
+.check.done{background:linear-gradient(135deg,#e7cd8d,#b88935)!important;border-color:#b88935!important;color:#201608!important}
+.progress{background:var(--accent-soft)!important}.progress i{background:linear-gradient(90deg,#a8782d,#efd18a)!important}
+.prayerrow,.setting{border-color:var(--line)!important}
+.pname,.ptime{color:var(--ink)!important}
+.verse,.soft{background:var(--accent-soft)!important;border-color:var(--line)!important;color:var(--ink)!important}
+.arabic,.surah-ar,.counter{color:var(--accent)!important}
+.counterbtn{color:#201608!important}
+.compass{border-color:var(--accent)!important;background:radial-gradient(circle,var(--paper) 0 56%,var(--accent-soft) 57%)!important;box-shadow:inset 0 0 0 12px var(--paper),0 0 0 1px var(--line)!important}
+.compass:before,.kaaba{color:var(--accent)!important}.compass:after{color:var(--muted)!important}
+.needle{background:linear-gradient(to top,#352a18 0 50%,#efd18a 50%)!important}.center-dot{background:var(--accent)!important}
+.calendar .today{background:linear-gradient(135deg,#e7cd8d,#b88935)!important;color:#201608!important}
+.toast{background:#171410!important;color:#fff3d7!important;border:1px solid #7c5d2a!important;box-shadow:0 12px 35px #0005}
+:focus-visible{outline:3px solid var(--accent)!important;outline-offset:3px!important}
+::selection{background:rgba(198,157,74,.32);color:var(--ink)}
+/* Home mini-calendar and legacy calendar/mosque feature cards. */
+.momin-mosque-hero-v1,.momin-cal-next-v1,.momin-home-calendar-v1{
+  color:#fff2d1!important;background:radial-gradient(100% 120% at 100% 0%,rgba(214,177,95,.23),transparent 62%),linear-gradient(135deg,#11100e,#292116 72%,#45331a)!important;border-color:#80612e!important
+}
+.momin-mosque-hero-v1 h1,.momin-mosque-hero-v1 h2,.momin-mosque-hero-v1 h3,.momin-home-calendar-v1 h1,.momin-home-calendar-v1 h2{color:#fff0ca!important}
+.momin-mosque-filters-v1,.momin-mosque-map-wrap-v1,.momin-mosque-results-v1,.momin-cal-intro-v1,.momin-cal-month-v1,.momin-cal-important-v1,.momin-cal-footnote-v1{
+  background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important
+}
+.momin-home-date-strip-v1 button,.momin-cal-month-v1 button,.momin-cal-important-v1 button{background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important}
+.momin-home-date-strip-v1 button.current-v1,.momin-cal-month-v1 button[aria-pressed="true"],.momin-cal-important-v1 button.active{
+  background:linear-gradient(135deg,#e7cd8d,#c49a4a)!important;color:#21170a!important;border-color:#b3893d!important
+}
+/* Quran reading view and its settings modal. */
+html[data-theme="light"] .quran-reader,html[data-theme="sepia"] .quran-reader{--quran-paper:var(--paper)!important;--quran-ink:var(--ink)!important;background:var(--bg)!important;color:var(--ink)!important}
+html[data-theme="dark"] .quran-reader{--quran-paper:#11100e!important;--quran-ink:#f5eddb!important;background:#11100e!important;color:#f5eddb!important}
+html[data-theme] .quran-toolbar,html[data-theme] .reading-goal,html[data-theme] .ayah-block,html[data-theme] .surah-catalog{
+  border-color:var(--line)!important
+}
+html[data-theme] .reader-surah-select,html[data-theme] .reader-icon,html[data-theme] .reader-icon-button,
+html[data-theme] .reader-subtitle,html[data-theme] .ayah-translation,html[data-theme] .reader-loadstatus{color:var(--ink)!important}
+html[data-theme] .reader-icon-button:hover,html[data-theme] .reader-settings .reader-setting:hover{background:var(--accent-soft)!important}
+html[data-theme="dark"] .reader-night,html[data-theme="dark"] .reader-white{--quran-paper:#11100e!important;--quran-ink:#f5eddb!important}
+html[data-theme="dark"] #readerSettings.momin-reader-settings-v8{
+  background:linear-gradient(180deg,#211c14 0%,#15130f 100%)!important;color:#f5eddb!important;border-color:#8a6a30!important;scrollbar-color:#b58b3f #211c14!important
+}
+html[data-theme="dark"] #readerSettings.momin-reader-settings-v8 *{border-color:#453924}
+html[data-theme="dark"] #readerSettings .momin-quran-settings-header strong,
+html[data-theme="dark"] #readerSettings .momin-quran-settings-tabs button,
+html[data-theme="dark"] #readerSettings .momin-quran-field label,
+html[data-theme="dark"] #readerSettings .momin-quran-settings-footer{color:#f5eddb!important}
+html[data-theme="dark"] #readerSettings .momin-quran-settings-tabs,
+html[data-theme="dark"] #readerSettings .momin-quran-settings-field,
+html[data-theme="dark"] #readerSettings .momin-quran-field{background:#211c14!important}
+html[data-theme="dark"] #readerSettings input,html[data-theme="dark"] #readerSettings select{background:#100f0c!important;color:#f5eddb!important;border-color:#584629!important}
+html[data-theme] #readerSettings .momin-quran-settings-tabs button.active,
+html[data-theme] #readerSettings .momin-quran-settings-footer button{background:linear-gradient(135deg,#e7cd8d,#b88935)!important;color:#21170a!important;border-color:#b3893d!important}
+/* Dua page keeps its own layout but follows the site palette. */
+html[data-theme] body.dua-app-mode .content{
+  background:radial-gradient(100% 100% at 100% 0%,rgba(208,166,77,.18),transparent 58%),linear-gradient(180deg,#11100e,#201a12 68%,#352818)!important;
+  color:var(--ink)!important;border-color:#80612e!important
+}
+html[data-theme] body.dua-app-mode .content [class*="dua-card"],
+html[data-theme] body.dua-app-mode .content [class*="dua-panel"],
+html[data-theme] body.dua-app-mode .content [class*="dua-row"],
+html[data-theme] body.dua-app-mode .content [class*="dua-tile"],
+html[data-theme] body.dua-app-mode .content [class*="dua-category"]{
+  background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important
+}
+html[data-theme] body.dua-app-mode .content button{border-color:var(--line)}
+html[data-theme] body.dua-app-mode .content button[class*="active"],
+html[data-theme] body.dua-app-mode .content button[aria-pressed="true"]{
+  background:linear-gradient(135deg,#e7cd8d,#b88935)!important;color:#21170a!important;border-color:#b3893d!important
+}
+html[data-theme] body.dua-app-mode .content input,html[data-theme] body.dua-app-mode .content select,html[data-theme] body.dua-app-mode .content textarea{
+  background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important
+}
+/* Qibla finder, tasbih controls, and all common interactive accents. */
+html[data-theme] .momin-qibla-finder{background:var(--bg)!important;color:var(--ink)!important}
+html[data-theme] .momin-qibla-finder .mq-header h1,html[data-theme] .momin-qibla-finder .mq-header p,
+html[data-theme] .momin-qibla-finder .mq-form,html[data-theme] .momin-qibla-finder .mq-dl,
+html[data-theme] .momin-qibla-finder .mq-turn,html[data-theme] .momin-qibla-finder label{color:var(--ink)!important}
+html[data-theme] .momin-qibla-finder .mq-dial-card,html[data-theme] .momin-qibla-finder .mq-result,
+html[data-theme] .momin-qibla-finder .mq-dl,html[data-theme] .momin-qibla-finder .mq-form{
+  background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important
+}
+html[data-theme] .momin-qibla-finder input,html[data-theme] .momin-qibla-finder select{background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important}
+html[data-theme] .tsb .panel,html[data-theme] .tsb .tsb-row,html[data-theme] .tsb .tsb-chip{
+  background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important
+}
+html[data-theme] .tsb .tsb-chip.on,html[data-theme] .tsb .tsb-row.on{
+  background:linear-gradient(135deg,#e7cd8d,#c49a4a)!important;color:#21170a!important;border-color:#b3893d!important
+}
+html[data-theme] .tsb .tsb-count,.tsb .tsb-ar,html[data-theme] .tsb .tsb-tr{color:var(--ink)!important}
+@media(prefers-reduced-motion:no-preference){
+  .card,.quick,.smallbtn,.iconbtn,.nav button,.tag,.chip{transition:background-color .22s ease,color .22s ease,border-color .22s ease,box-shadow .22s ease}
+}
+</style>
+<script id="momin-theme-controller-v1">
+/* Persistent shared appearance mode; replaces the legacy body-invert theme behavior. */
+(function(){
+  "use strict";
+  function normalizeTheme(value){
+    var v=String(value||"Dark").trim().toLowerCase();
+    if(v==="light")return "Light";
+    if(v==="sepia")return "Sepia";
+    return "Dark";
+  }
+  function syncAppearanceSelect(){
+    var select=document.querySelector('#view .momin-settings-page .setting select[onchange="setTheme(this.value)"]');
+    if(select)select.value=normalizeTheme(localStorage.getItem("noor-theme")||"Dark");
+  }
+  function setMominTheme(value){
+    var theme=normalizeTheme(value),mode=theme.toLowerCase();
+    document.documentElement.setAttribute("data-theme",mode);
+    document.body.classList.toggle("app-light",theme==="Light");
+    document.body.classList.toggle("app-sepia",theme==="Sepia");
+    document.body.style.filter="";
+    try{localStorage.setItem("noor-theme",theme)}catch(_){}
+    var meta=document.querySelector('meta[name="theme-color"]');
+    if(meta)meta.setAttribute("content",theme==="Dark"?"#0d0c0a":theme==="Sepia"?"#eee4cf":"#f5f1e7");
+    syncAppearanceSelect();
+  }
+  /* Override noor-v5.js's previous class-only theme setter. */
+  window.setTheme=setMominTheme;
+  var previousRender=window.render;
+  if(typeof previousRender==="function"){
+    window.render=function(){
+      var result=previousRender.apply(this,arguments);
+      syncAppearanceSelect();
+      return result;
+    };
+  }
+  var initial="Dark";
+  try{initial=localStorage.getItem("noor-theme")||"Dark"}catch(_){}
+  setMominTheme(initial);
+})();
+</script>
+
 </body></html>
