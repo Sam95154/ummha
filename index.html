@@ -1602,6 +1602,42 @@ html[data-theme] .tsb .tsb-count,.tsb .tsb-ar,html[data-theme] .tsb .tsb-tr{colo
 @media(prefers-reduced-motion:no-preference){
   .card,.quick,.smallbtn,.iconbtn,.nav button,.tag,.chip{transition:background-color .22s ease,color .22s ease,border-color .22s ease,box-shadow .22s ease}
 }
+/* Duas shortcuts: remove the oversized rounded group; keep each action as its own neat card. */
+html[data-theme] .dua-shortcuts-grid-v1{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;
+ margin:0 0 24px!important;padding:0!important;background:transparent!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important
+}
+html[data-theme] .dua-shortcuts-grid-v1>a{
+ display:grid!important;grid-template-columns:34px minmax(0,1fr)!important;
+ grid-template-rows:auto auto!important;align-items:center!important;justify-items:start!important;
+ column-gap:9px!important;row-gap:3px!important;min-width:0!important;min-height:76px!important;
+ padding:12px 10px!important;border-radius:16px!important;
+ background:var(--paper)!important;color:var(--ink)!important;border:1px solid var(--line)!important;
+ box-shadow:var(--shadow)!important;overflow:hidden
+}
+html[data-theme] .dua-shortcuts-grid-v1>a .shortcut-icon{
+ display:grid!important;place-items:center!important;width:34px!important;height:36px!important;
+ grid-column:1!important;grid-row:1/span 2!important;font-size:22px!important;color:var(--accent)!important
+}
+html[data-theme] .dua-shortcuts-grid-v1>a>span:nth-child(2){grid-column:2!important;grid-row:1!important;color:var(--ink)!important;line-height:1.3;overflow-wrap:anywhere}
+html[data-theme] .dua-shortcuts-grid-v1>a small{
+ grid-column:2!important;grid-row:2!important;display:block!important;width:100%!important;
+ min-width:0!important;color:var(--muted)!important;font-size:10px!important;line-height:1.3!important;
+ text-align:left!important;white-space:normal!important;overflow-wrap:anywhere
+}
+html[data-theme] .dua-shortcuts-grid-v1>a:focus-visible,
+html[data-theme] .dua-shortcuts-grid-v1>a:hover{border-color:var(--accent)!important;box-shadow:0 8px 22px rgba(181,138,57,.15)!important}
+html[data-theme] .dua-bottom-nav a svg.dua-nav-quran-icon{
+ display:block;width:23px;height:23px;flex:0 0 auto;margin:0 auto 1px;
+ fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round
+}
+html[data-theme] .dua-bottom-nav a{gap:3px}
+@media(max-width:360px){
+ html[data-theme] .dua-shortcuts-grid-v1{gap:8px!important}
+ html[data-theme] .dua-shortcuts-grid-v1>a{grid-template-columns:28px minmax(0,1fr)!important;padding:10px 8px!important;column-gap:7px!important}
+ html[data-theme] .dua-shortcuts-grid-v1>a .shortcut-icon{width:28px!important;font-size:20px!important}
+}
 /* Extend the same palette to specialist cards and nested controls that have their own legacy styles. */
 html[data-theme] .momin-settings-page .settings-save-btn{
  background:linear-gradient(135deg,#e7cd8d 0%,#c49a4a 52%,#9b702d 100%)!important;
