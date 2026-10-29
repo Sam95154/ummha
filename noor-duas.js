@@ -114,10 +114,27 @@
   window.duaCategorySearchV6 = function (q) { state.categoryQuery = q; var el = document.getElementById("duaCategoryResultsV6"); if (el) el.innerHTML = q ? searchResults(q, entries.filter(function (x) { return x.cat === state.category; }).map(function (x) { return x.id; })) : entries.filter(function (x) { return x.cat === state.category; }).map(function (x) { return entryCard(x); }).join(""); else render(); };
   function stopDuaAudioV6() { /* Audio playback is disabled in the Dua section. */ }
   var oldGoDuaV6 = window.go;
-  window.go = function (target) { oldGoDuaV6(target); };
+  window.go = function (target) {
+    if (target === "duas") {
+      if (typeof window.stopAudio === "function") window.stopAudio();
+      page = "duas";
+      if (typeof window.render === "function") window.render();
+      window.scrollTo(0, 0);
+      return;
+    }
+    oldGoDuaV6(target);
+  };
   window.filterDuas = function (q) { state.query = q || ""; render(); };
   var oldRenderDuaV6 = window.render;
   window.render = function () { oldRenderDuaV6(); if (page === "duas") document.documentElement.style.setProperty("--dua-reading-size", ["29px", "36px", "44px"][Number(localStorage.getItem("noor-dua-font-v6") || 1)] || "36px"); };
-  if (window.location.hash === "#duas") page = "duas";
+  function openDuaRouteV6() {
+    var hash = window.location.hash || "";
+    if (hash === "#duas" || hash === "#/duas") {
+      page = "duas";
+      if (typeof window.render === "function") window.render();
+    }
+  }
+  if (window.location.hash === "#duas" || window.location.hash === "#/duas") page = "duas";
+  window.addEventListener("hashchange", openDuaRouteV6);
   window.render();
 }());
