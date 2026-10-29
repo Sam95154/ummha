@@ -194,3 +194,62 @@ body.dua-app-mode .toast{bottom:20px;z-index:50}
  .dua-reading-card{padding-left:14px;padding-right:14px}
  .dua-essential-grid,.dua-special-grid{gap:8px}
 }
+
+/* DUA MOBILE SHORTCUT GRID FIX */
+@media(max-width:700px){
+  .dua-app-mode .dua-shortcuts{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    margin-top:0;
+    margin-bottom:24px;
+    padding:10px;
+    background:rgba(217,242,231,.055);
+    border:1px solid rgba(230,248,239,.12);
+    border-radius:17px;
+  }
+  .dua-app-mode .dua-shortcuts>a{
+    display:grid;
+    grid-template-columns:34px minmax(0,1fr);
+    grid-template-rows:auto auto;
+    align-items:center;
+    justify-items:start;
+    column-gap:8px;
+    row-gap:2px;
+    min-height:60px;
+    min-width:0;
+    padding:8px;
+    text-align:left;
+    background:rgba(222,245,235,.055);
+    border:1px solid rgba(226,245,235,.09);
+    border-radius:12px;
+    font-size:11px;
+    line-height:1.3;
+  }
+  .dua-app-mode .dua-shortcuts .shortcut-icon{
+    grid-column:1;
+    grid-row:1 / span 2;
+    width:34px;
+    height:36px;
+    font-size:22px;
+  }
+  .dua-app-mode .dua-shortcuts>a>span:not(.shortcut-icon){
+    grid-column:2;
+    grid-row:1;
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  .dua-app-mode .dua-shortcuts small{
+    grid-column:2;
+    grid-row:2;
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    font-size:10px;
+    line-height:1.25;
+    text-align:left;
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+}
+
