@@ -1,0 +1,3 @@
+MOMIN Android background prayer alarm source.
+Prayer-time dependency: Adhan Java by Batoul Apps, https://github.com/batoulapps/adhan-java (MIT).
+Makkah Azan MP3 is the user's supplied asset; confirm public redistribution rights before Play Store release.
