@@ -81,7 +81,7 @@ final class PrayerScheduler {
     }
     private static CalculationParameters params(String id,String madhab){
         CalculationMethod m;
-        switch(id){case "1":m=CalculationMethod.KARACHI;break;case "2":m=CalculationMethod.NORTH_AMERICA;break;case "4":m=CalculationMethod.UMM_AL_QURA;break;case "5":m=CalculationMethod.EGYPTIAN;break;case "8":case "16":m=CalculationMethod.DUBAI;break;case "9":m=CalculationMethod.KUWAIT;break;case "10":m=CalculationMethod.QATAR;break;case "11":m=CalculationMethod.SINGAPORE;break;case "3":default:m=CalculationMethod.MUSLIM_WORLD_LEAGUE;break;}
+        switch(id){case "1":m=CalculationMethod.KARACHI;break;case "2":m=CalculationMethod.NORTH_AMERICA;break;case "4":m=CalculationMethod.UMM_AL_QURA;break;case "5":m=CalculationMethod.EGYPTIAN;break;case "16":m=CalculationMethod.DUBAI;break;case "9":m=CalculationMethod.KUWAIT;break;case "10":m=CalculationMethod.QATAR;break;case "11":m=CalculationMethod.SINGAPORE;break;case "3":default:m=CalculationMethod.MUSLIM_WORLD_LEAGUE;break;}
         CalculationParameters p=m.getParameters();p.madhab="hanafi".equalsIgnoreCase(madhab)?Madhab.HANAFI:Madhab.SHAFI;return p;
     }
     private static void scheduleOne(Context c,AlarmManager am,LocalDate day,int i,long at,String title){
