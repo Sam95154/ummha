@@ -469,6 +469,12 @@ body.dua-app-mode .dua-detail-actions-single{grid-template-columns:minmax(0,1fr)
 body.dua-app-mode .dua-detail-actions-single button{width:100%}
 
 
+
+/* MOMIN prayer method controls */
+.method-settings-control{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;max-width:62%}
+.method-settings-control select{max-width:250px;min-width:170px;padding:9px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink)}
+@media(max-width:700px){.method-settings-control{max-width:100%;width:100%;justify-content:stretch}.method-settings-control select{flex:1;min-width:0;max-width:100%}.method-settings-control .smallbtn{white-space:nowrap}}
+
 /* MOMIN brand and launch splash */
 .brand-logo{display:block;width:42px;height:42px;flex:0 0 42px;object-fit:contain;background:transparent}
 .brand{gap:10px;letter-spacing:.04em}
@@ -788,7 +794,7 @@ render();
 /* Live data and complete reading flows */
 const API_STORE={city:localStorage.getItem('noor-city')||'',country:localStorage.getItem('noor-country')||'',method:localStorage.getItem('noor-method')||'3',methodMode:localStorage.getItem('noor-method-mode')||'auto'};
 let livePrayer=null, liveQibla=null, chapters=[], currentVerses=[], currentAudio=null, chapterPage=1, audioEl=new Audio();
-const PRAYER_METHODS={"Shia Ithna-Ashari (Ja'fari) / Leva Institute, Qom":"0","University of Islamic Sciences, Karachi":"1","Islamic Society of North America (ISNA)":"2","Muslim World League (MWL)":"3","Umm al-Qura University, Makkah":"4","Egyptian General Authority of Survey":"5","Institute of Geophysics, University of Tehran":"7","Gulf Region":"8","Kuwait":"9","Qatar":"10","Majlis Ugama Islam Singapura (MUIS)":"11","Union Organization Islamique de France (UOIF)":"12","Diyanet İşleri Başkanlığı, Turkey":"13","Spiritual Administration of Muslims of Russia":"14","Moonsighting Committee Worldwide":"15","Dubai, UAE (Experimental/Research)":"16","Jabatan Kemajuan Islam Malaysia (JAKIM)":"17","Tunisia":"18","Algeria":"19","Kementerian Agama Republik Indonesia (KEMENAG)":"20","Morocco":"21","Comunidade Islâmica de Lisboa (Portugal)":"22","Jordan":"23"};
+const PRAYER_METHODS={"Shia Ithna-Ashari (Jafari) / Leva Inst., Qom":"0","University of Islamic Sciences, Karachi":"1","Islamic Society of North America (ISNA)":"2","Muslim World League (MWL)":"3","Umm al-Qura University, Makkah":"4","Egyptian General Authority of Survey":"5","Institute of Geophysics, University of Tehran":"7","Gulf Region":"8","Kuwait":"9","Qatar":"10","Majlis Ugama Islam Singapura (MUIS)":"11","Union Organisation Islamique de France (UOIF)":"12","Diyanet İşleri Başkanlığı":"13","Spiritual Administration of Muslims of Russia":"14","Moonsighting Committee Worldwide":"15","Dubai, UAE (Experimental/Research)":"16","Jabatan Kemajuan Islam Malaysia (JAKIM)":"17","Tunisia":"18","Algeria":"19","Kementerian Agama Republik Indonesia (KEMENAG)":"20","Morocco":"21","Comunidade Islâmica de Lisboa":"22","Jordan":"23"};
 async function getJSON(url){const r=await fetch(url);if(!r.ok)throw Error('Service returned '+r.status);const j=await r.json();if(j.code&&j.code>=400)throw Error(j.status||'Service error');return j}
 function apiDate(){let d=new Date();return [String(d.getDate()).padStart(2,'0'),String(d.getMonth()+1).padStart(2,'0'),d.getFullYear()].join('-')}
 function syncLocationLabels(){['locationName','settingLocation'].forEach(id=>{let e=document.getElementById(id);if(e)e.textContent=API_STORE.city+', '+API_STORE.country})}
@@ -925,4 +931,4 @@ openSurah=function(n){quranView='reader';readerLoading=true;readSurah(n);window.
 returnToQuranLibrary=function(){quranView='library';readerLoading=false;stopAudio();render();window.scrollTo(0,0)};
 </script>
 <!-- NOOR QURAN HUB V4 END -->
-<script src="./noor-v5.js?v=location-methods-v8"></script><script src="./noor-duas.js?v=prototype-flow-v2"></script><script src="./noor-quran-header.js?v=plate-v1"></script><script src="./noor-tasbih.js?v=tasbih-v1"></script></body></html>
+<script src="./noor-v5.js?v=location-methods-v9"></script><script src="./noor-duas.js?v=prototype-flow-v2"></script><script src="./noor-quran-header.js?v=plate-v1"></script><script src="./noor-tasbih.js?v=tasbih-v1"></script></body></html>

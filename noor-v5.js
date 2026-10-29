@@ -320,7 +320,7 @@ duasPage=function(){return title('Duas & adhkar','Supplications for daily moment
 function journeyPageV5(){var completed=Object.values(done).filter(Boolean).length,bookmarks=JSON.parse(localStorage.getItem('noor-bookmarks')||'[]'),duaFavorites=JSON.parse(localStorage.getItem('noor-dua-favorites')||'[]'),recent=JSON.parse(localStorage.getItem('noor-quran-recent')||'[]'),reflection=localStorage.getItem('noor-reflection')||'';return title('My Journey','Your personal worship and reading progress','Private on this device')+'<div class="journey-private">🔒 Your prayer check-ins, saved duas, Quran bookmarks, and reflections stay in this browser.</div><div class="sectionhead"><h2>Today</h2><button class="plain" onclick="go(\'prayers\')">Prayer tracker →</button></div><div class="grid g2"><div class="card"><div class="rowbetween"><div><h3>Daily prayers</h3><div class="sub">'+completed+' of 5 marked complete</div></div><span class="tag">'+Math.round(completed/5*100)+'%</span></div><div class="progress"><i style="width:'+completed*20+'%"></i></div><button class="smallbtn" onclick="go(\'prayers\')">Update today’s prayers</button></div><div class="card"><div class="rowbetween"><div><h3>Tasbih today</h3><div class="sub">A gentle dhikr habit</div></div><span class="tag">'+Number(tasbih||0)+'</span></div><div class="progress"><i style="width:'+Math.min(Number(tasbih||0),100)+'%"></i></div><button class="smallbtn" onclick="go(\'tasbeeh\')">Continue tasbih</button></div></div><div class="sectionhead"><h2>Quran reading</h2><button class="plain" onclick="go(\'quran\')">Open Quran →</button></div><div class="grid g2"><div class="journey-stat"><b>'+escapeAppHtmlV5(selectedSurah)+'</b><small>Last selected surah</small></div><div class="journey-stat"><b>'+bookmarks.length+'</b><small>Saved ayahs · '+duaFavorites.length+' favorite duas</small></div></div><div class="sectionhead"><h2>Recent reading</h2></div><div class="card">'+(recent.length?recent.slice(0,3).map(function(r){var ch=chapters[r.surah-1],name=ch?ch.englishName:'Surah '+r.surah;return '<div class="setting"><b>'+escapeAppHtmlV5(name)+'</b><button class="smallbtn" onclick="openSurah('+Number(r.surah)+')">Continue →</button></div>'}).join(''):'<p class="sub">Your recently opened surahs will appear here.</p>')+'</div><div class="sectionhead"><h2>Private reflection</h2><button class="plain" onclick="go(\'inspiration\')">Open →</button></div><div class="card">'+(reflection?'<p style="line-height:1.7">'+escapeAppHtmlV5(reflection)+'</p>':'<p class="sub">Write a reflection for yourself. It is saved only in this browser.</p>')+'<button class="smallbtn" onclick="go(\'inspiration\')">Write or edit</button></div>'}
 function appThemeV5(value){var theme=String(value||'Dark').toLowerCase();document.body.classList.toggle('app-light',theme==='light');document.body.classList.toggle('app-sepia',theme==='sepia');localStorage.setItem('noor-theme',theme==='light'?'Light':theme==='sepia'?'Sepia':'Dark')}
 setTheme=appThemeV5;
-var settingsPageBeforeV5=settingsPage;settingsPage=function(){var html=settingsPageBeforeV5(),theme=localStorage.getItem('noor-theme')||'Dark';html=html.replace('<option>Light</option><option>Sepia</option><option>Dark</option>','<option '+(theme==='Light'?'selected':'')+'>Light</option><option '+(theme==='Sepia'?'selected':'')+'>Sepia</option><option '+(theme==='Dark'?'selected':'')+'>Dark</option>');html=html.replace('</div><div class="card" style="margin-top:16px"><h3>About Noor</h3>','</div><div class="card" style="margin-top:16px"><h3>About Noor</h3>');return html};
+var settingsPageBeforeV5=settingsPage;settingsPage=function(){var html=settingsPageBeforeV5(),theme=localStorage.getItem('noor-theme')||'Dark';html=html.replace('<option>Light</option><option>Sepia</option><option>Dark</option>','<option '+(theme==='Light'?'selected':'')+'>Light</option><option '+(theme==='Sepia'?'selected':'')+'>Sepia</option><option '+(theme==='Dark'?'selected':'')+'>Dark</option>');var methodOpts=Object.keys(PRAYER_METHODS).map(function(name){var id=String(PRAYER_METHODS[name]);return '<option value="'+id+'" '+(String(API_STORE.method||'3')===id?'selected':'')+'>'+escapeAppHtmlV5(name)+'</option>'}).join('');var methodControl='<div class="setting"><div><b>Calculation method</b><small>Automatically chosen for your location unless you select one</small></div><div class="method-settings-control"><select id="settingsMethodInput" onchange="setPrayerMethodV5(this.value)">'+methodOpts+'</select><button class="smallbtn" onclick="setPrayerMethodV5(&quot;auto&quot;)">Auto-detect</button></div></div>';html=html.replace(/<div class="setting"><div><b>Calculation method<\/b><small>Used for prayer times<\/small><\/div><select onchange="saveSetting\(&quot;method&quot;,this.value\)">[\s\S]*?<\/select><\/div>/,methodControl);return html};
 function quranTranslationEditionV5(){return localStorage.getItem('noor-quran-edition')||'en.sahih'}
 function quranTranslationOptionsV5(){var active=quranTranslationEditionV5();return quranTranslationsV5.map(function(x){return '<option value="'+x.id+'" '+(x.id===active?'selected':'')+'>'+escapeAppHtmlV5(x.label)+'</option>'}).join('')}
 function translationDirectionV5(){var x=quranTranslationsV5.find(function(y){return y.id===quranTranslationEditionV5()});return x?x.dir:'ltr'}
@@ -374,18 +374,17 @@ render();
   var methodById = {};
   Object.keys(methodMap).forEach(function(id){methodById[id]=methodMap[id]});
   function countryMethodIdV6(country){
-    var c=String(country||"").trim().toLowerCase();
+    var c=String(country||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     if(!c)return "3";
     if(/iran|islamic republic of iran/.test(c))return "7";
-    if(/saudi arabia|kingdom of saudi arabia/.test(c))return "4";
-    if(/egypt/.test(c))return "5";
+    if(/saudi arabia/.test(c))return "4";
     if(/india|pakistan|bangladesh|afghanistan/.test(c))return "1";
-    if(/united states|usa|canada/.test(c))return "2";
+    if(/united states|united states of america|usa|canada/.test(c))return "2";
     if(/singapore/.test(c))return "11";
-    if(/united arab emirates|uae|emirates/.test(c))return "16";
+    if(/united arab emirates|uae|dubai/.test(c))return "16";
     if(/kuwait/.test(c))return "9";
     if(/qatar/.test(c))return "10";
-    if(/turkey|türkiye/.test(c))return "13";
+    if(/turkey|turkiye/.test(c))return "13";
     if(/russia/.test(c))return "14";
     if(/malaysia/.test(c))return "17";
     if(/tunisia/.test(c))return "18";
@@ -395,7 +394,10 @@ render();
     if(/portugal/.test(c))return "22";
     if(/jordan/.test(c))return "23";
     if(/france/.test(c))return "12";
-    if(/bahrain|oman|yemen|united arab emirates|united arab|saudi|iraq/.test(c))return "8";
+    if(/syria|iraq|lebanon|egypt/.test(c))return "5";
+    var africanCountries="angola benin botswana burkina faso burundi cabo verde cameroon central african republic chad comoros democratic republic of the congo republic of the congo cote divoire ivory coast djibouti equatorial guinea eritrea eswatini swaziland ethiopia gabon gambia ghana guinea guinea-bissau kenya lesotho liberia libya madagascar malawi mali mauritania mauritius mozambique namibia niger nigeria rwanda sao tome and principe senegal seychelles sierra leone somalia south africa south sudan sudan tanzania togo uganda zambia zimbabwe".split(" ");
+    if(africanCountries.indexOf(c)>=0)return "5";
+    if(/bahrain|oman|yemen/.test(c))return "8";
     if(/united kingdom|ireland|germany|spain|italy|netherlands|belgium|switzerland|austria|sweden|norway|denmark|finland|poland|greece|europe/.test(c))return "3";
     return "3";
   }
@@ -450,8 +452,8 @@ render();
     var hasGps=API_STORE.latitude!==null&&Number.isFinite(Number(API_STORE.latitude))&&API_STORE.longitude!==null&&Number.isFinite(Number(API_STORE.longitude));
     var currentCity=String(API_STORE.city||"").trim().toLowerCase(),currentCountry=String(API_STORE.country||"").trim().toLowerCase();
     var fieldsMatchGps=hasGps&&city.toLowerCase()===currentCity&&country.toLowerCase()===currentCountry;
-    if(hasGps&&fieldsMatchGps){
-      // Retain precise GPS when the user leaves the reverse-geocoded fields unchanged.
+    if(hasGps&&((!city&&!country)||fieldsMatchGps)){
+      // Retain precise GPS if the reverse-geocoded fields are blank or unchanged.
     }else{
       if(!city||!country){toast("Enter both city and country, or use current location");return}
       API_STORE.latitude=null;API_STORE.longitude=null;API_STORE.city=city;API_STORE.country=country;
@@ -514,6 +516,60 @@ render();
       renderLivePrayerViews();
     }
   };
-  // Reapply the resolved city to the inputs whenever Prayer times is opened.
+  window.setPrayerMethodV5=function(value){
+    if(value==="auto"){
+      saveMethodV6("auto",countryMethodIdV6(API_STORE.country));
+    }else{
+      var valid=Object.keys(PRAYER_METHODS).some(function(name){return String(PRAYER_METHODS[name])===String(value)});
+      if(!valid){toast("Choose a calculation method from the provided list");return}
+      saveMethodV6("manual",String(value));
+    }
+    syncLocationLabels();render();
+    var hasCoords=API_STORE.latitude!==null&&Number.isFinite(Number(API_STORE.latitude))&&API_STORE.longitude!==null&&Number.isFinite(Number(API_STORE.longitude));
+    if(hasCoords||(API_STORE.city&&API_STORE.country)){
+      setLocationStatusV5("Updating prayer times using "+methodNameV6(API_STORE.method)+"…");loadPrayerData();
+    }else toast("Method saved. Set your current location to calculate prayer times.");
+  };
+  function startAutomaticLocationV6(){
+    API_STORE.methodMode=localStorage.getItem("noor-method-mode")||"auto";
+    var latText=localStorage.getItem("noor-latitude"),lonText=localStorage.getItem("noor-longitude");
+    var lat=latText!==null&&latText!==""?Number(latText):null,lon=lonText!==null&&lonText!==""?Number(lonText):null;
+    var hasCoords=Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180;
+    var city=String(localStorage.getItem("noor-city")||API_STORE.city||"").trim(),country=String(localStorage.getItem("noor-country")||API_STORE.country||"").trim();
+    var generic=/^(current location|my location|locating city[.…]*|choose your location)$/i;
+    if(hasCoords){
+      API_STORE.latitude=lat;API_STORE.longitude=lon;API_STORE.city=city;API_STORE.country=country;
+      if(!city||!country||generic.test(city)){
+        reverseGeocodeLocationV5(lat,lon).then(function(place){
+          if(place&&place.city&&place.country){API_STORE.city=place.city;API_STORE.country=place.country;}
+          if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
+          persistLocationV5();syncLocationLabels();render();loadPrayerData();
+        }).catch(function(){if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();persistLocationV5();syncLocationLabels();loadPrayerData();});
+      }else{
+        if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
+        persistLocationV5();syncLocationLabels();loadPrayerData();
+      }
+      return;
+    }
+    API_STORE.latitude=null;API_STORE.longitude=null;
+    if(generic.test(city)){city="";country="";try{localStorage.removeItem("noor-city");localStorage.removeItem("noor-country");}catch(_){}}
+    if(city&&country){
+      API_STORE.city=city;API_STORE.country=country;
+      if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
+      persistLocationV5();syncLocationLabels();loadPrayerData();return;
+    }
+    API_STORE.city="";API_STORE.country="";syncLocationLabels();
+    try{
+      if(!localStorage.getItem("noor-location-auto-prompted")&&navigator.geolocation){
+        localStorage.setItem("noor-location-auto-prompted","1");
+        window.setTimeout(function(){
+          var savedCity=String(localStorage.getItem("noor-city")||"").trim(),savedCountry=String(localStorage.getItem("noor-country")||"").trim();
+          var savedGps=localStorage.getItem("noor-latitude")!==null&&localStorage.getItem("noor-longitude")!==null;
+          if(!(savedCity&&savedCountry)&&!savedGps)useCurrentLocationV5();
+        },3500);
+      }
+    }catch(_){}
+  }
   if(page==="prayers")render();
+  startAutomaticLocationV6();
 })();
