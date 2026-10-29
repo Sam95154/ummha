@@ -17,7 +17,35 @@
   function group(id,title,subtitle,body,open){return '<details class="momin-sc-group" id="momin-sc-'+id+'" '+(open?"open":"")+'><summary>'+icon(id)+'<span class="momin-sc-summary-copy"><b>'+title+'</b><small>'+subtitle+'</small></span><span class="momin-sc-chevron" aria-hidden="true">⌄</span></summary><div class="momin-sc-body">'+body+'</div></details>'}
   function switchControl(id,checked,extra){return '<label class="momin-sc-switch"><input type="checkbox" id="'+id+'" '+(checked?"checked":"")+(extra?' '+extra:"")+'><span></span></label>'}
   function button(label,onclick,kind){return '<button type="button" class="momin-sc-btn '+(kind||"")+'" onclick="'+onclick+'">'+label+'</button>'}
+  function ensureMominAboutStylesV1(){
+    if(document.getElementById("momin-about-style-v1"))return;
+    var style=document.createElement("style");
+    style.id="momin-about-style-v1";
+    style.textContent=
+      '.momin-about-v1{padding:8px 0 4px;color:var(--ink)}'+
+      '.momin-about-identity{display:flex;align-items:center;gap:16px;padding:18px;margin:4px 0 14px;border:1px solid rgba(197,160,82,.38);border-radius:18px;background:radial-gradient(120% 130% at 100% 0%,rgba(220,185,104,.18),transparent 65%),linear-gradient(135deg,var(--paper),var(--bg))}'+
+      '.momin-about-identity>img{display:block;width:76px;height:76px;flex:0 0 76px;object-fit:contain;padding:5px;border:1px solid rgba(197,160,82,.48);border-radius:18px;background:#f7f3e8}'+
+      '.momin-about-kicker{margin:0 0 4px;font-size:9px;font-weight:800;letter-spacing:.15em;color:var(--accent)}'+
+      '.momin-about-identity h3{margin:0;color:var(--ink);font:700 25px Georgia,serif;letter-spacing:.12em}'+
+      '.momin-about-identity .momin-about-tagline{margin:4px 0 8px;color:var(--muted);font-size:12px}'+
+      '.momin-about-version{display:inline-block;padding:5px 8px;border:1px solid var(--line);border-radius:20px;color:var(--muted);font-size:10px}'+
+      '.momin-about-intro,.momin-about-transparency{padding:14px 15px;margin:12px 0;border:1px solid var(--line);border-radius:15px;background:var(--bg)}'+
+      '.momin-about-v1 h4{margin:0 0 7px;font-size:13px;color:var(--ink)}'+
+      '.momin-about-v1 p{margin:0;color:var(--muted);font-size:11px;line-height:1.7}'+
+      '.momin-about-section-title{margin:16px 0 9px!important}'+
+      '.momin-about-features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}'+
+      '.momin-about-feature{display:flex;align-items:flex-start;gap:10px;min-width:0;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}'+
+      '.momin-about-feature>span{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border-radius:10px;background:var(--accent-soft);color:var(--accent);font-size:18px}'+
+      '.momin-about-feature b{display:block;margin:1px 0 5px;font-size:11px;line-height:1.35;color:var(--ink)}'+
+      '.momin-about-feature p{font-size:10px;line-height:1.55}'+
+      '.momin-about-transparency{border-color:rgba(197,160,82,.3)}'+
+      '.momin-about-transparency p+p{margin-top:8px}'+
+      '.momin-about-footer{padding:10px 0 3px;text-align:center;font-size:10px!important;font-style:italic}'+
+      '@media(max-width:600px){.momin-about-identity{gap:12px;padding:14px;border-radius:15px}.momin-about-identity>img{width:60px;height:60px;flex-basis:60px;border-radius:14px}.momin-about-identity h3{font-size:22px}.momin-about-features{grid-template-columns:1fr}.momin-about-feature{padding:11px}.momin-about-v1 p{font-size:11px}}';
+    document.head.appendChild(style);
+  }
   function detailsPage(){
+    ensureMominAboutStylesV1();
     var mode=get("noor-method-mode","auto")==="manual"?"manual":"auto",theme=themeValue(),master=get("noor-notifications","true")!=="false";
     var s=storeObject(),city=s&&s.city||get("noor-city",""),country=s&&s.country||get("noor-country","");
     var quranSize=get("noor-quran-arabic-size","48"),duaSize=get("noor-dua-prototype-text-size","30");
@@ -52,7 +80,20 @@
       row("Delete MOMIN local data","Permanently remove MOMIN data stored by this browser profile.",button("Delete local data","deleteMominLocalDataV1()","danger"))+
       row("Privacy details","Review what stays on this device and what online features send to external services.",button("View details","showMominPrivacySummaryV1()")); 
     var storage='<div class="momin-sc-current"><span>Estimated MOMIN browser storage in use</span><b>'+(used/1024).toFixed(1)+' KB · '+appStoredKeys+' entries</b></div><p class="momin-sc-help">This estimate covers MOMIN-namespaced localStorage text data only, not audio downloads, browser cache, or files.</p>'+row("Offline content","Download manager is not available in this web build",'<span class="momin-sc-muted">Not available yet</span>');
-    var help='<div class="momin-sc-about"><div class="momin-sc-brand">MOMIN</div><div>Where Faith Meets Devotion</div><small>Version 1.1 · Web companion</small></div>'+row("Share MOMIN","Share the app link",button("Share MOMIN","shareMominV1()","primary"))+row("About","Feature and data notes",button("About this app","showMominAboutV1()"));
+    var help='<section class="momin-about-v1" aria-label="About MOMIN">'+
+      '<div class="momin-about-identity"><img src="./momin-mark.svg?v=islamic-logo-v3" alt="MOMIN Islamic logo"><div><p class="momin-about-kicker">YOUR ISLAMIC DAILY COMPANION</p><h3>MOMIN</h3><p class="momin-about-tagline">Where Faith Meets Devotion</p><span class="momin-about-version">Version 1.1 · Web Companion</span></div></div>'+
+      '<div class="momin-about-intro"><h4>Our purpose</h4><p>MOMIN brings useful Islamic worship tools together in one place, supporting your daily prayers, Quran reading, supplications and remembrance of Allah. It is designed to make these everyday practices easier to access from your device.</p></div>'+
+      '<h4 class="momin-about-section-title">Explore MOMIN</h4><div class="momin-about-features">'+
+      '<article class="momin-about-feature"><span aria-hidden="true">◷</span><div><b>Prayer Times & Adhan</b><p>Check prayer timings using your selected location and calculation preferences, with reminder options while MOMIN is open.</p></div></article>'+
+      '<article class="momin-about-feature"><span aria-hidden="true">۞</span><div><b>Holy Quran</b><p>Read Quran verses, choose available translations, and use supported recitation and reading preferences.</p></div></article>'+
+      '<article class="momin-about-feature"><span aria-hidden="true">♡</span><div><b>Duas & Tasbeeh</b><p>Explore supplications and keep track of remembrance with the available Tasbeeh tools.</p></div></article>'+
+      '<article class="momin-about-feature"><span aria-hidden="true">⌁</span><div><b>Qibla & Nearby Mosques</b><p>Access Qibla direction tools and explore nearby mosque information using location-based features.</p></div></article>'+
+      '<article class="momin-about-feature"><span aria-hidden="true">▦</span><div><b>Islamic Calendar</b><p>View Hijri date information and explore Islamic calendar features and occasion preferences.</p></div></article>'+
+      '<article class="momin-about-feature"><span aria-hidden="true">文</span><div><b>Personalization & Accessibility</b><p>Adjust appearance, language preference, text size and other supported reading settings.</p></div></article></div>'+
+      '<div class="momin-about-transparency"><h4>Privacy & transparency</h4><p>This version runs in guest mode and does not provide an MOMIN account or cloud sync. Supported preferences and activity records are stored in your browser. Some features use external online services, and background notifications are not guaranteed.</p><p>Prayer timings can vary by calculation method. Hijri dates can vary with local moon-sighting practices, so confirm important timings and dates with a trusted local mosque.</p></div>'+
+      '<p class="momin-about-footer">Made to support your daily journey of faith.</p></section>'+
+      row("Share MOMIN","Share the app link",button("Share MOMIN","shareMominV1()","primary"))+
+      row("Privacy & Data","Learn what is stored on this device and what online features may share.",button("View privacy details","showMominPrivacySummaryV1()"));
     var titleHtml=typeof window.title==="function"?window.title("Settings","Your preferences, all in one place","Saved on this device"):'<div class="page-title"><h1>Settings</h1><p>Your preferences, all in one place</p></div>';
     return titleHtml+'<div class="momin-settings-center-v1"><div class="momin-sc-hero"><div class="momin-sc-hero-mark"><img src="./momin-mark.svg?v=islamic-logo-v3" alt="MOMIN Islamic logo"></div><div><p class="momin-sc-eyebrow">MOMIN PREFERENCES</p><h2>Make MOMIN yours</h2><p>Your settings stay on this device unless a feature says otherwise.</p></div></div><div class="momin-sc-groups">'+group("profile","Profile & Account","Guest mode · local preferences",profile,false)+group("appearance","Appearance & Personalization","Theme, contrast, movement",appearance,true)+group("location","Location & Prayer Times",locationLabel()+" · Calculation and Asr preferences",prayer,true)+group("notifications","Notifications & Adhan","Prayer-by-prayer preferences",notifications,false)+group("quran","Quran Reading & Audio","Translation, text size, reciter and playback",quran,false)+group("duas","Duas & Tasbeeh","Arabic size, sound and vibration",duas,false)+group("qibla","Qibla & Nearby Mosques","Location-based tools and distance units",qibla,false)+group("calendar","Islamic Calendar & Events","Hijri dates and occasion preferences",calendar,false)+group("language","Language & Accessibility","Language, text size and motion",language,false)+group("privacy","Privacy & Data","Export and reset preferences",privacy,false)+group("storage","Storage & Offline","Local storage use and availability",storage,false)+group("help","Help & About","Application information",help,false)+'</div><p class="momin-sc-footer-note">Some capabilities—such as cloud sync and reliable background notifications—need additional app infrastructure and are not enabled just by changing a preference.</p></div>';
   }
