@@ -79,6 +79,7 @@ mosquesPage=mosquesPageV5;
 /* Qibla: calculate from the actual selected coordinates and rotate the dial with device heading. */
 var qiblaHeadingV5 = null, qiblaCompassRequestedV5 = false, qiblaOrientationHandlerV5 = null;
 function normalizeQiblaDegreesV5(value) {
+  if (value === null || value === undefined || value === '') return null;
   var number = Number(value);
   if (!Number.isFinite(number)) return null;
   return ((number % 360) + 360) % 360;
@@ -169,8 +170,16 @@ function startQiblaCompassV5() {
     toast('Compass enabled. Keep the phone flat and turn it slowly.');
     window.setTimeout(function () {
       if (qiblaHeadingV5 === null) {
+        if (qiblaOrientationHandlerV5) {
+          window.removeEventListener('deviceorientation', qiblaOrientationHandlerV5, true);
+          window.removeEventListener('deviceorientationabsolute', qiblaOrientationHandlerV5, true);
+        }
+        qiblaCompassRequestedV5 = false;
+        qiblaOrientationHandlerV5 = null;
         var status = document.getElementById('qiblaCompassStatusV5');
-        if (status) status.textContent = 'No absolute compass reading was received. Your phone/browser may not support a live compass; use the calculated bearing below.';
+        if (status) status.textContent = 'No absolute compass reading was received. Check compass permissions or use the calculated bearing below; you can try enabling the compass again.';
+        var button = document.getElementById('qiblaEnableCompassV5');
+        if (button) button.style.display = '';
       }
     }, 5000);
   }
