@@ -1293,7 +1293,7 @@ function mosquesPageMominV1(){
  '<section class="momin-mosque-results-v1" id="mosqueResultsV1"><div class="mosque-state-v1"><b>Finding nearby prayer spaces</b><p>Use your current location to see nearby results here.</p></div></section>'+
  '<p class="momin-osm-attribution-v1">Nearby places are sourced from OpenStreetMap. Listings, names and opening hours depend on community mapping; please confirm mosque details locally.</p>';
 }
-mosquesPage=mosquesPageV1=mosquesPageMominV1;
+var mosquesPageV1=mosquesPageMominV1;mosquesPage=mosquesPageV1;
 function renderCalendarWidgetV1(){var root=document.getElementById("mominCalendarRootV1");if(!root)return;root.innerHTML=calendarMarkupV1();bindCalendarWidgetV1(root)}
 var hijriMonthsV1=["Muḥarram","Ṣafar","Rabīʿ al-awwal","Rabīʿ al-thānī","Jumādá al-ūlá","Jumādá al-ākhirah","Rajab","Shaʿbān","Ramaḍān","Shawwāl","Dhū al-Qaʿdah","Dhū al-Ḥijjah"];
 var hijriEventsV1=[[1,1,"Islamic New Year","Start of the Hijri year","new"],[1,10,"Day of Ashura","Recommended day of fasting","fast"],[3,12,"Mawlid al-Nabi","Observed by many Muslims","night"],[7,27,"Isra and Miʿraj","The Night Journey","night"],[8,15,"Mid-Shaʿbān","Night of Barāʾah","night"],[9,1,"Ramadan begins","First day of fasting","fast"],[9,27,"Laylat al-Qadr","Commonly sought on the 27th night","night"],[10,1,"Eid al-Fitr","Festival marking the end of Ramadan","eid"],[12,9,"Day of Arafah","Recommended fast for those not performing Hajj","fast"],[12,10,"Eid al-Adha","Festival of sacrifice","eid"]];
