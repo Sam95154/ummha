@@ -556,20 +556,47 @@ render();
     if(city&&country){
       API_STORE.city=city;API_STORE.country=country;
       if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
-      persistLocationV5();syncLocationLabels();loadPrayerData();return;
+      persistLocationV5();syncLocationLabels();loadPrayerData();
+      // A city was saved manually, so don't request GPS at every page load.
+      return;
     }
     API_STORE.city="";API_STORE.country="";syncLocationLabels();
-    try{
-      if(!localStorage.getItem("noor-location-auto-prompted")&&navigator.geolocation){
-        localStorage.setItem("noor-location-auto-prompted","1");
-        window.setTimeout(function(){
-          var savedCity=String(localStorage.getItem("noor-city")||"").trim(),savedCountry=String(localStorage.getItem("noor-country")||"").trim();
-          var savedGps=localStorage.getItem("noor-latitude")!==null&&localStorage.getItem("noor-longitude")!==null;
-          if(!(savedCity&&savedCountry)&&!savedGps)useCurrentLocationV5();
-        },3500);
+    function requestIfAvailable(){
+      var savedCity=String(localStorage.getItem("noor-city")||"").trim();
+      var savedCountry=String(localStorage.getItem("noor-country")||"").trim();
+      var savedGps=localStorage.getItem("noor-latitude")!==null&&localStorage.getItem("noor-longitude")!==null;
+      if(savedCity&&savedCountry||savedGps)return;
+      if(navigator.permissions&&navigator.permissions.query){
+        navigator.permissions.query({name:"geolocation"}).then(function(permission){
+          if(permission.state==="granted"){
+            useCurrentLocationV5();
+          }else if(permission.state==="prompt"){
+            // One request per tab session prevents a permission toast on every reload.
+            if(!sessionStorage.getItem("noor-location-prompted-session")){
+              sessionStorage.setItem("noor-location-prompted-session","1");
+              useCurrentLocationV5();
+            }else{
+              setLocationStatusV5("Allow location access in your browser to fill your city and country automatically, then reload MOMIN.");
+            }
+          }else{
+            setLocationStatusV5("Location permission is blocked. Open your browser's site settings, allow Location for MOMIN, then reload or tap Use current location.");
+          }
+        }).catch(function(){
+          if(!sessionStorage.getItem("noor-location-prompted-session")){
+            sessionStorage.setItem("noor-location-prompted-session","1");
+            useCurrentLocationV5();
+          }
+        });
+      }else if(!sessionStorage.getItem("noor-location-prompted-session")){
+        sessionStorage.setItem("noor-location-prompted-session","1");
+        useCurrentLocationV5();
+      }else{
+        setLocationStatusV5("Allow location access in your browser to fill your city and country automatically, then reload MOMIN.");
       }
-    }catch(_){}
+    }
+    window.setTimeout(requestIfAvailable,1200);
   }
+
   if(page==="prayers")render();
   startAutomaticLocationV6();
 })();
