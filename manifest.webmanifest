@@ -9,7 +9,7 @@
   "theme_color": "#0d0c0a",
   "icons": [
     {
-      "src": "./momin-mark.svg",
+      "src": "./momin-mark.svg?v=islamic-logo-v3",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
