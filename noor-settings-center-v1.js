@@ -130,7 +130,7 @@
       '<section class="momin-founder-page-card">'+
       '<div class="momin-founder-page-ornament" aria-hidden="true">۞</div>'+
       '<div class="momin-founder-page-heading"><p class="momin-about-kicker">THE PERSON BEHIND MOMIN</p><h2 id="momin-founder-page-title">About the Founder</h2><p>Faith, thoughtful design, and technology brought together in one Islamic companion.</p></div>'+
-      '<div class="momin-founder-page-photo-wrap"><img class="momin-founder-page-photo" src="./momin-founder-4k.webp?v=1" alt="Founder of MOMIN in a brown traditional outfit and white kufi" fetchpriority="high"></div>'+
+      '<div class="momin-founder-page-photo-wrap"><img class="momin-founder-page-photo" src="./momin-founder-4k.svg?v=1" alt="Founder of MOMIN in a brown traditional outfit and white kufi" fetchpriority="high"></div>'+
       '<div class="momin-founder-page-bio"><h3>Shaik Sameer Basha</h3><p class="momin-founder-page-role"><span aria-hidden="true">✦</span> Artificial Intelligence and Data Science Engineer</p><p>I’m Shaik Sameer Basha, the creator of MOMIN. I built MOMIN with the aim of bringing everyday Islamic tools together in one accessible place, combining my interest in technology with a commitment to making faith-supporting features easier to use.</p><p>My vision for MOMIN is to provide a calm, approachable experience where Muslims can reach useful worship tools, Quran reading, supplications and Islamic information without unnecessary complexity.</p><div class="momin-founder-signature">Where Faith Meets Devotion</div></div>'+
       '</section><div class="momin-founder-page-actions">'+button("Back to Settings","go(\\'settings\\')")+'</div></main>';
   };
