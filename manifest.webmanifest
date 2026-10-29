@@ -9,7 +9,7 @@
   "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "./momin-logo.svg",
+      "src": "./momin-mark.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
