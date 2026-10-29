@@ -653,48 +653,35 @@ function translationLanguageV6(){
 async function loadIndianQuranTranslationsV6(){
  if(mominTranslationCatalogPromiseV6)return mominTranslationCatalogPromiseV6;
  mominTranslationCatalogPromiseV6=(async function(){
-  var requested=mominIndianLanguagesV6.slice(),responses=[];
-  /* Query each language separately. */
-  for(var offset=0;offset<requested.length;offset+=5){
-   var group=requested.slice(offset,offset+5);
-   var results=await Promise.all(group.map(async function(language){
-    try{
-     var url="https://api.quran.com/api/v4/resources/translations?language="+encodeURIComponent(language.code)+"&per_page=50&page=1";
-     var data=await getJSON(url);
-     return {requested:language,rows:data.translations||data.data&&data.data.translations||[]};
-    }catch(error){return {requested:language,rows:[],error:error};}
-   }));
-   responses=responses.concat(results);
-  }
-  var known={};quranTranslationsV5.forEach(function(x){if(x.id)known[String(x.id)]=true});
-  responses.forEach(function(result){
-   result.rows.forEach(function(t){
-    var raw=String(t.language_name||"").trim().toLowerCase();
-    var responseCode=mominLanguageCodesV6[raw];
-    var code=responseCode||result.requested.code;
-    if(responseCode&&responseCode!==result.requested.code)return;
-    var item=mominIndianLanguagesV6.find(function(l){return l.code===code});
-    var id=String(t.id||"");
-    if(!item||!id||known["qcom:"+id])return;
-    quranTranslationsV5.push({
-     id:"qcom:"+id,
-     label:item.name+" — "+String(t.name||t.author_name||"Quran translation"),
-     language:code,
-     dir:(code==="ur"||code==="sd"||code==="ks")?"rtl":"ltr",
-     provider:"quran.com",
-     translationId:id
-    });
+  try{
+   var first=await getJSON("https://api.quran.com/api/v4/resources/translations?per_page=50&page=1");
+   var rows=first.translations||first.data&&first.data.translations||[];
+   var pages=Number(first.pagination&&first.pagination.total_pages)||1;
+   for(var p=2;p<=Math.min(pages,40);p++){
+    var next=await getJSON("https://api.quran.com/api/v4/resources/translations?per_page=50&page="+p);
+    rows=rows.concat(next.translations||next.data&&next.data.translations||[]);
+   }
+   var aliases={assamese:"as",bengali:"bn",bangla:"bn",bodo:"brx",dogri:"doi",gujarati:"gu",hindi:"hi",kannada:"kn",kashmiri:"ks",konkani:"kok",maithili:"mai",malayalam:"ml",manipuri:"mni",meitei:"mni",marathi:"mr",nepali:"ne",odia:"or",oriya:"or",punjabi:"pa",sanskrit:"sa",santali:"sat",santhali:"sat",sindhi:"sd",tamil:"ta",telugu:"te",urdu:"ur"};
+   var known={};quranTranslationsV5.forEach(function(x){if(x.id)known[String(x.id)]=true});
+   rows.forEach(function(t){
+    var raw=String(t.language_name||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[_-]+/g," ").replace(/\s+/g," ").trim();
+    var code=aliases[raw]||mominLanguageCodesV6[raw],id=String(t.id||"");
+    if(!code||!id||known["qcom:"+id])return;
+    var language=mominIndianLanguagesV6.find(function(l){return l.code===code});
+    if(!language)return;
+    quranTranslationsV5.push({id:"qcom:"+id,label:language.name+" — "+String(t.name||t.author_name||"Quran translation"),language:code,dir:(code==="ur"||code==="sd"||code==="ks")?"rtl":"ltr",provider:"quran.com",translationId:id});
     known["qcom:"+id]=true;
    });
-  });
-  var selectors=document.querySelectorAll('select[aria-label="Quran translation language"],#settingsQuranTranslation');
-  selectors.forEach(function(el){
-   var previous=el.value;el.innerHTML=quranTranslationOptionsV5();
-   if(Array.prototype.some.call(el.options,function(o){return o.value===previous}))el.value=previous;
-  });
-  var status=document.getElementById("settingsTranslationStatusV6");
-  if(status)status.textContent="Translation catalogue checked by language. Available editions are selectable; missing editions are shown as unavailable.";
-  return quranTranslationsV5;
+   var selectors=document.querySelectorAll('select[aria-label="Quran translation language"],#settingsQuranTranslation,#quranTranslationSelectV8');
+   selectors.forEach(function(el){var prev=el.value;el.innerHTML=quranTranslationOptionsV5();if(Array.prototype.some.call(el.options,function(o){return o.value===prev}))el.value=prev});
+   var status=document.getElementById("settingsTranslationStatusV6");
+   if(status)status.textContent="Verified Quran translation editions loaded. Indian languages without a connected edition remain unavailable.";
+   return quranTranslationsV5;
+  }catch(error){
+   var status=document.getElementById("settingsTranslationStatusV6");
+   if(status)status.textContent="Could not refresh the translation catalogue. Existing available editions remain listed.";
+   return quranTranslationsV5;
+  }
  })();
  return mominTranslationCatalogPromiseV6;
 }

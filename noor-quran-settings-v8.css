@@ -1,0 +1,116 @@
+:root{--bg:#003b36;--paper:#064b45;--ink:#f5f7f2;--muted:#a8c1bc;--line:#1d625a;--green:#00a86b;--green2:#087358;--mint:#0e5b51;--lime:#b9e7aa;--gold:#dec27b;--shadow:0 12px 35px #001b1838}
+body{background:var(--bg);color:var(--ink)}
+.sidebar{background:#003b36;border-color:#15554e}.brand{color:#f7f7f2}.nav-label{color:#83aaa1}.nav button{color:#b1c9c3}.nav button:hover{background:#ffffff0d}.nav button.active{background:#0d5b51;color:#fff}.sidebar-bottom .location{background:#074840;color:#a9c2bc}.location b,.profile b{color:#f5f7f2}.profile{border-color:#15554e}.avatar{background:#0b6255;color:#eff8f1}
+.top{background:#003b36;border-color:#15554e;color:#f5f7f2}.crumb{color:#dceae5}.iconbtn{background:#07534b;border-color:#17655c;color:#fff}.content{color:#f5f7f2}.page-title p,.sub{color:#a8c1bc}.tag{color:#b7ebcf;background:#0e5b51}
+.card{background:#064b45;border-color:#1b625a;box-shadow:0 5px 18px #001b1824}.card.soft{background:#08443e}.hero-card{background:linear-gradient(135deg,#07574d,#003b36 82%);border-color:#1d6a5d;color:#fff}.hero-card .sub{color:#b5d0c8}.hero-card:after{color:#ffffff0a}.btn-light{background:#ffffff10;border-color:#ffffff4a;color:white}.sectionhead h2{color:#f5f7f2}.plain{color:#b9e7d4}
+.quick{background:#064b45;border-color:#1d625a;color:#f5f7f2}.quick:hover{background:#0a574f;border-color:#3a8778}.quick .qico{background:#0d5b51;color:#dff6e9}.quick span{color:#a8c1bc}.prayerrow{border-color:#165c55}.pname,.ptime{color:#f2f6f1}.check{background:#064b45;border-color:#3d786e}.check.done{background:#00a86b;border-color:#00a86b}.progress{background:#104e47}.progress i{background:#00b879}.prayer-pill{background:#ffffff12;color:#e6f1ed}
+.verse{background:#073e39;border-color:#185d55;color:#f5f7f2}.arabic{color:#f2f6ee}.translation{color:#dae6df}.smallbtn,.chip{background:#0b5149;border-color:#246a61;color:#f1f7f2}.smallbtn:hover,.chip:hover{background:#126359}.search,input:not([type=checkbox]):not([type=range]),select,textarea{background:#073f3a;border-color:#24675f;color:#f2f7f3}.search::placeholder,textarea::placeholder{color:#99b7b0}.setting{border-color:#1b625a}.setting select{background:#073f3a;border-color:#24675f;color:#f2f7f3}.setting small{color:#a8c1bc}.toggle{accent-color:#00a86b}
+.dua{background:#064b45;border-color:#1d625a;color:#f5f7f2}.dua:hover{background:#0a574f}.compass{border-color:#277168;background:radial-gradient(circle,#0e6258 0 56%,#034039 57%);box-shadow:inset 0 0 0 12px #07463f,0 0 0 1px #22645c}.compass:before{color:#dff1e8}.compass:after{color:#a8c1bc}.needle{background:linear-gradient(to top,#39736a 0 50%,#bde9c8 50%)}.kaaba{background:#092c28;color:#f0d693}.center-dot{background:#00bb7b}.counter{color:#bfe8cd}.counterbtn{background:#00a86b;color:#fff;box-shadow:0 12px 25px #001b184d}.calendar .weekday{color:#9ebbb4}.calendar .today{background:#00a86b;color:#fff}.toast{background:#092c28;color:#fff;box-shadow:0 8px 24px #001b1840}
+.mobilebar{background:#003b36;border-color:#15554e}.mobilebar button{color:#9bb9b2}.mobilebar .active{color:#fff}.mobilebar span{font-size:18px}.mobilebar button.active span{color:#68d7a3}
+.home-date-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px}.home-date-row h1{font:600 28px var(--serif);margin:0}.home-date-row p{margin:5px 0 0;color:#a8c1bc}.location-chip{border:1px solid #286c62;border-radius:999px;background:#07524a;color:#eaf4ef;padding:9px 13px;font-size:12px}.home-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.home-tool{border:1px solid #1d625a;background:#064b45;color:#f5f7f2;border-radius:16px;padding:15px 10px;text-align:center;min-height:98px}.home-tool:hover{background:#0a574f}.home-tool .feature-icon{display:block;font-size:25px;margin-bottom:7px}.home-tool b{font-size:12px}.home-prayer-state{display:flex;align-items:center;gap:7px;color:#c4ded5;font-size:12px}.now-dot{width:7px;height:7px;border-radius:50%;background:#00c581;display:inline-block}.current-prayer{background:#073c37;border:1px solid #dcece4;border-radius:14px;padding:9px 10px}.now-tag{font-size:10px;background:#0b6256;color:#dff7e8;border-radius:6px;padding:4px 7px}.prayer-calendar-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;margin-bottom:14px}.prayer-day{border:1px solid #1c625a;border-radius:13px;background:#064b45;color:#d7e5df;text-align:center;padding:9px 3px;font-size:11px}.prayer-day strong{display:block;font-size:15px;margin:5px 0}.prayer-day.active{background:#0b5a50;border-color:#4da17e;color:white}.journey-stat{padding:16px;border:1px solid #1d625a;border-radius:15px;background:#08443e}.journey-stat b{display:block;font:600 24px var(--serif);color:#dff3e8}.journey-stat small{color:#a8c1bc}.journey-private{border:1px solid #27816a;background:#07534a;color:#dbf4e6;border-radius:13px;padding:12px;font-size:12px}.mosque-map-card{min-height:220px;display:grid;place-items:center;text-align:center;border:1px solid #1d625a;border-radius:18px;padding:24px;background:radial-gradient(ellipse at center,#0a5a50,#063e39 70%)}.mosque-map-icon{font-size:52px}.mosque-map-card p{max-width:420px;color:#adcbc1;line-height:1.6}.map-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.map-primary{border:0;border-radius:999px;background:#00a86b;color:#fff;font-weight:700;padding:12px 18px}.map-secondary{border:1px solid #b9e7d4;border-radius:999px;background:transparent;color:#eff8f1;font-weight:600;padding:11px 18px}.settings-note{color:#9bbab1;font-size:12px;line-height:1.55}
+body.app-light{--bg:#f6f8f3;--paper:#fff;--ink:#17271f;--muted:#75847b;--line:#e1e9df;--green:#087a54;--green2:#125e45;--mint:#e6f0e7;--lime:#d5eaa8;--gold:#bd9b5e;--shadow:0 12px 35px #173d3110;color:var(--ink);background:var(--bg)}body.app-light .sidebar,body.app-light .top,body.app-light .mobilebar{background:#fff;border-color:var(--line);color:var(--ink)}body.app-light .card,body.app-light .quick,body.app-light .journey-stat,body.app-light .dua{background:#fff;border-color:var(--line);color:var(--ink)}body.app-light .nav button{color:#66736a}body.app-light .nav button.active{background:var(--mint);color:var(--green)}body.app-light .location-chip{background:#f4f7f0;color:var(--ink);border-color:var(--line)}body.app-light .hero-card{background:linear-gradient(135deg,#184d3c,#0d392d);color:white}body.app-light .prayerrow{border-color:var(--line)}body.app-light .verse{background:#f5f3e9;border-color:#e9e4d4;color:var(--ink)}body.app-light .smallbtn,body.app-light .chip,body.app-light .setting select,body.app-light .search,body.app-light input:not([type=checkbox]):not([type=range]),body.app-light select,body.app-light textarea{background:#fff;border-color:var(--line);color:var(--ink)}body.app-light .mobilebar button{color:#79857c}body.app-light .mobilebar button.active{color:var(--green)}
+body.app-sepia{--bg:#eee5cf;--paper:#fff7e4;--ink:#382e22;--muted:#817464;--line:#ded1b5;--green:#47754e;--green2:#315d42;--mint:#e9e2cc;--lime:#dce8bd;--gold:#bd9b5e;color:var(--ink);background:var(--bg)}body.app-sepia .sidebar,body.app-sepia .top,body.app-sepia .mobilebar{background:#f8f0dc;border-color:var(--line);color:var(--ink)}body.app-sepia .card,body.app-sepia .quick,body.app-sepia .journey-stat,body.app-sepia .dua{background:#fff7e4;border-color:var(--line);color:var(--ink)}body.app-sepia .hero-card{background:linear-gradient(135deg,#315d42,#173b2d);color:#fff}body.app-sepia .smallbtn,body.app-sepia .chip,body.app-sepia .setting select,body.app-sepia .search,body.app-sepia input:not([type=checkbox]):not([type=range]),body.app-sepia select,body.app-sepia textarea{background:#fffaf0;border-color:var(--line);color:var(--ink)}
+@media(max-width:700px){.home-date-row h1{font-size:23px}.home-date-row{align-items:flex-start;flex-direction:column}.home-tools{display:flex;overflow-x:auto;padding-bottom:5px;scrollbar-width:thin}.home-tool{flex:0 0 88px;min-height:90px}.prayer-calendar-strip{gap:4px}.prayer-day{padding:8px 1px;font-size:10px}.prayer-day strong{font-size:14px}.current-prayer{padding:9px 7px}}
+
+
+/* MOMIN SETTINGS ALIGNMENT FIX — consistent label/control columns */
+.momin-settings-page{width:100%;min-width:0}
+.momin-settings-page>.grid.g2{align-items:start;gap:16px}
+.momin-settings-page>.grid.g2>.card{min-width:0;padding:clamp(18px,2.5vw,28px)}
+.momin-settings-page>.grid.g2>.card>h3{margin:0 0 18px;font-size:clamp(20px,2.2vw,24px);line-height:1.25}
+.momin-settings-page .setting{
+  display:grid;
+  grid-template-columns:minmax(0,0.95fr) minmax(0,1.05fr);
+  align-items:center;
+  column-gap:clamp(12px,2vw,22px);
+  row-gap:8px;
+  min-width:0;
+  padding:17px 0;
+}
+.momin-settings-page .setting>div:first-child,
+.momin-settings-page .setting>span:first-child{
+  min-width:0;
+  max-width:100%;
+}
+.momin-settings-page .setting b{display:block;line-height:1.35;overflow-wrap:anywhere}
+.momin-settings-page .setting small{
+  display:block;
+  margin-top:5px;
+  line-height:1.45;
+  max-width:34ch;
+  overflow-wrap:anywhere;
+}
+.momin-settings-page .setting>select,
+.momin-settings-page .setting>input:not([type=checkbox]),
+.momin-settings-page .setting>.method-settings-control,
+.momin-settings-page .setting>button,
+.momin-settings-page .setting>span:last-child{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  justify-self:stretch;
+}
+.momin-settings-page .setting>select,
+.momin-settings-page .setting>.method-settings-control select{
+  box-sizing:border-box;
+  min-width:0;
+  width:100%;
+  max-width:100%;
+  padding:11px 12px;
+  line-height:1.35;
+  text-overflow:ellipsis;
+}
+.momin-settings-page .setting>.method-settings-control{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+}
+.momin-settings-page .setting>.method-settings-control select{min-width:0}
+.momin-settings-page .setting>.method-settings-control .smallbtn{
+  width:auto;
+  min-width:0;
+  max-width:100%;
+  padding:11px 12px;
+  white-space:nowrap;
+}
+.momin-settings-page .setting>.toggle,
+.momin-settings-page .setting>input[type=checkbox]{
+  width:20px;
+  height:20px;
+  justify-self:end;
+}
+.momin-settings-page .setting>.smallbtn{width:auto;justify-self:end}
+.momin-settings-page .setting>span:last-child{overflow-wrap:anywhere;text-align:right}
+.momin-settings-page .settings-note{line-height:1.55;overflow-wrap:anywhere}
+@media(max-width:700px){
+  .momin-settings-page>.grid.g2{grid-template-columns:minmax(0,1fr);gap:14px}
+  .momin-settings-page>.grid.g2>.card{padding:18px 16px}
+  .momin-settings-page .setting{
+    grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr);
+    column-gap:12px;
+    padding:15px 0;
+  }
+  .momin-settings-page .setting b{font-size:14px}
+  .momin-settings-page .setting small{font-size:12px;max-width:24ch}
+  .momin-settings-page .setting>select,
+  .momin-settings-page .setting>.method-settings-control select{
+    font-size:12px;
+    padding:10px 8px;
+  }
+  .momin-settings-page .setting>.method-settings-control{grid-template-columns:minmax(0,1fr) auto;gap:6px}
+  .momin-settings-page .setting>.method-settings-control .smallbtn{padding:10px 9px;font-size:11px}
+}
+@media(max-width:380px){
+  .momin-settings-page .setting{grid-template-columns:minmax(0,0.78fr) minmax(0,1.22fr);column-gap:9px}
+  .momin-settings-page .setting>.method-settings-control{grid-template-columns:minmax(0,1fr)}
+  .momin-settings-page .setting>.method-settings-control .smallbtn{justify-self:start}
+}
+
+/* Save buttons for MOMIN Settings cards */
+.momin-settings-page .settings-save-actions{display:flex;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.momin-settings-page .settings-save-btn{min-height:44px;padding:11px 18px;border:1px solid #287d66;border-radius:11px;background:linear-gradient(135deg,#0b765b,#075246);color:#fff;font-size:13px;font-weight:700;letter-spacing:.01em;box-shadow:0 5px 14px rgba(0,60,45,.14);cursor:pointer}
+.momin-settings-page .settings-save-btn:active{transform:translateY(1px)}
+.momin-settings-page #settingsTranslationStatusV6{margin:2px 0 14px;font-size:11px;line-height:1.5}
+@media(max-width:700px){.momin-settings-page .settings-save-actions{margin-top:14px}.momin-settings-page .settings-save-btn{width:100%;min-height:46px}}
+
