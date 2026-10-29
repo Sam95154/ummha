@@ -1747,6 +1747,158 @@ html[data-theme] .dua-page .dua-bottom-nav .active,html[data-theme] .dua-page .d
  color:var(--accent)!important
 }
 </style>
+<style id="momin-dua-row-alignment-v1">
+/* MOMIN Duas: balanced row grid, consistent controls, and readable wrapping. */
+body.dua-app-mode .dua-chapter-list{
+  overflow:hidden;
+  border:1px solid rgba(221,194,125,.16);
+  border-radius:16px;
+  background:rgba(8,24,20,.24);
+}
+body.dua-app-mode .dua-entry-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 40px;
+  align-items:center;
+  column-gap:10px;
+  min-width:0;
+  min-height:78px;
+  padding:12px 12px;
+  border-bottom:1px solid rgba(221,194,125,.15);
+}
+body.dua-app-mode .dua-entry-row:last-child{border-bottom:0}
+body.dua-app-mode .dua-entry-row>.dua-entry-open{
+  display:grid;
+  grid-template-columns:36px minmax(0,1fr) 34px;
+  align-items:center;
+  column-gap:10px;
+  flex:none;
+  width:100%;
+  min-width:0;
+  min-height:52px;
+  margin:0;
+  padding:0;
+  border:0!important;
+  border-radius:0;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  color:inherit!important;
+  text-decoration:none;
+}
+html[data-theme] .dua-page .dua-chapter-list .dua-entry-row>.dua-entry-open,
+html[data-theme] .dua-page .dua-chapter-list .dua-entry-row>.dua-entry-open:hover,
+html[data-theme] .dua-page .dua-chapter-list .dua-entry-row>.dua-entry-open:focus-visible{
+  background:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  box-shadow:none!important;
+  color:inherit!important;
+}
+body.dua-app-mode .dua-entry-row>.dua-entry-open>.dua-row-book{
+  display:grid;
+  place-items:center;
+  width:36px;
+  height:36px;
+  min-width:36px;
+  flex:none;
+  border:1px solid rgba(221,194,125,.25);
+  border-radius:10px;
+  background:rgba(221,194,125,.07);
+  color:#dfc47f;
+  font-size:19px;
+  line-height:1;
+}
+body.dua-app-mode .dua-entry-row .dua-row-copy{
+  min-width:0;
+  width:100%;
+  gap:5px;
+  align-self:center;
+}
+body.dua-app-mode .dua-entry-row .dua-row-copy strong{
+  display:block;
+  min-width:0;
+  margin:0;
+  color:#f2f2ec;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+body.dua-app-mode .dua-entry-row .dua-row-copy small{
+  display:block;
+  min-width:0;
+  margin:0;
+  color:#b9b1a0;
+  font-size:11.5px;
+  line-height:1.4;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+body.dua-app-mode .dua-entry-row>.dua-entry-open>.dua-row-arrow{
+  display:grid;
+  place-items:center;
+  justify-self:end;
+  width:32px;
+  height:32px;
+  padding:0;
+  border:1px solid rgba(221,194,125,.24);
+  border-radius:50%;
+  background:rgba(221,194,125,.06);
+  color:#dfc47f;
+  font-size:19px;
+  line-height:1;
+}
+body.dua-app-mode .dua-entry-row>.dua-small-bookmark{
+  display:grid;
+  place-items:center;
+  justify-self:center;
+  align-self:center;
+  width:38px;
+  height:38px;
+  min-width:38px;
+  padding:0;
+  margin:0;
+  border:1px solid transparent;
+  border-radius:50%;
+  background:transparent;
+  color:#c8d9d0;
+  font-size:23px;
+  line-height:1;
+}
+body.dua-app-mode .dua-entry-row>.dua-small-bookmark.is-saved{
+  color:#dfc47f;
+  background:rgba(221,194,125,.08);
+  border-color:rgba(221,194,125,.22);
+}
+body.dua-app-mode .dua-entry-row>.dua-entry-open:focus-visible,
+body.dua-app-mode .dua-entry-row>.dua-small-bookmark:focus-visible{
+  outline:2px solid #dfc47f;
+  outline-offset:3px;
+}
+@media(max-width:380px){
+  body.dua-app-mode .dua-entry-row{
+    grid-template-columns:minmax(0,1fr) 34px;
+    column-gap:6px;
+    padding:10px 8px;
+  }
+  body.dua-app-mode .dua-entry-row>.dua-entry-open{
+    grid-template-columns:32px minmax(0,1fr) 30px;
+    column-gap:7px;
+  }
+  body.dua-app-mode .dua-entry-row>.dua-entry-open>.dua-row-book{
+    width:32px;height:32px;min-width:32px;
+  }
+  body.dua-app-mode .dua-entry-row .dua-row-copy strong{font-size:13px}
+  body.dua-app-mode .dua-entry-row .dua-row-copy small{font-size:11px}
+  body.dua-app-mode .dua-entry-row>.dua-entry-open>.dua-row-arrow{
+    width:29px;height:29px;
+  }
+  body.dua-app-mode .dua-entry-row>.dua-small-bookmark{
+    width:32px;height:32px;min-width:32px;font-size:21px;
+  }
+}
+</style>
 <script id="momin-theme-controller-v1">
 /* Persistent shared appearance mode; replaces the legacy body-invert theme behavior. */
 (function(){
