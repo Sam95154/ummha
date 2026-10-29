@@ -26,7 +26,7 @@
     var translation=get("noor-quran-show-translation-v8","true")!=="false",translit=get("noor-quran-show-transliteration-v8","false")==="true";
     var repeat=get("noor-quran-repeat-v8","false")==="true",autoNext=get("noor-quran-auto-next-v8","false")==="true";
     var speed=get("noor-quran-audio-speed-v8","1"),reciter=get("noor-quran-reciter-v8","ar.alafasy"),lang=get("noor-language","en");
-    var used=0;try{for(var n=0;n<localStorage.length;n++){var k=localStorage.key(n);used+=k.length+(localStorage.getItem(k)||"").length}}catch(_){}
+    var used=0,appStoredKeys=0;try{for(var n=0;n<localStorage.length;n++){var k=localStorage.key(n)||"";if(k.indexOf("noor-")===0||k.indexOf("momin")===0){used+=k.length+(localStorage.getItem(k)||"").length;appStoredKeys++}}}catch(_){}
     var methodSelect='<select id="settingsMethodInput" aria-label="Prayer calculation method" onchange="window.settingsMethodModeDraftV6=this.value===\'auto\'?\'auto\':\'manual\'"><option value="auto" '+(mode==="auto"?"selected":"")+'>Auto-detect for location</option>'+methodOptions()+'</select>';
     var profile='<div class="momin-sc-current"><span>Session type</span><b>Guest · this browser</b></div><div class="momin-sc-note">Sign-in and cloud sync are not enabled in this build. You can use MOMIN without creating an account; feature data is kept in this browser.</div>'+row("Export your data","Download a local JSON backup",button("Export data","exportMominDataV1()","primary"));
     var appearance='<div class="momin-sc-note">Current theme: <b>'+esc(theme)+'</b>. The selected appearance is shared with the calendar and feature pages.</div>'+row("Display mode","Choose how MOMIN looks",'<select id="settingsTheme" onchange="saveSettingsThemeV1(this.value)"><option value="System" '+(theme==="System"?"selected":"")+'>System default</option><option value="Light" '+(theme==="Light"?"selected":"")+'>Light</option><option value="Dark" '+(theme==="Dark"?"selected":"")+'>Dark</option><option value="Sepia" '+(theme==="Sepia"?"selected":"")+'>Sepia</option></select>')+row("Reduce animations","Prefer less movement",switchControl("settingsReduceMotionV1",get("noor-reduce-motion","false")==="true"))+row("High contrast","Increase borders and text contrast",switchControl("settingsHighContrastV1",get("noor-high-contrast","false")==="true"))+'<div class="momin-sc-actions">'+button("Save appearance","saveAppearancePrefsV1()","primary")+'</div>';
@@ -42,7 +42,16 @@
       row("Islamic calendar","View Gregorian and Hijri dates",button("Open Calendar","go(\\'calendar\\')"))+
       row("Islamic occasion reminders","Preference only; not scheduled in background yet",switchControl("settingsIslamicEventsV1",get("noor-islamic-event-reminders","false")==="true"))+
       '<div class="momin-sc-actions">'+button("Save calendar preferences","saveCalendarPrefsV1()","primary")+'</div>';
-    var privacy='<div class="momin-sc-note">MOMIN keeps many preferences and feature records in this browser. Cloud sync is not enabled in this build.</div>'+row("Export local data","Download a JSON backup of this browser’s MOMIN data",button("Export data","exportMominDataV1()","primary"))+row("Clear settings preferences","Keeps Quran/Dua bookmarks and Tasbeeh counts",button("Reset settings","resetMominSettingsV1()","danger"))+row("Privacy information","Review what is stored",button("View summary","showMominPrivacySummaryV1()"));
+    var privacy='<div class="momin-sc-note">MOMIN keeps its saved preferences and worship records in this browser. This build has no MOMIN account or cloud sync. Online features may contact the providers described in Privacy details.</div>'+
+      '<div class="momin-sc-current"><span>MOMIN data stored in this browser</span><b>'+appStoredKeys+' entries · '+(used/1024).toFixed(1)+' KB</b></div>'+
+      row("Online interface translation","When enabled, untranslated interface text snippets and your selected language may be sent to the translation provider.",switchControl("settingsOnlineTranslationV1",get("momin-privacy-online-translation","true")!=="false"))+
+      '<div class="momin-sc-actions">'+button("Save privacy preferences","savePrivacyPrefsV1()","primary")+'</div>'+
+      row("Export your data","Download a JSON backup of saved browser data",button("Export data","exportMominDataV1()","primary"))+
+      row("Import a backup","Merge a MOMIN JSON backup into this browser; matching keys are overwritten after confirmation.",button("Choose backup","document.getElementById(\\'mominImportFileV1\\').click()"))+
+      '<input type="file" id="mominImportFileV1" accept=".json,application/json" style="display:none" onchange="importMominDataV1(this.files&&this.files[0],this)">'+
+      row("Reset settings only","Restore preferences while keeping bookmarks, worship records and reading history.",button("Reset settings","resetMominSettingsV1()","danger"))+
+      row("Delete MOMIN local data","Permanently remove MOMIN data stored by this browser profile. Export a backup first.",button("Delete local data","deleteMominLocalDataV1()","danger"))+
+      row("Privacy details","Review what stays on this device and what online features send to external services.",button("View details","showMominPrivacySummaryV1()")); 
     var storage='<div class="momin-sc-current"><span>Estimated browser storage in use</span><b>'+(used/1024).toFixed(1)+' KB</b></div><p class="momin-sc-help">This estimate covers localStorage text data only, not audio downloads, browser cache, or files.</p>'+row("Create a backup","Export your saved browser data",button("Export data","exportMominDataV1()","primary"))+row("Offline content","Download manager is not available in this web build",'<span class="momin-sc-muted">Not available yet</span>');
     var help='<div class="momin-sc-about"><div class="momin-sc-brand">MOMIN</div><div>Where Faith Meets Devotion</div><small>Version 1.1 · Web companion</small></div>'+row("Share MOMIN","Share the app link",button("Share MOMIN","shareMominV1()","primary"))+row("About","Feature and data notes",button("About this app","showMominAboutV1()"));
     var titleHtml=typeof window.title==="function"?window.title("Settings","Your preferences, all in one place","Saved on this device"):'<div class="page-title"><h1>Settings</h1><p>Your preferences, all in one place</p></div>';
@@ -185,9 +194,91 @@
   window.saveDuaTasbihPrefsV1=function(){var size=document.getElementById("settingsDuaArabicSizeV1");if(size){put("noor-dua-prototype-text-size",size.value);if(window.MominDuasSettingsV1)window.MominDuasSettingsV1.setArabicSize(size.value)}var sound=document.getElementById("settingsTasbihSoundV1"),haptic=document.getElementById("settingsTasbihHapticV1"),state={};try{state=JSON.parse(get("noor-tsb-v2","{}"))||{}}catch(_){}if(sound)state.sound=sound.checked;if(haptic)state.haptic=haptic.checked;put("noor-tsb-v2",JSON.stringify(state));if(window.MominTasbihSettingsV1)window.MominTasbihSettingsV1.setPreferences({sound:!!state.sound,haptic:!!state.haptic});notify("Duas and Tasbeeh preferences saved on this device.")};
   window.saveDistanceUnitV1=function(){var x=document.getElementById("settingsDistanceUnitV1");if(x)put("noor-distance-unit",x.value);notify("Distance preference saved.")};
   window.saveCalendarPrefsV1=function(){var x=document.getElementById("settingsIslamicEventsV1"),adj=document.getElementById("settingsHijriAdjustmentV1");if(x)put("noor-islamic-event-reminders",x.checked);if(adj){var n=Number(adj.value);if(n!==-1&&n!==0&&n!==1)n=0;put("noor-hijri-adjustment",n)}notify("Calendar preferences saved. Reopen the Calendar if it does not refresh immediately. Background event reminders are not scheduled in this web build.")};
-  window.exportMominDataV1=function(){try{var data={app:"MOMIN",exportedAt:new Date().toISOString(),note:"Local browser storage export; includes the records saved by this browser profile.",localStorage:{}};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);data.localStorage[k]=localStorage.getItem(k)}var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="momin-local-data-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);notify("Your MOMIN local data export is ready.")}catch(_){notify("Could not export browser data in this environment.")}};
+  window.exportMominDataV1=function(){try{var data={app:"MOMIN",schemaVersion:1,exportedAt:new Date().toISOString(),note:"Local browser storage export; contains this browser profile’s localStorage values. Import only into a MOMIN instance you trust.",localStorage:{}};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);data.localStorage[k]=localStorage.getItem(k)}var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="momin-local-data-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);notify("Your MOMIN local data export is ready.")}catch(_){notify("Could not export browser data in this environment.")}};
+  window.savePrivacyPrefsV1=function(){
+    var toggle=document.getElementById("settingsOnlineTranslationV1");
+    if(toggle){
+      put("momin-privacy-online-translation",toggle.checked?"true":"false");
+      if(typeof window.setMominLanguageV1==="function")window.setMominLanguageV1(get("noor-language","en"));
+    }
+    notify(toggle&&!toggle.checked?"Privacy preferences saved. Online interface translation is disabled; cached translations may still be used.":"Privacy preferences saved. Online interface translation is enabled.");
+  };
+  window.importMominDataV1=function(file,input){
+    if(input)input.value="";
+    if(!file)return;
+    if(file.size>4*1024*1024){notify("Backup is larger than 4 MB. Choose a smaller MOMIN export.");return;}
+    var read=file.text?file.text():new Promise(function(resolve,reject){
+      var reader=new FileReader();
+      reader.onload=function(){resolve(String(reader.result||""));};
+      reader.onerror=reject;
+      reader.readAsText(file);
+    });
+    read.then(function(text){
+      var backup;
+      try{backup=JSON.parse(text)}catch(_){throw new Error("This file is not valid JSON.");}
+      if(!backup||backup.app!=="MOMIN"||!backup.localStorage||typeof backup.localStorage!=="object"||Array.isArray(backup.localStorage))throw new Error("This is not a supported MOMIN data backup.");
+      var incoming=backup.localStorage,keys=Object.keys(incoming),accepted=[],skipped=0,total=0;
+      if(keys.length>1500)throw new Error("This backup contains too many entries to import safely.");
+      keys.forEach(function(key){
+        var value=incoming[key],appKey=key.indexOf("noor-")===0||key.indexOf("momin")===0;
+        if(!appKey){skipped++;return;}
+        if(typeof value!=="string"||key.length>200||value.length>500000)throw new Error("The backup contains an unsupported or oversized value.");
+        total+=key.length+value.length;
+        if(total>3*1024*1024)throw new Error("The MOMIN data in this backup exceeds the 3 MB safety limit.");
+        accepted.push([key,value]);
+      });
+      if(!accepted.length)throw new Error("No supported MOMIN data keys were found in this backup.");
+      if(!confirm("Import "+accepted.length+" MOMIN entries? Existing values with matching keys will be overwritten. Export a backup of this browser first if you may need the current data."))return;
+      var previous=[];
+      try{
+        accepted.forEach(function(pair){
+          var exists=localStorage.getItem(pair[0]);
+          previous.push([pair[0],exists!==null,exists]);
+          localStorage.setItem(pair[0],pair[1]);
+        });
+      }catch(error){
+        for(var i=previous.length-1;i>=0;i--){try{if(previous[i][1])localStorage.setItem(previous[i][0],previous[i][2]);else localStorage.removeItem(previous[i][0]);}catch(_){}}
+        throw new Error("The browser could not store the full backup. Existing data was restored where possible.");
+      }
+      try{if(typeof window.setMominLanguageV1==="function")window.setMominLanguageV1(get("noor-language","en"));}catch(_){}
+      try{applyAccessibility();}catch(_){}
+      try{if(typeof window.render==="function")window.render();}catch(_){}
+      notify("Imported "+accepted.length+" MOMIN entries."+(skipped?" Ignored "+skipped+" unrelated entries.":""));
+    }).catch(function(error){notify(error&&error.message?error.message:"Could not import this backup.");});
+  };
+  window.deleteMominLocalDataV1=function(){
+    if(!confirm("Permanently delete MOMIN data saved in this browser? This removes preferences, prayer check-ins, bookmarks, favorites, local reflections, history and cached translations. Export a backup first. It cannot erase downloaded backups or data already sent to third-party services."))return;
+    var keys=[];
+    try{for(var i=0;i<localStorage.length;i++){var key=localStorage.key(i)||"";if(key.indexOf("noor-")===0||key.indexOf("momin")===0)keys.push(key);}}catch(_){}
+    try{keys.forEach(function(key){localStorage.removeItem(key);});}catch(_){notify("Some local data could not be removed. Check browser storage permissions.");return;}
+    try{sessionStorage.clear();}catch(_){}
+    document.documentElement.lang="en";document.documentElement.dir="ltr";
+    notify("MOMIN local data deleted. Reloading with default settings.");
+    window.setTimeout(function(){window.location.reload();},900);
+  };
   window.resetMominSettingsV1=function(){if(!confirm("Reset MOMIN settings only? Quran/Dua bookmarks, Tasbeeh counts and reading history will be kept."))return;["noor-theme","noor-theme-preference","noor-language","noor-interface-scale","noor-reduce-motion","noor-high-contrast","noor-method-mode","noor-method","noor-asr-method","noor-notifications","noor-adhan-sound","noor-prayer-reminder-minutes","noor-quran-edition","noor-quran-edition-language","noor-quran-arabic-size","noor-quran-show-translation-v8","noor-quran-show-transliteration-v8","noor-quran-reading-mode-v8","noor-quran-reciter-v8","noor-quran-audio-speed-v8","noor-quran-repeat-v8","noor-quran-auto-next-v8","noor-quran-theme","noor-keep-awake-v8","noor-distance-unit","noor-hijri-adjustment","noor-islamic-event-reminders","noor-dua-prototype-text-size","noor-keep-awake"].forEach(function(k){try{localStorage.removeItem(k)}catch(_){}});PRAYERS.forEach(function(p){try{localStorage.removeItem("noor-notify-"+p[0])}catch(_){}});try{var reminderKeys=[];for(var r=0;r<localStorage.length;r++){var rk=localStorage.key(r);if(rk&&rk.indexOf("noor-prayer-reminder-sent-")===0)reminderKeys.push(rk)}reminderKeys.forEach(function(rk){localStorage.removeItem(rk)})}catch(_){}try{if(typeof window.setTheme==="function")window.setTheme("Dark")}catch(_){}try{if(typeof window.render==="function")window.render()}catch(_){}notify("Settings reset. Bookmarks, reading history and Tasbeeh counts were kept.")};
-  window.showMominPrivacySummaryV1=function(){notify("MOMIN stores preferences and feature records in this browser. Cloud sync is not enabled. Use Export data to download a local JSON copy.")};
+  window.showMominPrivacySummaryV1=function(){
+    var existing=document.getElementById("mominPrivacyDetailsDialogV1");if(existing){if(!existing.open)existing.showModal();return;}
+    var dialog=document.createElement("dialog");
+    dialog.id="mominPrivacyDetailsDialogV1";
+    dialog.setAttribute("aria-labelledby","mominPrivacyTitleV1");
+    dialog.innerHTML='<form method="dialog" class="momin-privacy-dialog-form">'+
+      '<div class="momin-privacy-dialog-head"><div><p class="momin-privacy-eyebrow">YOUR DATA, YOUR CHOICE</p><h2 id="mominPrivacyTitleV1">Privacy & Data</h2></div><button class="momin-privacy-close" aria-label="Close privacy details" value="close">×</button></div>'+
+      '<p class="momin-privacy-intro">MOMIN is running in guest mode in this build. It does not provide an MOMIN account or cloud-sync service.</p>'+
+      '<section><h3>Saved on this device</h3><ul><li>Preferences such as theme, language, prayer calculation method and accessibility settings.</li><li>Prayer check-ins, Tasbeeh totals, saved Duas, Quran bookmarks and recent reading records when those features save them.</li><li>Location preferences and cached interface translations used to make the app work faster.</li></ul></section>'+
+      '<section><h3>When online services are used</h3><ul><li>Prayer-time requests may send the selected city/country or coordinates and date to the AlAdhan service.</li><li>When online interface translation is enabled, text snippets that need translating and the selected target language are sent to the translation provider. Turn the setting off to stop new online translation requests; translations already cached on this device can still be used.</li><li>Mosque search or directions can open third-party map services, which receive the search area or destination you choose.</li></ul></section>'+
+      '<section><h3>Export, import and deletion</h3><p>Export downloads a JSON copy of browser storage. Import accepts MOMIN JSON exports and only restores keys prefixed with <code>noor-</code> or <code>momin</code>. Delete local data removes MOMIN-namespaced browser storage and cached translations for this browser profile; it cannot erase files already downloaded or information previously received by external providers.</p></section>'+
+      '<p class="momin-privacy-foot">Your browser can retain local data until you remove it. Avoid sharing exported backup files because they may contain private activity and preferences.</p>'+
+      '<div class="momin-privacy-actions"><button class="momin-privacy-export" type="button" onclick="exportMominDataV1()">Export my data</button><button class="momin-privacy-done" value="close">Done</button></div>'+
+      '</form>';
+    var style=document.createElement("style");style.textContent=
+      '#mominPrivacyDetailsDialogV1{width:min(690px,calc(100vw - 28px));max-height:86vh;overflow:auto;padding:0;border:1px solid var(--line);border-radius:22px;background:var(--paper);color:var(--ink);box-shadow:0 24px 90px #0005}'+
+      '#mominPrivacyDetailsDialogV1::backdrop{background:#07110ed1;backdrop-filter:blur(4px)}'+
+      '.momin-privacy-dialog-form{padding:22px}.momin-privacy-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding-bottom:14px}.momin-privacy-eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--gold);margin:0 0 7px}.momin-privacy-dialog-head h2{margin:0;font:600 26px var(--serif)}.momin-privacy-close{border:1px solid var(--line);background:transparent;border-radius:11px;width:38px;height:38px;font-size:25px}.momin-privacy-intro{line-height:1.65;color:var(--muted);font-size:13px}.momin-privacy-dialog-form section{padding:12px 0;border-bottom:1px solid var(--line)}.momin-privacy-dialog-form section h3{font-size:15px;margin:0 0 8px}.momin-privacy-dialog-form ul,.momin-privacy-dialog-form p{line-height:1.65;font-size:13px}.momin-privacy-dialog-form ul{padding-left:20px}.momin-privacy-dialog-form li{margin:7px 0}.momin-privacy-foot{color:var(--muted)}.momin-privacy-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}.momin-privacy-actions button{border:1px solid var(--line);padding:10px 14px;border-radius:10px;background:var(--paper);color:var(--ink);font:600 12px var(--sans)}.momin-privacy-actions .momin-privacy-export{background:var(--green);color:#fff;border-color:var(--green)}';
+    dialog.appendChild(style);document.body.appendChild(dialog);
+    dialog.addEventListener("close",function(){dialog.remove();},{once:true});
+    dialog.showModal();
+  };
   window.showMominAboutV1=function(){notify("MOMIN — Where Faith Meets Devotion. This web companion includes prayer tools, Quran, Duas, Tasbeeh, Qibla, Mosques and an Islamic calendar. Some background and sync features are not yet available.")};
   window.shareMominV1=async function(){var data={title:"MOMIN — Where Faith Meets Devotion",text:"Explore MOMIN, your Islamic daily companion.",url:location.origin+location.pathname};try{if(navigator.share){await navigator.share(data);return}if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(data.url);notify("MOMIN link copied.");return}}catch(_){return}notify("Open the app URL in your browser to share MOMIN.")};
   document.addEventListener("change",function(e){if(e.target&&e.target.id==="settingsTheme")window.saveAppearancePrefsV1()});
