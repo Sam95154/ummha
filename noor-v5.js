@@ -145,9 +145,9 @@ loadPrayerData=async function(){
   var hasCoords=API_STORE.latitude!==null&&Number.isFinite(Number(API_STORE.latitude))&&API_STORE.longitude!==null&&Number.isFinite(Number(API_STORE.longitude));
   var city=String(API_STORE.city||'').trim(),country=String(API_STORE.country||'').trim(),url;
   if(hasCoords){
-    url='https://api.aladhan.com/v1/timings/'+apiDate()+'?latitude='+encodeURIComponent(API_STORE.latitude)+'&longitude='+encodeURIComponent(API_STORE.longitude)+'&method='+encodeURIComponent(method);
+    url='https://api.aladhan.com/v1/timings/'+apiDate()+'?latitude='+encodeURIComponent(API_STORE.latitude)+'&longitude='+encodeURIComponent(API_STORE.longitude)+'&method='+encodeURIComponent(method)+'&school='+(localStorage.getItem('noor-asr-method')==='hanafi'?'1':'0');
   }else if(city&&country){
-    url='https://api.aladhan.com/v1/timingsByCity/'+apiDate()+'?city='+encodeURIComponent(city)+'&country='+encodeURIComponent(country)+'&method='+encodeURIComponent(method);
+    url='https://api.aladhan.com/v1/timingsByCity/'+apiDate()+'?city='+encodeURIComponent(city)+'&country='+encodeURIComponent(country)+'&method='+encodeURIComponent(method)+'&school='+(localStorage.getItem('noor-asr-method')==='hanafi'?'1':'0');
   }else{
     livePrayer=null;syncLocationLabels();
     if(page==='prayers')toast('Use current location or enter your city and country to load prayer times.');
@@ -599,4 +599,236 @@ render();
 
   if(page==="prayers")render();
   startAutomaticLocationV6();
+
+/* MOMIN_SETTINGS_SAVE_AND_INDIAN_TRANSLATIONS_V1 */
+var mominIndianLanguagesV6=[
+ {code:"as",name:"Assamese",native:"অসমীয়া"},{code:"bn",name:"Bengali",native:"বাংলা"},{code:"brx",name:"Bodo",native:"बड़ो"},
+ {code:"doi",name:"Dogri",native:"डोगरी"},{code:"gu",name:"Gujarati",native:"ગુજરાતી"},{code:"hi",name:"Hindi",native:"हिन्दी"},
+ {code:"kn",name:"Kannada",native:"ಕನ್ನಡ"},{code:"ks",name:"Kashmiri",native:"کٲشُر"},{code:"kok",name:"Konkani",native:"कोंकणी"},
+ {code:"mai",name:"Maithili",native:"मैथिली"},{code:"ml",name:"Malayalam",native:"മലയാളം"},{code:"mni",name:"Manipuri (Meitei)",native:"মৈতৈলোন্"},
+ {code:"mr",name:"Marathi",native:"मराठी"},{code:"ne",name:"Nepali",native:"नेपाली"},{code:"or",name:"Odia",native:"ଓଡ଼ିଆ"},
+ {code:"pa",name:"Punjabi",native:"ਪੰਜਾਬੀ"},{code:"sa",name:"Sanskrit",native:"संस्कृतम्"},{code:"sat",name:"Santali",native:"ᱥᱟᱱᱛᱟᱲᱤ"},
+ {code:"sd",name:"Sindhi",native:"سنڌي"},{code:"ta",name:"Tamil",native:"தமிழ்"},{code:"te",name:"Telugu",native:"తెలుగు"},
+ {code:"ur",name:"Urdu",native:"اردو"}
+];
+var mominLanguageCodesV6={
+ assamese:"as",bengali:"bn",bodo:"brx",dogri:"doi",gujarati:"gu",hindi:"hi",kannada:"kn",kashmiri:"ks",
+ konkani:"kok",maithili:"mai",malayalam:"ml",manipuri:"mni",meitei:"mni",marathi:"mr",nepali:"ne",odia:"or",
+ oriya:"or",punjabi:"pa",sanskrit:"sa",santali:"sat",santhali:"sat",sindhi:"sd",tamil:"ta",telugu:"te",urdu:"ur"
+};
+var mominTranslationCatalogPromiseV6=null;
+function mominEscapeV6(value){return String(value==null?"":value).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]})}
+function mominAppLanguageOptionsV6(){
+ var selected=localStorage.getItem("noor-language")||"en";
+ return '<option value="en" '+(selected==="en"?"selected":"")+' >English</option>'+
+  mominIndianLanguagesV6.map(function(l){return '<option value="'+l.code+'" '+(selected===l.code?"selected":"")+'>'+l.name+' — '+l.native+'</option>'}).join("");
+}
+quranTranslationOptionsV5=function(){
+ var active=quranTranslationEditionV5(),out='<optgroup label="Available Quran translations">';
+ out+=quranTranslationsV5.map(function(x){return '<option value="'+mominEscapeV6(x.id)+'" '+(x.id===active?"selected":"")+'>'+mominEscapeV6(x.label)+'</option>'}).join("");
+ out+='</optgroup>';
+ var present={};quranTranslationsV5.forEach(function(x){if(x.language)present[x.language]=true});
+ var missing=mominIndianLanguagesV6.filter(function(l){return !present[l.code]});
+ if(missing.length){
+  out+='<optgroup label="Indian languages — translation unavailable in connected catalogue">';
+  out+=missing.map(function(l){return '<option value="unavailable:'+l.code+'" disabled>'+l.name+' — not available yet</option>'}).join("");
+  out+='</optgroup>';
+ }
+ return out;
+};
+translationDirectionV5=function(){
+ var x=quranTranslationsV5.find(function(y){return y.id===quranTranslationEditionV5()});
+ return x?x.dir||"ltr":((localStorage.getItem("noor-quran-edition-language")||"")==="ur"?"rtl":"ltr");
+};
+function translationLanguageV6(){
+ var x=quranTranslationsV5.find(function(y){return y.id===quranTranslationEditionV5()});
+ return x&&x.language?x.language:(localStorage.getItem("noor-quran-edition-language")||"en");
+}
+async function loadIndianQuranTranslationsV6(){
+ if(mominTranslationCatalogPromiseV6)return mominTranslationCatalogPromiseV6;
+ mominTranslationCatalogPromiseV6=(async function(){
+  try{
+   var first=await getJSON("https://api.quran.com/api/v4/resources/translations?language=en&per_page=50&page=1");
+   var rows=first.translations||first.data&&first.data.translations||[];
+   var pages=Number(first.pagination&&first.pagination.total_pages)||1;
+   for(var p=2;p<=Math.min(pages,20);p++){
+    var next=await getJSON("https://api.quran.com/api/v4/resources/translations?language=en&per_page=50&page="+p);
+    rows=rows.concat(next.translations||next.data&&next.data.translations||[]);
+   }
+   var known={};quranTranslationsV5.forEach(function(x){known[String(x.id)]=true});
+   rows.forEach(function(t){
+    var raw=String(t.language_name||"").trim().toLowerCase();
+    var code=mominLanguageCodesV6[raw];
+    if(!code)return;
+    var id=String(t.id||"");
+    if(!id||known["qcom:"+id])return;
+    var language=mominIndianLanguagesV6.find(function(l){return l.code===code});
+    if(!language)return;
+    quranTranslationsV5.push({
+     id:"qcom:"+id,
+     label:language.name+" — "+String(t.name||t.author_name||"Quran translation"),
+     language:code,
+     dir:(code==="ur"||code==="sd"||code==="ks")?"rtl":"ltr",
+     provider:"quran.com",translationId:id
+    });
+    known["qcom:"+id]=true;
+   });
+   var selectors=document.querySelectorAll('select[aria-label="Quran translation language"],#settingsQuranTranslation');
+   selectors.forEach(function(el){var old=el.value;el.innerHTML=quranTranslationOptionsV5();if(Array.prototype.some.call(el.options,function(o){return o.value===old}))el.value=old;});
+   var status=document.getElementById("settingsTranslationStatusV6");
+   if(status)status.textContent="Available translations loaded. Unavailable languages remain disabled so the reader won’t show a false selection.";
+   return quranTranslationsV5;
+  }catch(error){
+   var status=document.getElementById("settingsTranslationStatusV6");
+   if(status)status.textContent="Could not refresh the online translation list. Existing enabled translations are still available.";
+   return quranTranslationsV5;
+  }
+ })();
+ return mominTranslationCatalogPromiseV6;
+}
+function cleanQuranComTextV6(value){
+ var holder=document.createElement("div");holder.innerHTML=String(value==null?"":value);
+ return String(holder.textContent||holder.innerText||"").replace(/\s+/g," ").trim();
+}
+/* Settings view with explicit Save buttons: values are staged until the relevant button is pressed. */
+var settingsPageBeforeSaveV6=settingsPage;
+settingsPage=function(){
+ window.settingsMethodModeDraftV6=localStorage.getItem("noor-method-mode")||"auto";
+ var html=settingsPageBeforeSaveV6();
+ html=html.replace('onchange="setPrayerMethodV5(this.value)"','onchange="window.settingsMethodModeDraftV6=\'manual\'"');
+ html=html.replace('onclick="setPrayerMethodV5(&quot;auto&quot;)"','onclick="draftAutoPrayerMethodV6()"');
+ var asr=localStorage.getItem("noor-asr-method")||"standard";
+ html=html.replace(/<select><option>Standard<\/option><option>Hanafi<\/option><\/select>/,
+  '<select id="settingsAsrMethod"><option value="standard" '+(asr==="standard"?"selected":"")+'>Standard</option><option value="hanafi" '+(asr==="hanafi"?"selected":"")+'>Hanafi</option></select>');
+ var notifications=localStorage.getItem("noor-notifications")!=="false";
+ html=html.replace(/<input class="toggle" type="checkbox" checked onchange="saveSetting\(&quot;notifications&quot;,this.checked\)">/,
+  '<input id="settingsPrayerNotifications" class="toggle" type="checkbox" '+(notifications?"checked":"")+' >');
+ var adhan=localStorage.getItem("noor-adhan-sound")||"chime";
+ html=html.replace(/<select><option>Gentle chime<\/option><option>Adhan · Makkah<\/option><option>Adhan · Madinah<\/option><option>Silent<\/option><\/select>/,
+  '<select id="settingsAdhanSound"><option value="chime" '+(adhan==="chime"?"selected":"")+'>Gentle chime</option><option value="makkah" '+(adhan==="makkah"?"selected":"")+'>Adhan · Makkah</option><option value="madinah" '+(adhan==="madinah"?"selected":"")+'>Adhan · Madinah</option><option value="silent" '+(adhan==="silent"?"selected":"")+'>Silent</option></select>');
+ html=html.replace(/<div class="setting"><div><b>Quran translation<\/b><small>Default translation<\/small><\/div><select>[\s\S]*?<\/select><\/div>/,
+  '<div class="setting"><div><b>Quran translation</b><small>Available translation editions</small></div><select id="settingsQuranTranslation">'+quranTranslationOptionsV5()+'</select></div><p class="settings-note" id="settingsTranslationStatusV6">Loading available Indian-language translation editions…</p>');
+ html=html.replace(/<div class="setting"><div><b>Language<\/b><small>App display language<\/small><\/div><select>[\s\S]*?<\/select><\/div>/,
+  '<div class="setting"><div><b>App language</b><small>English and India’s 22 scheduled languages</small></div><select id="settingsAppLanguage">'+mominAppLanguageOptionsV6()+'</select></div><p class="settings-note">This saves your app-language preference; some screens may remain in English until their translations are available.</p>');
+ var theme=localStorage.getItem("noor-theme")||"Dark";
+ html=html.replace(/<select onchange="setTheme\(this\.value\)">[\s\S]*?<\/select>/,
+  '<select id="settingsTheme"><option value="Light" '+(theme==="Light"?"selected":"")+'>Light</option><option value="Sepia" '+(theme==="Sepia"?"selected":"")+'>Sepia</option><option value="Dark" '+(theme==="Dark"?"selected":"")+'>Dark</option></select>');
+ var keepAwake=localStorage.getItem("noor-keep-awake")==="true";
+ html=html.replace(/<div class="setting"><div><b>Keep screen awake<\/b><small>While reading Quran<\/small><\/div><input class="toggle" type="checkbox"><\/div>/,
+  '<div class="setting"><div><b>Keep screen awake</b><small>While reading Quran</small></div><input id="settingsKeepAwake" class="toggle" type="checkbox" '+(keepAwake?"checked":"")+'></div>');
+ /* The buttons are inserted before the closing tags of their respective cards. */
+ html=html.replace('</div><div class="card"><h3>Reading & appearance</h3>',
+  '<div class="settings-save-actions"><button type="button" class="settings-save-btn" onclick="savePrayerSettingsV6()">Save prayer settings</button></div></div><div class="card"><h3>Reading & appearance</h3>');
+ html=html.replace('</div></div></div><div class="card" style="margin-top:16px">',
+  '</div><div class="settings-save-actions"><button type="button" class="settings-save-btn" onclick="saveReadingAppearanceV6()">Save reading & appearance</button></div></div></div><div class="card" style="margin-top:16px">');
+ return html;
+};
+window.settingsMethodModeDraftV6="auto";
+window.draftAutoPrayerMethodV6=function(){
+ window.settingsMethodModeDraftV6="auto";
+ var select=document.getElementById("settingsMethodInput");
+ if(select&&typeof countryMethodIdV6==="function")select.value=String(countryMethodIdV6(API_STORE.country||""));
+ toast("Auto-detect selected. Tap Save prayer settings to apply it.");
+};
+window.savePrayerSettingsV6=function(){
+ var method=document.getElementById("settingsMethodInput");
+ var asr=document.getElementById("settingsAsrMethod");
+ var notifications=document.getElementById("settingsPrayerNotifications");
+ var sound=document.getElementById("settingsAdhanSound");
+ if(method){
+  var mode=window.settingsMethodModeDraftV6||localStorage.getItem("noor-method-mode")||"auto";
+  var methodId=String(method.value||"3");
+  if(mode==="auto"&&typeof countryMethodIdV6==="function")methodId=String(countryMethodIdV6(API_STORE.country||""));
+  if(!Object.keys(PRAYER_METHODS).some(function(k){return String(PRAYER_METHODS[k])===methodId})){
+   toast("Choose a valid calculation method before saving.");return;
+  }
+  saveMethodV6(mode,methodId);
+ }
+ if(asr)localStorage.setItem("noor-asr-method",asr.value);
+ if(notifications)localStorage.setItem("noor-notifications",notifications.checked?"true":"false");
+ if(sound)localStorage.setItem("noor-adhan-sound",sound.value);
+ render();
+ if((API_STORE.latitude!==null&&API_STORE.longitude!==null)||(API_STORE.city&&API_STORE.country))loadPrayerData();
+ toast("Prayer settings saved on this device.");
+};
+window.saveReadingAppearanceV6=function(){
+ var edition=document.getElementById("settingsQuranTranslation");
+ var language=document.getElementById("settingsAppLanguage");
+ var theme=document.getElementById("settingsTheme");
+ var awake=document.getElementById("settingsKeepAwake");
+ if(edition){
+  if(edition.value.indexOf("unavailable:")===0){toast("No connected Quran translation is available for that language yet.");return;}
+  if(!quranTranslationsV5.some(function(x){return x.id===edition.value})){
+   loadIndianQuranTranslationsV6();toast("Translation editions are still loading. Please try again in a moment.");return;
+  }
+  localStorage.setItem("noor-quran-edition",edition.value);
+  var selected=quranTranslationsV5.find(function(x){return x.id===edition.value});
+  if(selected&&selected.language)localStorage.setItem("noor-quran-edition-language",selected.language);
+ }
+ if(language){
+  localStorage.setItem("noor-language",language.value);
+  document.documentElement.lang=language.value==="en"?"en":language.value;
+ }
+ if(theme&&typeof setTheme==="function")setTheme(theme.value);
+ if(awake)localStorage.setItem("noor-keep-awake",awake.checked?"true":"false");
+ var status=document.getElementById("settingsTranslationStatusV6");
+ if(status)status.textContent="Saved. The Quran reader uses the selected translation when you open a Surah. Interface localization is still partial.";
+ toast("Reading & appearance saved on this device.");
+};
+window.retryIndianQuranTranslationsV6=function(){mominTranslationCatalogPromiseV6=null;loadIndianQuranTranslationsV6()};
+var readSurahBeforeQuranComV6=readSurah;
+readSurah=async function(n){
+ var edition=quranTranslationEditionV5();
+ if(edition.indexOf("qcom:")!==0)return readSurahBeforeQuranComV6(n);
+ n=Number(n)||1;
+ var chapter=chapters[n-1];
+ if(!chapter){toast("Surah list is still loading");return;}
+ var token=++readerRequestToken;
+ stopAudio();selectedSurah=chapter.englishName;
+ localStorage.setItem("noor-surah",selectedSurah);localStorage.setItem("noor-surah-number",n);
+ currentVerses=[];readerLoading=true;render();
+ var status=document.getElementById("loadStatus");
+ if(status)status.textContent="Loading Arabic, transliteration, and the selected translation…";
+ try{
+  var translationId=edition.slice(5);
+  var mainResult=await getJSON("https://api.alquran.cloud/v1/surah/"+n+"/editions/quran-uthmani,en.transliteration");
+  if(token!==readerRequestToken)return;
+  var arabic=mainResult.data.find(function(x){return x.edition&&x.edition.identifier==="quran-uthmani"});
+  var trans=mainResult.data.find(function(x){return x.edition&&x.edition.identifier==="en.transliteration"});
+  if(!arabic)throw Error("Arabic Quran text could not load");
+  var first=await getJSON("https://api.quran.com/api/v4/translations/"+encodeURIComponent(translationId)+"?chapter_number="+n+"&fields=verse_key&per_page=50&page=1");
+  var rows=first.translations||first.data&&first.data.translations||[];
+  var pages=Number(first.pagination&&first.pagination.total_pages)||1;
+  for(var p=2;p<=Math.min(pages,10);p++){
+   var next=await getJSON("https://api.quran.com/api/v4/translations/"+encodeURIComponent(translationId)+"?chapter_number="+n+"&fields=verse_key&per_page=50&page="+p);
+   rows=rows.concat(next.translations||next.data&&next.data.translations||[]);
+  }
+  if(token!==readerRequestToken)return;
+  var byKey={};rows.forEach(function(row){var key=String(row.verse_key||((row.chapter_id||n)+":"+row.verse_number));byKey[key]=cleanQuranComTextV6(row.text)});
+  currentVerses=arabic.ayahs.map(function(v){
+   var text=v.text;if(n!==1&&n!==9&&Number(v.numberInSurah)===1)text=stripOpeningBismillahV5(text);
+   return {number:v.number,numberInSurah:v.numberInSurah,text:text,translation:byKey[n+":"+v.numberInSurah]||"",transliteration:trans&&trans.ayahs[v.numberInSurah-1]&&trans.ayahs[v.numberInSurah-1].text||"",surah:arabic.englishName};
+  });
+  if(!currentVerses.some(function(v){return v.translation}))throw Error("No translation text was returned");
+  readerLoading=false;render();localStorage.setItem("noor-last-verse",n+":1");
+  localStorage.setItem("noor-quran-progress",selectedSurah+" · Ayah 1");
+  if(typeof saveQuranRecent==="function")saveQuranRecent(n,1);
+ }catch(error){
+  if(token!==readerRequestToken)return;
+  readerLoading=false;render();
+  var err=document.getElementById("loadStatus");
+  if(err)err.textContent="Unable to load this translation. Try another available edition or check your connection.";
+  toast("The selected Quran translation could not load.");
+ }
+};
+/* Keep translation language metadata valid for both AlQuranCloud and Quran.com editions. */
+var oldVerseMarkupLangV6=verseMarkup;
+verseMarkup=function(){
+ var html=oldVerseMarkupLangV6();
+ var lang=translationLanguageV6();
+ return html.replace(/lang="qcom:[^"]+"/g,'lang="'+lang+'"');
+};
+loadIndianQuranTranslationsV6();
+
+
 })();
