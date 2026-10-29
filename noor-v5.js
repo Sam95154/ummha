@@ -624,14 +624,20 @@ function mominAppLanguageOptionsV6(){
   mominIndianLanguagesV6.map(function(l){return '<option value="'+l.code+'" '+(selected===l.code?"selected":"")+'>'+l.name+' — '+l.native+'</option>'}).join("");
 }
 quranTranslationOptionsV5=function(){
- var active=quranTranslationEditionV5(),out='<optgroup label="Available Quran translations">';
- out+=quranTranslationsV5.map(function(x){return '<option value="'+mominEscapeV6(x.id)+'" '+(x.id===active?"selected":"")+'>'+mominEscapeV6(x.label)+'</option>'}).join("");
+ var active=quranTranslationEditionV5(),indianSet={};
+ mominIndianLanguagesV6.forEach(function(l){indianSet[l.code]=true});
+ var indian=quranTranslationsV5.filter(function(x){return x.language&&indianSet[x.language]});
+ var other=quranTranslationsV5.filter(function(x){return !x.language||!indianSet[x.language]});
+ var out='<optgroup label="Other Quran translations">';
+ out+=other.map(function(x){return '<option value="'+mominEscapeV6(x.id)+'" '+(x.id===active?'selected':'')+'>'+mominEscapeV6(x.label)+'</option>'}).join('');
+ out+='</optgroup><optgroup label="Available Indian-language translations">';
+ out+=indian.map(function(x){return '<option value="'+mominEscapeV6(x.id)+'" '+(x.id===active?'selected':'')+'>'+mominEscapeV6(x.label)+'</option>'}).join('');
  out+='</optgroup>';
- var present={};quranTranslationsV5.forEach(function(x){if(x.language)present[x.language]=true});
+ var present={};indian.forEach(function(x){present[x.language]=true});
  var missing=mominIndianLanguagesV6.filter(function(l){return !present[l.code]});
  if(missing.length){
-  out+='<optgroup label="Indian languages — translation unavailable in connected catalogue">';
-  out+=missing.map(function(l){return '<option value="unavailable:'+l.code+'" disabled>'+l.name+' — not available yet</option>'}).join("");
+  out+='<optgroup label="Indian languages — translation unavailable in connected sources">';
+  out+=missing.map(function(l){return '<option value="unavailable:'+l.code+'" disabled>'+mominEscapeV6(l.name)+' — not available yet</option>'}).join('');
   out+='</optgroup>';
  }
  return out;
@@ -647,42 +653,48 @@ function translationLanguageV6(){
 async function loadIndianQuranTranslationsV6(){
  if(mominTranslationCatalogPromiseV6)return mominTranslationCatalogPromiseV6;
  mominTranslationCatalogPromiseV6=(async function(){
-  try{
-   var first=await getJSON("https://api.quran.com/api/v4/resources/translations?language=en&per_page=50&page=1");
-   var rows=first.translations||first.data&&first.data.translations||[];
-   var pages=Number(first.pagination&&first.pagination.total_pages)||1;
-   for(var p=2;p<=Math.min(pages,20);p++){
-    var next=await getJSON("https://api.quran.com/api/v4/resources/translations?language=en&per_page=50&page="+p);
-    rows=rows.concat(next.translations||next.data&&next.data.translations||[]);
-   }
-   var known={};quranTranslationsV5.forEach(function(x){known[String(x.id)]=true});
-   rows.forEach(function(t){
+  var requested=mominIndianLanguagesV6.slice(),responses=[];
+  /* Query each language separately. */
+  for(var offset=0;offset<requested.length;offset+=5){
+   var group=requested.slice(offset,offset+5);
+   var results=await Promise.all(group.map(async function(language){
+    try{
+     var url="https://api.quran.com/api/v4/resources/translations?language="+encodeURIComponent(language.code)+"&per_page=50&page=1";
+     var data=await getJSON(url);
+     return {requested:language,rows:data.translations||data.data&&data.data.translations||[]};
+    }catch(error){return {requested:language,rows:[],error:error};}
+   }));
+   responses=responses.concat(results);
+  }
+  var known={};quranTranslationsV5.forEach(function(x){if(x.id)known[String(x.id)]=true});
+  responses.forEach(function(result){
+   result.rows.forEach(function(t){
     var raw=String(t.language_name||"").trim().toLowerCase();
-    var code=mominLanguageCodesV6[raw];
-    if(!code)return;
+    var responseCode=mominLanguageCodesV6[raw];
+    var code=responseCode||result.requested.code;
+    if(responseCode&&responseCode!==result.requested.code)return;
+    var item=mominIndianLanguagesV6.find(function(l){return l.code===code});
     var id=String(t.id||"");
-    if(!id||known["qcom:"+id])return;
-    var language=mominIndianLanguagesV6.find(function(l){return l.code===code});
-    if(!language)return;
+    if(!item||!id||known["qcom:"+id])return;
     quranTranslationsV5.push({
      id:"qcom:"+id,
-     label:language.name+" — "+String(t.name||t.author_name||"Quran translation"),
+     label:item.name+" — "+String(t.name||t.author_name||"Quran translation"),
      language:code,
      dir:(code==="ur"||code==="sd"||code==="ks")?"rtl":"ltr",
-     provider:"quran.com",translationId:id
+     provider:"quran.com",
+     translationId:id
     });
     known["qcom:"+id]=true;
    });
-   var selectors=document.querySelectorAll('select[aria-label="Quran translation language"],#settingsQuranTranslation');
-   selectors.forEach(function(el){var old=el.value;el.innerHTML=quranTranslationOptionsV5();if(Array.prototype.some.call(el.options,function(o){return o.value===old}))el.value=old;});
-   var status=document.getElementById("settingsTranslationStatusV6");
-   if(status)status.textContent="Available translations loaded. Unavailable languages remain disabled so the reader won’t show a false selection.";
-   return quranTranslationsV5;
-  }catch(error){
-   var status=document.getElementById("settingsTranslationStatusV6");
-   if(status)status.textContent="Could not refresh the online translation list. Existing enabled translations are still available.";
-   return quranTranslationsV5;
-  }
+  });
+  var selectors=document.querySelectorAll('select[aria-label="Quran translation language"],#settingsQuranTranslation');
+  selectors.forEach(function(el){
+   var previous=el.value;el.innerHTML=quranTranslationOptionsV5();
+   if(Array.prototype.some.call(el.options,function(o){return o.value===previous}))el.value=previous;
+  });
+  var status=document.getElementById("settingsTranslationStatusV6");
+  if(status)status.textContent="Translation catalogue checked by language. Available editions are selectable; missing editions are shown as unavailable.";
+  return quranTranslationsV5;
  })();
  return mominTranslationCatalogPromiseV6;
 }
@@ -829,6 +841,173 @@ verseMarkup=function(){
  return html.replace(/lang="qcom:[^"]+"/g,'lang="'+lang+'"');
 };
 loadIndianQuranTranslationsV6();
+
+
+
+/* MOMIN_QURAN_TRANSLITERATION_SETTINGS_V7 */
+var mominTransliterationLanguagesV7=[
+ {code:"en",name:"English — Roman transliteration",native:"Latin",target:"",dir:"ltr"},
+ {code:"as",name:"Assamese — অসমীয়া",native:"Assamese script",target:"as",dir:"ltr"},
+ {code:"bn",name:"Bengali — বাংলা",native:"Bengali script",target:"bn",dir:"ltr"},
+ {code:"brx",name:"Bodo — Devanagari fallback",native:"Devanagari script",target:"hi",dir:"ltr",fallback:true},
+ {code:"doi",name:"Dogri — Devanagari fallback",native:"Devanagari script",target:"hi",dir:"ltr",fallback:true},
+ {code:"gu",name:"Gujarati — ગુજરાતી",native:"Gujarati script",target:"gu",dir:"ltr"},
+ {code:"hi",name:"Hindi — हिन्दी",native:"Devanagari script",target:"hi",dir:"ltr"},
+ {code:"kn",name:"Kannada — ಕನ್ನಡ",native:"Kannada script",target:"kn",dir:"ltr"},
+ {code:"ks",name:"Kashmiri — Urdu-script fallback",native:"Urdu script",target:"ur",dir:"rtl",fallback:true},
+ {code:"kok",name:"Konkani — Devanagari fallback",native:"Devanagari script",target:"hi",dir:"ltr",fallback:true},
+ {code:"mai",name:"Maithili — Devanagari fallback",native:"Devanagari script",target:"hi",dir:"ltr",fallback:true},
+ {code:"ml",name:"Malayalam — മലയാളം",native:"Malayalam script",target:"ml",dir:"ltr"},
+ {code:"mni",name:"Manipuri (Meitei) — Bengali-script fallback",native:"Bengali-compatible script",target:"bn",dir:"ltr",fallback:true},
+ {code:"mr",name:"Marathi — मराठी",native:"Devanagari script",target:"mr",dir:"ltr"},
+ {code:"ne",name:"Nepali — नेपाली",native:"Devanagari script",target:"ne",dir:"ltr"},
+ {code:"or",name:"Odia — ଓଡ଼ିଆ",native:"Odia script",target:"or",dir:"ltr"},
+ {code:"pa",name:"Punjabi — ਪੰਜਾਬੀ",native:"Gurmukhi script",target:"pa",dir:"ltr"},
+ {code:"sa",name:"Sanskrit — Devanagari fallback",native:"Devanagari script",target:"hi",dir:"ltr",fallback:true},
+ {code:"sat",name:"Santali — Bengali-script fallback",native:"Bengali-compatible script",target:"bn",dir:"ltr",fallback:true},
+ {code:"sd",name:"Sindhi — سنڌي / Urdu-script fallback",native:"Urdu script",target:"ur",dir:"rtl",fallback:true},
+ {code:"ta",name:"Tamil — தமிழ்",native:"Tamil script",target:"ta",dir:"ltr"},
+ {code:"te",name:"Telugu — తెలుగు",native:"Telugu script",target:"te",dir:"ltr"},
+ {code:"ur",name:"Urdu — اردو",native:"Urdu script",target:"ur",dir:"rtl"}
+];
+var mominTranslitCacheV7=Object.create(null);
+var mominTranslitQueueV7=[];
+var mominTranslitActiveV7=0;
+var mominTranslitInflightV7=Object.create(null);
+var mominTranslitObserverV7=null;
+function mominTranslitChoiceV7(){
+ var wanted=localStorage.getItem("noor-quran-translit-language")||"en";
+ return mominTransliterationLanguagesV7.find(function(x){return x.code===wanted})||mominTransliterationLanguagesV7[0];
+}
+function mominTranslitOptionsV7(){
+ var current=mominTranslitChoiceV7().code;
+ return mominTransliterationLanguagesV7.map(function(x){
+  return '<option value="'+x.code+'" '+(x.code===current?"selected":"")+'>'+mominEscapeV6(x.name)+'</option>';
+ }).join("");
+}
+function mominTranslitSettingsSectionV7(){
+ return '<div class="reader-settings-section-title">Arabic transliteration</div>'+
+  '<label class="reader-setting"><span>Transliteration language</span><select id="readerTranslitLanguageV7" aria-label="Arabic transliteration language" onchange="setArabicTransliterationLanguageV7(this.value)">'+mominTranslitOptionsV7()+'</select></label>'+
+  '<p class="reader-settings-hint" id="readerTranslitNoteV7" role="status">This changes the Arabic pronunciation into another script; it does not translate the meaning.</p>';
+}
+var quranReaderBeforeTranslitSettingsV7=quranReaderPageV2;
+quranReaderPageV2=function(){
+ var html=quranReaderBeforeTranslitSettingsV7();
+ var anchor='</select></label></div><div class="reading-goal">';
+ if(html.indexOf(anchor)>=0){
+  html=html.replace(anchor,'</select></label>'+mominTranslitSettingsSectionV7()+'</div><div class="reading-goal">');
+ }
+ return html;
+};
+function updateTranslitNoteV7(){
+ var choice=mominTranslitChoiceV7(),note=document.getElementById("readerTranslitNoteV7");
+ if(!note)return;
+ if(choice.code==="en"){
+  note.textContent="Shows the original Roman pronunciation. Transliteration is not a meaning translation.";
+ }else if(choice.fallback){
+  note.textContent="Uses a related supported script for phonetic rendering, not the language’s unique native script. The Arabic text remains the source.";
+ }else{
+  note.textContent="Renders the Roman pronunciation in "+choice.native+". This is phonetic transliteration, not a translation of the ayah meaning.";
+ }
+}
+window.setArabicTransliterationLanguageV7=function(code){
+ if(!mominTransliterationLanguagesV7.some(function(x){return x.code===code}))return;
+ localStorage.setItem("noor-quran-translit-language",code);
+ updateTranslitNoteV7();scheduleArabicTransliterationV7();
+};
+function parseGoogleTranslitV7(result){
+ if(!Array.isArray(result)||result[0]!=="SUCCESS"||!Array.isArray(result[1]))return "";
+ return result[1].map(function(row){
+  return Array.isArray(row)&&Array.isArray(row[1])&&row[1].length?String(row[1][0]||""):"";
+ }).filter(Boolean).join(" ").trim();
+}
+async function requestGoogleTranslitV7(text,code){
+ var language=mominTransliterationLanguagesV7.find(function(x){return x.code===code})||mominTransliterationLanguagesV7[0];
+ if(!language.target)return text;
+ var url="https://inputtools.google.com/request?text="+encodeURIComponent(text)+
+  "&itc="+encodeURIComponent(language.target+"-t-i0-und")+
+  "&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8&app=test";
+ var result=await getJSON(url);
+ return parseGoogleTranslitV7(result);
+}
+function renderTranslitNodeV7(el,lang,roman){
+ var choice=mominTransliterationLanguagesV7.find(function(x){return x.code===lang})||mominTransliterationLanguagesV7[0];
+ var key=lang+"|"+roman;
+ el.setAttribute("data-translit-key",key);
+ el.setAttribute("lang",choice.target||"en");
+ el.setAttribute("dir",choice.dir||"ltr");
+ if(lang==="en"){
+  el.textContent=roman;el.title="Roman pronunciation";el.setAttribute("data-translit-request",key);return;
+ }
+ if(mominTranslitCacheV7[key]){
+  el.textContent=mominTranslitCacheV7[key];
+  el.title=choice.fallback?"Rendered in a related script as a fallback.":"Phonetic transliteration.";
+  el.setAttribute("data-translit-request",key);return;
+ }
+ el.textContent="Transliterating…";
+ el.setAttribute("data-translit-request",key);
+ enqueueTranslitNodeV7(el,lang,roman,key);
+}
+function enqueueTranslitNodeV7(el,lang,roman,key){
+ if(!el||!roman||lang==="en"||mominTranslitCacheV7[key]||mominTranslitInflightV7[key]||el.getAttribute("data-translit-enqueued")===key)return;
+ el.setAttribute("data-translit-enqueued",key);
+ mominTranslitQueueV7.push({el:el,lang:lang,roman:roman,key:key});
+ drainTranslitQueueV7();
+}
+function drainTranslitQueueV7(){
+ while(mominTranslitActiveV7<3&&mominTranslitQueueV7.length){
+  (function(job){
+   mominTranslitActiveV7++;mominTranslitInflightV7[job.key]=true;
+   requestGoogleTranslitV7(job.roman,job.lang).then(function(converted){
+    if(converted)mominTranslitCacheV7[job.key]=converted;
+    document.querySelectorAll(".ayah-transliteration[data-roman]").forEach(function(node){
+     if(node.getAttribute("data-translit-key")!==job.key||node.getAttribute("data-translit-request")!==job.key)return;
+     if(converted){
+      node.textContent=converted;
+      var meta=mominTransliterationLanguagesV7.find(function(x){return x.code===job.lang});
+      node.title=meta&&meta.fallback?"Rendered in a related script as a fallback.":"Phonetic transliteration.";
+     }else{
+      node.textContent=node.getAttribute("data-roman")||job.roman;
+      node.setAttribute("lang","en");node.setAttribute("dir","ltr");
+      node.title="Script conversion failed; Roman pronunciation is shown instead.";
+     }
+    });
+   }).catch(function(){
+    document.querySelectorAll(".ayah-transliteration[data-roman]").forEach(function(node){
+     if(node.getAttribute("data-translit-key")===job.key&&node.getAttribute("data-translit-request")===job.key){
+      node.textContent=node.getAttribute("data-roman")||job.roman;
+      node.setAttribute("lang","en");node.setAttribute("dir","ltr");
+      node.title="Script conversion failed; Roman pronunciation is shown instead.";
+     }
+    });
+   }).finally(function(){delete mominTranslitInflightV7[job.key];mominTranslitActiveV7--;drainTranslitQueueV7();});
+  })(mominTranslitQueueV7.shift());
+ }
+}
+function scheduleArabicTransliterationV7(){
+ updateTranslitNoteV7();
+ var root=document.querySelector(".quran-reader");
+ if(!root||root.classList.contains("reader-translations-hidden"))return;
+ var language=localStorage.getItem("noor-quran-translit-language")||"en";
+ root.querySelectorAll(".ayah-transliteration[data-roman]").forEach(function(el){
+  var roman=el.getAttribute("data-roman")||"";
+  if(roman)renderTranslitNodeV7(el,language,roman);
+ });
+}
+var verseMarkupBeforeTranslitV7=verseMarkup;
+verseMarkup=function(){
+ var result=verseMarkupBeforeTranslitV7(),language=localStorage.getItem("noor-quran-translit-language")||"en",index=0;
+ return result.replace(/<div class="ayah-transliteration" lang="[^"]*">([\s\S]*?)<\/div>/g,function(match){
+  while(index<currentVerses.length&&!currentVerses[index].transliteration)index++;
+  var verse=currentVerses[index++];
+  if(!verse)return match;
+  var roman=String(verse.transliteration||""),choice=mominTransliterationLanguagesV7.find(function(x){return x.code===language})||mominTransliterationLanguagesV7[0];
+  var key=language+"|"+roman,shown=language==="en"?roman:(mominTranslitCacheV7[key]||"Transliterating…");
+  return '<div class="ayah-transliteration" lang="'+(choice.target||"en")+'" dir="'+(choice.dir||"ltr")+'" data-roman="'+escapeAppHtmlV5(roman)+'" data-translit-key="'+escapeAppHtmlV5(key)+'" data-translit-request="'+escapeAppHtmlV5(key)+'">'+escapeAppHtmlV5(shown)+'</div>';
+ });
+};
+var renderBeforeTranslitScheduleV7=render;
+render=function(){renderBeforeTranslitScheduleV7();window.setTimeout(scheduleArabicTransliterationV7,0);};
 
 
 })();
