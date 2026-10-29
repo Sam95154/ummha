@@ -325,3 +325,172 @@ var noorBismillahStyleV5=document.createElement('style');noorBismillahStyleV5.te
 var quranReaderBeforeBismillahV5=quranReaderPageV2;quranReaderPageV2=function(){var html=quranReaderBeforeBismillahV5(),chapterNo=readerChapter().number||Number(localStorage.getItem('noor-surah-number'))||1;if(chapterNo!==1&&chapterNo!==9){var line='<div class="surah-bismillah" lang="ar" dir="rtl" aria-label="Bismillah ir-Rahman ir-Rahim">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>';html=html.replace(/(<div class="surah-banner"[\s\S]*?<\/div>)(<div class="reader-loadstatus")/,function(_,banner,status){return banner+line+status})}return html};
 
 render();
+
+
+/* MOMIN location autofill + regional calculation method selection */
+(function locationCalculationMethodsV6(){
+  var methodMap = {
+    "0":"Shia Ithna-Ashari (Ja'fari) / Leva Institute, Qom",
+    "1":"University of Islamic Sciences, Karachi",
+    "2":"Islamic Society of North America (ISNA)",
+    "3":"Muslim World League (MWL)",
+    "4":"Umm al-Qura University, Makkah",
+    "5":"Egyptian General Authority of Survey",
+    "7":"Institute of Geophysics, University of Tehran",
+    "8":"Gulf Region",
+    "9":"Kuwait",
+    "10":"Qatar",
+    "11":"Majlis Ugama Islam Singapura (MUIS)",
+    "12":"Union Organization Islamique de France (UOIF)",
+    "13":"Diyanet İşleri Başkanlığı, Turkey",
+    "14":"Spiritual Administration of Muslims of Russia",
+    "15":"Moonsighting Committee Worldwide",
+    "16":"Dubai, UAE (Experimental/Research)",
+    "17":"Jabatan Kemajuan Islam Malaysia (JAKIM)",
+    "18":"Tunisia",
+    "19":"Algeria",
+    "20":"Kementerian Agama Republik Indonesia (KEMENAG)",
+    "21":"Morocco",
+    "22":"Comunidade Islâmica de Lisboa (Portugal)",
+    "23":"Jordan"
+  };
+  var methodById = {};
+  Object.keys(methodMap).forEach(function(id){methodById[id]=methodMap[id]});
+  function countryMethodIdV6(country){
+    var c=String(country||"").trim().toLowerCase();
+    if(!c)return "3";
+    if(/iran|islamic republic of iran/.test(c))return "7";
+    if(/saudi arabia|kingdom of saudi arabia/.test(c))return "4";
+    if(/egypt/.test(c))return "5";
+    if(/india|pakistan|bangladesh|afghanistan|nepal|sri lanka/.test(c))return "1";
+    if(/united states|usa|canada/.test(c))return "2";
+    if(/singapore/.test(c))return "11";
+    if(/united arab emirates|uae|emirates/.test(c))return "16";
+    if(/kuwait/.test(c))return "9";
+    if(/qatar/.test(c))return "10";
+    if(/turkey|türkiye/.test(c))return "13";
+    if(/russia/.test(c))return "14";
+    if(/malaysia/.test(c))return "17";
+    if(/tunisia/.test(c))return "18";
+    if(/algeria/.test(c))return "19";
+    if(/indonesia/.test(c))return "20";
+    if(/morocco/.test(c))return "21";
+    if(/portugal/.test(c))return "22";
+    if(/jordan/.test(c))return "23";
+    if(/france/.test(c))return "12";
+    if(/bahrain|oman|yemen|united arab emirates|united arab|saudi|iraq/.test(c))return "8";
+    if(/united kingdom|ireland|germany|spain|italy|netherlands|belgium|switzerland|austria|sweden|norway|denmark|finland|poland|greece|europe/.test(c))return "3";
+    if(/new zealand|australia|mexico/.test(c))return "3";
+    return "3";
+  }
+  function methodNameV6(id){return methodById[String(id)]||methodById["3"]}
+  function saveMethodV6(mode,id){
+    API_STORE.methodMode=mode==="manual"?"manual":"auto";
+    if(id!==undefined&&id!==null&&String(id)!=="")API_STORE.method=String(id);
+    try{
+      localStorage.setItem("noor-method-mode",API_STORE.methodMode);
+      localStorage.setItem("noor-method",String(API_STORE.method||"3"));
+    }catch(_){}
+  }
+  function applyAutoMethodV6(){
+    if((API_STORE.methodMode||"auto")==="manual")return;
+    API_STORE.method=countryMethodIdV6(API_STORE.country);
+    try{localStorage.setItem("noor-method",String(API_STORE.method))}catch(_){}
+  }
+  var oldSyncLocationMethodsV6=syncLocationLabels;
+  syncLocationLabels=function(){
+    if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
+    oldSyncLocationMethodsV6();
+    var status=document.getElementById("methodStatusV5"),picker=document.getElementById("methodInput");
+    var auto=(API_STORE.methodMode||"auto")!=="manual";
+    if(picker)picker.value=auto?"auto":String(API_STORE.method||"3");
+    if(status)status.textContent=auto?"Auto-detect selected "+methodNameV6(API_STORE.method)+" based on "+(API_STORE.country||"your detected region")+".": "Manual method: "+methodNameV6(API_STORE.method)+".";
+  };
+  var oldPrayerPageMethodsV6=prayersPage;
+  prayersPage=function(){
+    var markup=oldPrayerPageMethodsV6();
+    var cityInput=API_STORE.city&& !/^(current location|my location|locating city[.…]*)$/i.test(String(API_STORE.city))?API_STORE.city:"";
+    markup=markup.replace(/(<input id="cityInput"[^>]*value=")[^"]*(")/,function(_,start,end){return start+escapeAppHtmlV5(cityInput)+end});
+    markup=markup.replace(/(<input id="countryInput"[^>]*value=")[^"]*(")/,function(_,start,end){return start+escapeAppHtmlV5(API_STORE.country||"")+end});
+    var options='<option value="auto">Auto-detect for my location</option>'+Object.keys(PRAYER_METHODS).map(function(name){
+      var id=String(PRAYER_METHODS[name]);
+      return '<option value="'+id+'">'+escapeAppHtmlV5(name)+'</option>';
+    }).join("");
+    markup=markup.replace(/<select id="methodInput"[^>]*>[\s\S]*?<\/select>/, '<select id="methodInput" style="padding:10px;border:1px solid var(--line);border-radius:9px;margin-left:8px">'+options+'</select>');
+    markup=markup.replace('>Prayer times are calculated for your selected location<','>Prayer timings update automatically after your location is detected<');
+    return markup;
+  };
+  var oldApplyLocationMethodsV6=applyPrayerSettings;
+  applyPrayerSettings=function(){
+    var cityInput=document.getElementById("cityInput"),countryInput=document.getElementById("countryInput"),methodInput=document.getElementById("methodInput");
+    var city=cityInput?cityInput.value.trim():"",country=countryInput?countryInput.value.trim():"",choice=methodInput?methodInput.value:"auto";
+    var hasGps=API_STORE.latitude!==null&&Number.isFinite(Number(API_STORE.latitude))&&API_STORE.longitude!==null&&Number.isFinite(Number(API_STORE.longitude));
+    var currentCity=String(API_STORE.city||"").trim().toLowerCase(),currentCountry=String(API_STORE.country||"").trim().toLowerCase();
+    var fieldsMatchGps=hasGps&&city.toLowerCase()===currentCity&&country.toLowerCase()===currentCountry;
+    if(hasGps&&fieldsMatchGps){
+      // Retain precise GPS when the user leaves the reverse-geocoded fields unchanged.
+    }else{
+      if(!city||!country){toast("Enter both city and country, or use current location");return}
+      API_STORE.latitude=null;API_STORE.longitude=null;API_STORE.city=city;API_STORE.country=country;
+    }
+    if(choice==="auto"||!choice){
+      saveMethodV6("auto",countryMethodIdV6(API_STORE.country));
+    }else{
+      if(!Object.keys(PRAYER_METHODS).some(function(name){return String(PRAYER_METHODS[name])===String(choice)})){
+        toast("Choose one of the calculation methods shown");return;
+      }
+      saveMethodV6("manual",String(choice));
+    }
+    persistLocationV5();syncLocationLabels();
+    setLocationStatusV5("Updating prayer times for "+currentLocationLabelV5()+"…");
+    loadPrayerData();
+  };
+  loadPrayerData=async function(){
+    var hasGps=API_STORE.latitude!==null&&Number.isFinite(Number(API_STORE.latitude))&&API_STORE.longitude!==null&&Number.isFinite(Number(API_STORE.longitude));
+    var city=String(API_STORE.city||"").trim(),country=String(API_STORE.country||"").trim();
+    if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
+    var method=String(API_STORE.method||"3"),url;
+    if(hasGps){
+      url="https://api.aladhan.com/v1/timings/"+apiDate()+"?latitude="+encodeURIComponent(API_STORE.latitude)+"&longitude="+encodeURIComponent(API_STORE.longitude)+"&method="+encodeURIComponent(method);
+    }else if(city&&country){
+      url="https://api.aladhan.com/v1/timingsByCity/"+apiDate()+"?city="+encodeURIComponent(city)+"&country="+encodeURIComponent(country)+"&method="+encodeURIComponent(method);
+    }else{
+      livePrayer=null;syncLocationLabels();
+      if(page==="prayers")setLocationStatusV5("Use current location or enter a city and country to calculate prayer times.");
+      renderLivePrayerViews();return;
+    }
+    try{
+      var result=await getJSON(url);
+      if(!result.data||!result.data.timings)throw Error("The prayer service returned no timings");
+      livePrayer=result.data;
+      localStorage.setItem("noor-prayer-cache",JSON.stringify({
+        at:Date.now(),data:result.data,city:API_STORE.city,country:API_STORE.country,
+        latitude:hasGps?Number(API_STORE.latitude):null,longitude:hasGps?Number(API_STORE.longitude):null,
+        method:method,methodMode:API_STORE.methodMode||"auto"
+      }));
+      if(result.data.meta&&result.data.meta.latitude!=null){
+        try{var qibla=await getJSON("https://api.aladhan.com/v1/qibla/"+result.data.meta.latitude+"/"+result.data.meta.longitude);liveQibla=qibla.data.direction;localStorage.setItem("noor-qibla",String(liveQibla))}catch(_){}
+      }
+      if((API_STORE.methodMode||"auto")!=="manual"){
+        // Keep the country-region method selected; never replace it with a generic response default.
+        API_STORE.method=countryMethodIdV6(API_STORE.country);
+        localStorage.setItem("noor-method",String(API_STORE.method));
+      }
+      var hijri=result.data.date&&result.data.date.hijri,top=document.getElementById("hijriTop");
+      if(top&&hijri)top.textContent=hijri.day+" "+hijri.month.en+" "+hijri.year+" AH";
+      syncLocationLabels();renderLivePrayerViews();
+      if(page==="prayers")setLocationStatusV5("Prayer times updated for "+currentLocationLabelV5()+" using "+methodNameV6(method)+".");
+    }catch(error){
+      var cached=null,match=false;try{cached=JSON.parse(localStorage.getItem("noor-prayer-cache")||"null")}catch(_){}
+      if(cached&&cached.data&&cached.data.timings){
+        if(hasGps&&cached.latitude!=null&&cached.longitude!=null)match=Math.abs(Number(cached.latitude)-Number(API_STORE.latitude))<0.00001&&Math.abs(Number(cached.longitude)-Number(API_STORE.longitude))<0.00001&&String(cached.method)===method;
+        else if(!hasGps)match=String(cached.city||"").toLowerCase()===city.toLowerCase()&&String(cached.country||"").toLowerCase()===country.toLowerCase()&&String(cached.method||"")===method;
+      }
+      livePrayer=match?cached.data:null;syncLocationLabels();
+      if(page==="prayers")setLocationStatusV5(match?"Network refresh failed. Showing saved times for this same location and method.":"Could not update prayer times. Check your connection and try again.");
+      renderLivePrayerViews();
+    }
+  };
+  // Reapply the resolved city to the inputs whenever Prayer times is opened.
+  if(page==="prayers")render();
+})();
