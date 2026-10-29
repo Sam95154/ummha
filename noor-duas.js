@@ -132,7 +132,7 @@ var entries = [
     var cats = duaCategoriesV1;
     var essentialIds = ["home-01","food-01","distress-01","sleep-01"];
     return '<section class="dua-page dua-library">' +
-      topDuaV1("Duas", "#/home", '<a href="#/dua-special/bookmarks" aria-label="Saved duas">▣</a>') +
+      topDuaV1("Duas", "#/home", '<a class="dua-favorite-trigger" href="#/dua-special/bookmarks" aria-label="Open saved duas" title="Saved duas"><svg class="dua-header-heart" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.7a5.2 5.2 0 0 0-7.4 0L12 6.1l-1.4-1.4a5.2 5.2 0 0 0-7.4 7.4l1.4 1.4L12 20l7.4-6.5 1.4-1.4a5.2 5.2 0 0 0 0-7.4Z"/></svg></a>') +
       '<div class="dua-search-wrap"><span>⌕</span><input id="dua-search" type="search" placeholder="Search duas, occasions, or categories" autocomplete="off" aria-label="Search duas"><button id="dua-clear-search" type="button" data-act="dua-clear-search" aria-label="Clear search" hidden>×</button></div>' +
       '<div id="dua-search-results" class="dua-search-results" hidden></div>' +
       '<div class="dua-shortcuts dua-shortcuts-grid-v1" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 24px;padding:10px;background:rgba(217,242,231,.055);border:1px solid rgba(230,248,239,.12);border-radius:17px">' +
