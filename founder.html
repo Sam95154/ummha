@@ -56,7 +56,7 @@ h1{position:relative;margin:0;font:700 clamp(28px,5vw,43px)/1.15 Georgia,serif;l
 </section>
 <section class="profile" aria-labelledby="founder-name">
 <div class="photo-wrap">
-<img class="photo" id="momin-founder-photo" src="./momin-founder.jpg?v=founder-portrait-fallback" alt="Shaik Sameer Basha wearing a white kufi and brown traditional outfit" fetchpriority="high">
+<img class="photo" id="momin-founder-photo" src="./momin-founder.jpg?v=founder-portrait-fallback" style="image-rendering:auto" alt="Shaik Sameer Basha wearing a white kufi and brown traditional outfit" fetchpriority="high">
 </div>
 <div>
 <p class="eyebrow">Founder & Creator</p>
@@ -73,23 +73,6 @@ h1{position:relative;margin:0;font:700 clamp(28px,5vw,43px)/1.15 Georgia,serif;l
 </section>
 <footer class="footer">MOMIN · Your Islamic daily companion</footer>
 </main>
-<script>
-(function(){
-  var photo=document.getElementById("momin-founder-photo");
-  if(!photo)return;
-  var count=10;
-  var parts=Array.from({length:count},function(_,i){return "./momin-photo-parts/"+String(i).padStart(2,"0")+".txt?v=1"});
-  Promise.all(parts.map(function(url){return fetch(url,{cache:"force-cache"}).then(function(r){if(!r.ok)throw new Error("portrait segment unavailable");return r.text()})}))
-    .then(function(chunks){
-      var binary=atob(chunks.join("").replace(/\\s/g,""));
-      var bytes=new Uint8Array(binary.length);
-      for(var i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
-      var blob=new Blob([bytes],{type:"image/webp"});
-      var objectUrl=URL.createObjectURL(blob);
-      photo.src=objectUrl;
-      photo.onload=function(){photo.dataset.highResolution="true"};
-    }).catch(function(){});
-})();
-</script>
+
 </body>
 </html>
