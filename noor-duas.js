@@ -358,4 +358,13 @@ var entries = [
     renderDuaV1();
   }
 
+
+  window.MominDuasSettingsV1={
+    setArabicSize:function(value){
+      var size=Math.max(22,Math.min(50,Number(value)||30));
+      duaStateV1.arabicSize=size;
+      persistDuaV1();
+      if(document.body.classList.contains("dua-app-mode")&&typeof renderDuaV1==="function")renderDuaV1();
+    }
+  };
 })();
