@@ -63,7 +63,7 @@
     notify("Location saved. Refreshing prayer timings for "+city+", "+country+".");
   };
   window.useSettingsGpsV1=function(){try{if(typeof useCurrentLocationV5==="function")useCurrentLocationV5();else if(typeof setLocation==="function")setLocation();else notify("GPS setup is available from Prayer Times on this build.")}catch(_){notify("Unable to open location permission. Try setting the city manually.")}};
-  window.savePrayerBasicsV1=function(){var asr=document.getElementById("settingsAsrMethod");if(asr)put("noor-asr-method",asr.value);var select=document.getElementById("settingsMethodInput");if(select)window.settingsMethodModeDraftV6=select.value==="auto"?"auto":"manual";if(typeof window.savePrayerSettingsV6==="function")window.savePrayerSettingsV6();else{if(select&&typeof window.setPrayerMethodV5==="function")window.setPrayerMethodV5(select.value);notify("Prayer preferences saved.")}};
+  window.savePrayerBasicsV1=function(){var asr=document.getElementById("settingsAsrMethod");if(asr)put("noor-asr-method",asr.value);var adhanSound=document.getElementById("settingsAdhanSound");if(adhanSound)put("noor-adhan-sound",adhanSound.value);var select=document.getElementById("settingsMethodInput");if(select)window.settingsMethodModeDraftV6=select.value==="auto"?"auto":"manual";if(typeof window.savePrayerSettingsV6==="function")window.savePrayerSettingsV6();else{if(select&&typeof window.setPrayerMethodV5==="function")window.setPrayerMethodV5(select.value);notify("Prayer preferences saved.")}};
 
   var MominAzanAudioV1=null;
   try{if(get("noor-adhan-sound","")==="")put("noor-adhan-sound","azan")}catch(_){}
