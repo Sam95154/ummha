@@ -1465,6 +1465,17 @@ body:has(.momin-calendar-frame-shell) #view{width:100%;height:100%;min-height:0;
   --green:#5c421e;--green2:#765527;--mint:#eadcc0;--lime:#e7ca82;--gold:#ad8031;
   --accent:#9c7029;--accent-ink:#fffaf0;--accent-soft:#ead8b1;--shadow:0 12px 35px rgba(62,43,10,.12)
 }
+/* Body-level tokens override the old light/sepia variable declarations in noor-v5.css. */
+body.app-light{
+  --bg:#f5f1e7;--paper:#fffdf8;--ink:#211d17;--muted:#71695b;--line:#e4dac5;
+  --green:#302619;--green2:#4a3820;--mint:#f0e5cc;--lime:#e8c982;--gold:#b58a39;
+  --accent:#a87b2e;--accent-ink:#18130b;--accent-soft:#f1e4c4;--shadow:0 12px 35px rgba(45,32,10,.10)
+}
+body.app-sepia{
+  --bg:#eee4cf;--paper:#fff7e6;--ink:#33291c;--muted:#7c6f5a;--line:#dac9a9;
+  --green:#5c421e;--green2:#765527;--mint:#eadcc0;--lime:#e7ca82;--gold:#ad8031;
+  --accent:#9c7029;--accent-ink:#fffaf0;--accent-soft:#ead8b1;--shadow:0 12px 35px rgba(62,43,10,.12)
+}
 html,body{background:var(--bg)!important;color:var(--ink)!important}
 body{filter:none!important;transition:background-color .22s ease,color .22s ease}
 .layout,main,.content{color:var(--ink)}
