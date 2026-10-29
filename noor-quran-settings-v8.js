@@ -77,7 +77,7 @@ function buildModal(oldHtml){
  toggleRow("Repeat surah","mominRepeatSurahV8",repeat,"window.MominQuranSettingsV8.repeat")+
  toggleRow("Play next surah automatically","mominAutoNextV8",autoNext,"window.MominQuranSettingsV8.next")+
  '<p class="momin-quran-settings-hint">Audio options apply to the Quran reader’s recitation player. Reciter availability depends on the connection.</p>'+
- '</section></div>';
+ '</section><div class="momin-quran-settings-footer"><button type="button" class="momin-quran-reset-button" onclick="window.MominQuranSettingsV8.reset()">↺ <span>Reset to default</span></button><button type="button" class="momin-quran-save-button" onclick="window.MominQuranSettingsV8.save()">✓ <span>Save settings</span></button></div></div>';
 }
 var priorReaderSettingsV8=quranReaderPageV2;
 quranReaderPageV2=function(){
@@ -183,6 +183,8 @@ verseMarkup=function(){
 };
 window.MominQuranSettingsV8={
  close:function(){settingsOpen=false;applyReaderSettingsV8()},
+ save:function(){localStorage.setItem("noor-quran-settings-last-saved-v8","true");settingsOpen=false;applyReaderSettingsV8();if(typeof toast==="function")toast("Quran reading settings saved on this device.")},
+ reset:function(){if(typeof confirm==="function"&&!confirm("Reset Quran reading settings to their defaults?"))return;["noor-quran-settings-tab-v8","noor-quran-theme","noor-quran-reading-mode-v8","noor-quran-arabic-size","noor-keep-awake-v8","noor-quran-script-v8","noor-quran-show-tajweed-v8","noor-quran-show-translation-v8","noor-quran-translation","noor-quran-show-transliteration-v8","noor-quran-translit-language","noor-quran-repeat-v8","noor-quran-auto-next-v8","noor-quran-audio-speed-v8","noor-quran-reciter-v8","noor-quran-edition","noor-quran-edition-language","noor-quran-settings-last-saved-v8"].forEach(function(k){localStorage.removeItem(k)});localStorage.setItem("noor-quran-theme","night");localStorage.setItem("noor-quran-reading-mode-v8","list");localStorage.setItem("noor-quran-arabic-size","48");localStorage.setItem("noor-quran-show-translation-v8","true");localStorage.setItem("noor-quran-show-transliteration-v8","false");localStorage.setItem("noor-quran-show-tajweed-v8","false");localStorage.setItem("noor-quran-translit-language","en");localStorage.setItem("noor-quran-reciter-v8","ar.alafasy");localStorage.setItem("noor-quran-audio-speed-v8","1");localStorage.setItem("noor-quran-settings-tab-v8","display");settingsOpen=true;translationPickerOpen=false;if(typeof setQuranTheme==="function")setQuranTheme("night");if(typeof setQuranArabicSize==="function")setQuranArabicSize(48);applyReaderSettingsV8();if(typeof render==="function")render();if(typeof toast==="function")toast("Quran reading settings reset to defaults.")},
  tab:function(t){if(["display","text","audio"].indexOf(t)<0)return;localStorage.setItem("noor-quran-settings-tab-v8",t);applyReaderSettingsV8()},
  theme:function(t){if(["white","paper","night"].indexOf(t)<0)return;localStorage.setItem("noor-quran-theme",t);if(typeof setQuranTheme==="function")setQuranTheme(t);applyReaderSettingsV8()},
  mode:function(m){if(["list","page"].indexOf(m)<0)return;localStorage.setItem("noor-quran-reading-mode-v8",m);applyReaderSettingsV8()},
