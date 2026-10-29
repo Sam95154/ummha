@@ -1,0 +1,87 @@
+
+/* MOMIN Qibla Finder — scoped adaptation of the uploaded Qibla Finder reference */
+.momin-qibla-finder{
+  --mq-bg:#eef2ef;--mq-panel:#f9fbf9;--mq-line:#cfdad4;--mq-fg:#0f2a24;--mq-muted:#566a63;
+  --mq-accent:#0d5c4a;--mq-accent-soft:#d9ebe4;--mq-brass:#a67c2e;--mq-dial:#fff;--mq-tick:#9fb3aa;--mq-danger:#a3361f;
+  width:100%;max-width:1120px;margin:0 auto;padding:clamp(12px,2.5vw,24px);border-radius:18px;
+  background:var(--mq-bg);color:var(--mq-fg);font-family:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px;line-height:1.55;box-sizing:border-box
+}
+.momin-qibla-finder[data-theme="dark"]{
+  --mq-bg:#0a1613;--mq-panel:#112420;--mq-line:#234038;--mq-fg:#e3efe9;--mq-muted:#92aba1;
+  --mq-accent:#4fc3a1;--mq-accent-soft:#173a31;--mq-brass:#d8aa55;--mq-dial:#0e1f1b;--mq-tick:#3d6156;--mq-danger:#ef8a72
+}
+.momin-qibla-finder *{box-sizing:border-box}
+.momin-qibla-finder .mq-wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:24px;min-width:0}
+.momin-qibla-finder .mq-header{display:flex;justify-content:space-between;align-items:end;gap:12px 24px;flex-wrap:wrap;border-bottom:1px solid var(--mq-line);padding:0 0 16px;margin:0;background:transparent}
+.momin-qibla-finder .mq-kicker{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mq-accent);margin:0 0 5px}
+.momin-qibla-finder .mq-header h1{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:500;font-size:clamp(30px,5vw,42px);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--mq-fg)}
+.momin-qibla-finder .mq-sub{margin:5px 0 0;color:var(--mq-muted);font-size:14px}
+.momin-qibla-finder .mq-kaaba-ref{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;color:var(--mq-muted);letter-spacing:.015em}
+.momin-qibla-finder .mq-main{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:26px;align-items:start;min-width:0}
+.momin-qibla-finder .mq-dial-card{min-width:0;background:var(--mq-panel);border:1px solid var(--mq-line);border-radius:14px;padding:clamp(12px,2vw,20px);display:flex;flex-direction:column;gap:14px;align-items:center}
+.momin-qibla-finder .mq-svg{display:block;width:100%;max-width:460px;height:auto;overflow:visible}
+.momin-qibla-finder .mq-rot{transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+.momin-qibla-finder .mq-s-dial{fill:var(--mq-dial);stroke:var(--mq-line);stroke-width:1.5}
+.momin-qibla-finder .mq-s-ring{fill:none;stroke:var(--mq-line);stroke-width:1}
+.momin-qibla-finder .mq-s-tick{stroke:var(--mq-tick);stroke-width:1}
+.momin-qibla-finder .mq-s-tick-major{stroke:var(--mq-fg);stroke-width:1.6}
+.momin-qibla-finder .mq-t-card{font-family:"Newsreader",Georgia,serif;font-size:22px;font-weight:600;fill:var(--mq-fg);text-anchor:middle;dominant-baseline:central}
+.momin-qibla-finder .mq-t-north{fill:var(--mq-danger)}
+.momin-qibla-finder .mq-t-deg{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;fill:var(--mq-muted);text-anchor:middle;dominant-baseline:central}
+.momin-qibla-finder .mq-needle-body{fill:var(--mq-accent)}
+.momin-qibla-finder .mq-needle-tail{fill:none;stroke:var(--mq-accent);stroke-width:1.5;opacity:.5}
+.momin-qibla-finder .mq-hub{fill:var(--mq-panel);stroke:var(--mq-accent);stroke-width:2}
+.momin-qibla-finder .mq-kaaba-box{fill:#101714;stroke:var(--mq-brass);stroke-width:1.5}
+.momin-qibla-finder .mq-kaaba-band{fill:var(--mq-brass)}
+.momin-qibla-finder .mq-lug{fill:var(--mq-brass)}
+.momin-qibla-finder .mq-slider-row{width:100%;max-width:460px;display:flex;flex-direction:column;gap:6px}
+.momin-qibla-finder .mq-slider-label{display:flex;justify-content:space-between;gap:12px;font-size:13px;font-weight:600}
+.momin-qibla-finder .mq-slider-label output{font-family:"IBM Plex Mono",ui-monospace,monospace;color:var(--mq-accent)}
+.momin-qibla-finder input[type=range]{width:100%;accent-color:var(--mq-accent)}
+.momin-qibla-finder .mq-hint{margin:0;text-align:center;color:var(--mq-muted);font-size:12px;max-width:46ch}
+.momin-qibla-finder .mq-live-btn,.momin-qibla-finder .mq-action-btn{
+  min-height:42px;border:1px solid var(--mq-line);border-radius:9px;padding:9px 14px;background:var(--mq-panel);
+  color:var(--mq-fg);font:600 13px/1.3 "Hanken Grotesk",system-ui,sans-serif;cursor:pointer
+}
+.momin-qibla-finder .mq-live-btn{background:var(--mq-accent);border-color:var(--mq-accent);color:#fff;width:100%;max-width:460px}
+.momin-qibla-finder[data-theme="dark"] .mq-live-btn{color:#08221b}
+.momin-qibla-finder .mq-live-btn:hover,.momin-qibla-finder .mq-action-btn:hover{filter:brightness(1.05)}
+.momin-qibla-finder .mq-compass-status{width:100%;margin:0;text-align:center;color:var(--mq-muted);font-size:12px;line-height:1.45;min-height:1.5em;overflow-wrap:anywhere}
+.momin-qibla-finder .mq-side{display:flex;flex-direction:column;gap:22px;min-width:0}
+.momin-qibla-finder .mq-result{display:flex;flex-direction:column;gap:6px;min-width:0}
+.momin-qibla-finder .mq-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mq-muted)}
+.momin-qibla-finder .mq-bearing{font-family:"Newsreader",Georgia,serif;font-size:clamp(58px,8vw,88px);font-weight:500;line-height:1;letter-spacing:-.025em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.momin-qibla-finder .mq-bearing span{font-size:.34em;color:var(--mq-accent);margin-left:6px;letter-spacing:0}
+.momin-qibla-finder .mq-turn{margin:0;font-size:15px;line-height:1.5;overflow-wrap:anywhere}
+.momin-qibla-finder .mq-turn b{color:var(--mq-accent);font-weight:700}
+.momin-qibla-finder .mq-dl{margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--mq-line)}
+.momin-qibla-finder .mq-dl>div{padding:11px 0;border-bottom:1px solid var(--mq-line);min-width:0}
+.momin-qibla-finder .mq-dl>div:nth-child(odd){padding-right:14px}
+.momin-qibla-finder .mq-dl dt{font-size:11px;color:var(--mq-muted)}
+.momin-qibla-finder .mq-dl dd{margin:3px 0 0;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.momin-qibla-finder .mq-form{display:flex;flex-direction:column;gap:12px;min-width:0;background:var(--mq-panel);border:1px solid var(--mq-line);border-radius:14px;padding:16px}
+.momin-qibla-finder .mq-form h2{margin:0 0 2px;font-family:"Newsreader",Georgia,serif;font-size:23px;font-weight:500;color:var(--mq-fg)}
+.momin-qibla-finder .mq-field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.momin-qibla-finder .mq-field label{font-size:12px;font-weight:700;color:var(--mq-muted)}
+.momin-qibla-finder .mq-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+.momin-qibla-finder .mq-field select,.momin-qibla-finder .mq-field input[type=number]{
+  width:100%;min-width:0;min-height:42px;padding:9px 10px;border:1px solid var(--mq-line);border-radius:8px;
+  color:var(--mq-fg);background:var(--mq-bg);font:14px/1.3 "Hanken Grotesk",system-ui,sans-serif
+}
+.momin-qibla-finder .mq-field input[type=number]{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.momin-qibla-finder .mq-field select:focus-visible,.momin-qibla-finder .mq-field input:focus-visible,.momin-qibla-finder button:focus-visible{outline:2px solid var(--mq-accent);outline-offset:2px}
+.momin-qibla-finder .mq-actions{display:flex;gap:8px;flex-wrap:wrap}
+.momin-qibla-finder .mq-actions .mq-live-btn,.momin-qibla-finder .mq-actions .mq-action-btn{flex:1}
+.momin-qibla-finder .mq-err{margin:0;color:var(--mq-danger);font-size:12px;line-height:1.5;min-height:1.2em;overflow-wrap:anywhere}
+.momin-qibla-finder .mq-legend{margin:0;color:var(--mq-muted);font-size:12px;line-height:1.5}
+.momin-qibla-finder .mq-footer{border-top:1px solid var(--mq-line);padding-top:12px;margin:0;color:var(--mq-muted);font-size:11px;line-height:1.6}
+@media(max-width:800px){.momin-qibla-finder .mq-main{grid-template-columns:minmax(0,1fr);gap:18px}.momin-qibla-finder .mq-side{gap:18px}.momin-qibla-finder .mq-bearing{font-size:clamp(60px,12vw,80px)}}
+@media(max-width:430px){
+  .momin-qibla-finder{padding:12px;border-radius:14px}
+  .momin-qibla-finder .mq-row{gap:8px}
+  .momin-qibla-finder .mq-kaaba-ref{font-size:10px}
+  .momin-qibla-finder .mq-dial-card{padding:10px}
+  .momin-qibla-finder .mq-bearing{font-size:64px}
+}
+@media(prefers-reduced-motion:reduce){.momin-qibla-finder .mq-rot{transition:none}}
