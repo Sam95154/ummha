@@ -106,7 +106,7 @@
     var turnText=b===null?'Choose a city or enable GPS to calculate the direction to the Kaaba.':dist<1?'You are at the Kaaba.':Math.abs(turn)<1?'<b>Facing the Qibla.</b>':'Turn <b>'+Math.abs(Math.round(turn))+'° '+(turn>0?'right':'left')+'</b> from your current heading.';
     var bearingText=b===null?'—':b.toFixed(1);
     var card=b===null?'Set location':WINDS[Math.round(b/22.5)%16];
-    var distanceText=dist===null?'—':Math.round(dist).toLocaleString('en-US')+' km';
+    var useMiles=localStorage.getItem('noor-distance-unit')==='mi';var distanceText=dist===null?'—':(useMiles?(dist*0.621371).toFixed(1):Math.round(dist).toLocaleString('en-US'))+(useMiles?' mi':' km');
     var initialText=b===null?'—':WINDS[Math.round(b/22.5)%16]+' · '+b.toFixed(0)+'°';
     var latText=has?Math.abs(mqState.lat).toFixed(4)+'° '+(mqState.lat>=0?'N':'S'):'—';
     var lngText=has?Math.abs(mqState.lng).toFixed(4)+'° '+(mqState.lng>=0?'E':'W'):'—';
