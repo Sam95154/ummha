@@ -272,6 +272,7 @@ public class MainActivity extends Activity {
     private void syncSettingsFromWebsite() {
         if (webView == null) return;
         String js = "(function(){try{" +
+                "window.__mominSendNativePrayerSettingsV1=function(){try{" +
                 "var get=function(k,d){var v=localStorage.getItem(k);return v===null?d:v};" +
                 "var cache=null;try{cache=JSON.parse(get('noor-prayer-cache','null'))}catch(e){};" +
                 "var data=window.livePrayer||(cache&&cache.data)||null;var meta=(data&&data.meta)||{};var store=window.API_STORE||{};" +
@@ -280,10 +281,21 @@ public class MainActivity extends Activity {
                 "var lon=num(get('noor-longitude',null),store.longitude,cache&&cache.longitude,meta.longitude);var master=get('noor-notifications','true')!=='false';" +
                 "var method=String((store&&store.method)||get('noor-method',null)||(cache&&cache.method)||'3');" +
                 "var p={latitude:lat,longitude:lon,timezone:String(meta.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'),method:method,madhab:get('noor-asr-method','standard'),notifications:master," +
-                "fajr:get('noor-notify-fajr',master?'true':'false')!=='false',dhuhr:get('noor-notify-dhuhr',master?'true':'false')!=='false',asr:get('noor-notify-asr',master?'true':'false')!=='false'," +
-                "maghrib:get('noor-notify-maghrib',master?'true':'false')!=='false',isha:get('noor-notify-isha',master?'true':'false')!=='false'," +
-                "reminderMinutes:Number(get('noor-prayer-reminder-minutes','0'))||0,sound:get('noor-adhan-sound','azan'),city:get('noor-city',store.city||''),country:get('noor-country',store.country||'')};" +
-                "if(window.MominNativePrayerBridge)window.MominNativePrayerBridge.syncSettings(JSON.stringify(p));}catch(e){}})();";
+                "fajr:get('noor-notify-fajr',master?'true':'false')!=='false',dhuhr:get('noor-notify-dhuhr',master?'true':'false')!=='false'," +
+                "asr:get('noor-notify-asr',master?'true':'false')!=='false',maghrib:get('noor-notify-maghrib',master?'true':'false')!=='false'," +
+                "isha:get('noor-notify-isha',master?'true':'false')!=='false',reminderMinutes:Number(get('noor-prayer-reminder-minutes','0'))||0," +
+                "sound:get('noor-adhan-sound','azan'),city:get('noor-city',store.city||''),country:get('noor-country',store.country||'')};" +
+                "if(window.MominNativePrayerBridge)window.MominNativePrayerBridge.syncSettings(JSON.stringify(p));" +
+                "}catch(e){}};" +
+                "if(!window.__mominNativeStorageHookV1){window.__mominNativeStorageHookV1=true;" +
+                "var originalNativeSetItem=Storage.prototype.setItem;" +
+                "Storage.prototype.setItem=function(k,v){var result=originalNativeSetItem.apply(this,arguments);" +
+                "if(typeof k==='string' && /^noor-(latitude|longitude|city|country|method|asr-method|notifications|notify-|prayer-reminder-minutes|adhan-sound|prayer-cache|location-source)/.test(k)){" +
+                "try{if(window.__mominNativeSyncTimer)clearTimeout(window.__mominNativeSyncTimer);" +
+                "window.__mominNativeSyncTimer=setTimeout(function(){if(window.__mominSendNativePrayerSettingsV1)window.__mominSendNativePrayerSettingsV1()},350)}catch(e){}}" +
+                "return result;};}" +
+                "window.__mominSendNativePrayerSettingsV1();" +
+                "}catch(e){}})();";
         webView.evaluateJavascript(js, null);
     }
 
