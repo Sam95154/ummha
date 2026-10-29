@@ -19,7 +19,8 @@ a{color:inherit}
 .brand small{display:block;margin-top:4px;color:var(--muted);font-size:12px}
 .back{display:inline-flex;align-items:center;gap:8px;text-decoration:none;padding:10px 14px;border:1px solid var(--line);border-radius:13px;background:rgba(255,250,240,.86);font-size:12px;font-weight:700;white-space:nowrap}
 .hero{position:relative;overflow:hidden;border:1px solid rgba(201,147,50,.45);border-radius:26px;padding:clamp(18px,4vw,34px);background:linear-gradient(135deg,rgba(255,252,243,.97),rgba(250,238,207,.92));box-shadow:var(--shadow)}
-.hero:before{content:"";position:absolute;right:-8px;top:4px;width:clamp(130px,24vw,230px);height:190px;opacity:.23;pointer-events:none;background-repeat:no-repeat;background-position:center;background-size:contain;background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 240 190%27 fill=%27none%27 stroke=%27%23c99332%27 stroke-width=%272.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M26 174V92Q26 68 47 68Q56 37 84 47Q108 5 132 47Q161 35 173 68Q214 64 214 98V174%27/%3E%3Cpath d=%27M49 174V112H191V174M68 174V125H172V174%27/%3E%3Cpath d=%27M88 124V91Q120 57 152 91V124M81 125H159%27/%3E%3Cpath d=%27M120 62C97 44 109 22 128 18C116 32 119 43 135 44C132 54 127 59 120 62Z%27 fill=%27%23c99332%27/%3E%3Cpath d=%27M22 37L30 29L38 37L30 45Z M202 37L210 29L218 37L210 45Z M120 3L125 12L135 14L125 18L120 28L115 18L105 14L115 12Z%27/%3E%3Ccircle cx=%27120%27 cy=%27153%27 r=%2728%27/%3E%3Cpath d=%27M106 153L116 163L136 141%27/%3E%3C/svg%3E") }
+.hero:before{content:none}
+.hero-ornament{position:absolute;z-index:0;right:10px;top:-4px;width:clamp(118px,22vw,190px);height:auto;color:#bd8428;opacity:.23;pointer-events:none}.hero>*:not(.hero-ornament){position:relative;z-index:1}.hero-ornament path{vector-effect:non-scaling-stroke}
 .eyebrow{margin:0 0 7px;color:#a5711c;text-transform:uppercase;letter-spacing:.16em;font-size:10px;font-weight:800}
 h1{position:relative;margin:0;font:700 clamp(28px,5vw,43px)/1.15 Georgia,serif;letter-spacing:-.02em}
 .lead{position:relative;max-width:720px;margin:10px 0 0;color:var(--muted);font-size:14px;line-height:1.8}
@@ -50,6 +51,17 @@ h1{position:relative;margin:0;font:700 clamp(28px,5vw,43px)/1.15 Georgia,serif;l
 <a class="back" href="./index.html"><span aria-hidden="true">←</span> Back to MOMIN</a>
 </header>
 <section class="hero">
+<svg class="hero-ornament" viewBox="0 0 200 190" aria-hidden="true" focusable="false">
+<path d="M28 176V92Q28 24 100 9Q172 24 172 92V176" fill="none" stroke="currentColor" stroke-width="2.4"/>
+<path d="M42 176V96Q42 40 100 27Q158 40 158 96V176" fill="none" stroke="currentColor" stroke-width="1.2"/>
+<path d="M66 176V117Q66 92 100 79Q134 92 134 117V176Z" fill="currentColor" opacity=".18"/>
+<path d="M76 176V126Q76 107 100 98Q124 107 124 126V176Z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+<path d="M100 53c-13-1-20-12-17-24 2-7 7-12 13-14-4 7-4 14 0 19 5 7 12 9 20 6-3 8-9 13-16 13Z" fill="currentColor"/>
+<path d="M100 59v12M93 65h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+<path d="M51 95v22m-5-13h10m-5-17-4 5m4-5 4 5M149 95v22m-5-13h10m-5-17-4 5m4-5 4 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+<path d="M18 170h164M14 183h172" stroke="currentColor" stroke-width="1.2"/>
+<path d="M18 180l5-5 5 5-5 5Zm164 0-5-5-5 5 5 5Z" fill="none" stroke="currentColor" stroke-width="1.2"/>
+</svg>
 <p class="eyebrow">The person behind MOMIN</p>
 <h1>About the Founder</h1>
 <p class="lead">A personal introduction to the creator of MOMIN — an Islamic companion built around accessible worship tools, thoughtful design, and technology in service of faith.</p>
