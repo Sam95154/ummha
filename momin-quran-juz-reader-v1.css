@@ -48,3 +48,8 @@ body:has(.qv-juz-reader) .sidebar,body:has(.qv-juz-reader) .top,body:has(.qv-juz
 .qv-juz-reader.reader-night{background:#0d0c0a}
 @media(min-width:700px){.qv-juz-reader{padding-left:28px;padding-right:28px}.qv-juz-reader .quran-toolbar{margin-left:-28px;margin-right:-28px;padding-left:24px;padding-right:24px}}
 @media(prefers-reduced-motion:reduce){.qv-juz-reader *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+/* Traditional Quran Juz/Para names */
+.quran-library.qv-shell .qv-juz .qv-juz-name{display:block;color:var(--qv-ink);font:600 15px/1.25 'Playfair Display',Georgia,serif}
+.quran-library.qv-shell .qv-juz .qv-juz-arabic{display:block;min-height:25px;color:var(--qv-gold2);font:22px/1.4 'Amiri','Noto Naskh Arabic',serif;text-align:right}
+.qv-juz-reader .qv-juz-reader-title{font-size:18px!important}
+@media(max-width:360px){.quran-library.qv-shell .qv-juz .qv-juz-name{font-size:13px}}
