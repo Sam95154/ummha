@@ -186,3 +186,5 @@ body:has(.quran-hub-v7){background:var(--qv-bg,#0e0c09)}
   .qv7-progress-stats article{padding:16px 8px}
   .qv7-progress-stats strong{font-size:23px}
 }
+
+.qv7-retry{margin-top:8px;padding:10px 18px;border:1px solid var(--qv-line);border-radius:99px;background:#342b1a;color:var(--qv-gold);font-weight:700;cursor:pointer}
