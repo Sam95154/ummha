@@ -100,3 +100,21 @@ body:has(.qv-juz-reader) .sidebar,body:has(.qv-juz-reader) .top,body:has(.qv-juz
  .qv-juz-reader .ayah-arabic-row .ayah-rosette{width:25px;height:25px;margin-top:7px}
  .qv-juz-reader .ayah-arabic-row .arabic{line-height:2.05}
 }
+
+
+/* Consistent Juz card and Arabic alignment on phone and tablet widths. */
+.qv-juz-reader .ayah-block{display:block;width:100%;max-width:100%;min-width:0;overflow:hidden}
+.qv-juz-reader .qv-juz-surah-title{min-width:0;flex-wrap:wrap;box-sizing:border-box}
+.qv-juz-reader .qv-juz-surah-title .qv-juz-surah-ar{flex:0 0 auto;max-width:44%;overflow-wrap:anywhere}
+.qv-juz-reader .qv-juz-surah-title b{flex:1 1 40%;min-width:0;overflow-wrap:anywhere}
+.qv-juz-reader .qv-juz-surah-title small{flex:0 0 auto}
+.qv-juz-reader .qv-juz-range{overflow-wrap:anywhere}
+.qv-juz-reader .ayah-translation{width:100%;max-width:100%;overflow-wrap:anywhere;word-break:normal;text-align:left;direction:ltr}
+.qv-juz-reader .ayah-transliteration{width:100%;max-width:100%;overflow-wrap:anywhere}
+.qv-juz-reader .ayah-arabic-row .arabic{font-size:var(--quran-arabic-size,48px);line-height:2.08}
+@media(max-width:420px){
+ .qv-juz-reader .qv-juz-surah-title{padding:11px 10px;gap:7px}
+ .qv-juz-reader .qv-juz-surah-title .qv-juz-surah-ar{font-size:23px}
+ .qv-juz-reader .ayah-arabic-row .arabic{font-size:var(--quran-arabic-size,44px);line-height:2.08}
+ .qv-juz-reader .qv-juz-ayah{padding:12px 0}
+}
