@@ -39,7 +39,8 @@ function buildModal(oldHtml){
  var transLabelText=transLabel(currentTranslationId(),transOptions);
  var reciter=saved("noor-quran-reciter-v8",window.readerAudioEdition||"ar.alafasy");
  var validReciters=["ar.alafasy","ar.abdurrahmaansudais","ar.husary","ar.minshawi","ar.mahermuaiqly","ar.shaatree"];
- if(validReciters.indexOf(reciter)<0){reciter="ar.alafasy";localStorage.setItem("noor-quran-reciter-v8",reciter)}
+ if(validReciters.indexOf(reciter)<0)reciter="ar.alafasy";
+ localStorage.setItem("noor-quran-reciter-v8",reciter);
  window.readerAudioEdition=reciter;
  window.readerAudioReciter=({"ar.alafasy":"Mishary Rashid Alafasy","ar.abdurrahmaansudais":"Abdurrahman As-Sudais","ar.husary":"Mahmoud Khalil Al-Husary","ar.minshawi":"Mohamed Siddiq Al-Minshawi","ar.mahermuaiqly":"Maher Al-Muaiqly","ar.shaatree":"Abu Bakr Ash-Shaatree"})[reciter];
  var speed=Number(saved("noor-quran-audio-speed-v8",window.readerSpeed||1));
