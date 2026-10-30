@@ -92,7 +92,7 @@
       qv7CatalogPromise = null;
       if (typeof page !== 'undefined' && page === 'quran') {
         var status = document.getElementById('qv7-catalog-status');
-        if (status) status.textContent = 'Could not load all 114 Surahs. Check your connection and tap Retry.';
+        if (status) status.innerHTML = '<strong>Could not load all 114 Surahs.</strong><span>Check your connection, then try again.</span><button type="button" class="qv7-retry" onclick="quranRetryCatalogV7()">Retry</button>';
       }
       return [];
     });
