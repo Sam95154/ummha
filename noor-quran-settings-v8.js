@@ -223,7 +223,16 @@ function modalSourceForJuzV8(){
  var roman=languageItems.map(function(x){return '<option value="'+x[0]+'">'+x[1]+' — '+x[2]+'</option>'}).join("");
  return '<select aria-label="Quran translation language">'+tr+'</select><select id="readerTranslitLanguageV7">'+roman+'</select>';
 }
-window.MominQuranSettingsV8RenderModalForJuz=function(){return buildModal(modalSourceForJuzV8())};
+window.MominQuranSettingsV8RenderModalForJuz=function(){
+ var html=buildModal(modalSourceForJuzV8());
+ var tabAt=html.indexOf('data-tab-v8="audio"');
+ if(tabAt>=0){var tabStart=html.lastIndexOf("<button",tabAt),tabEnd=html.indexOf("</button>",tabAt);if(tabStart>=0&&tabEnd>=0)html=html.slice(0,tabStart)+html.slice(tabEnd+9);}
+ var paneAt=html.indexOf('data-pane-v8="audio"');
+ if(paneAt>=0){var paneStart=html.lastIndexOf("<section",paneAt),paneEnd=html.indexOf("</section>",paneAt);if(paneStart>=0&&paneEnd>=0)html=html.slice(0,paneStart)+html.slice(paneEnd+10);}
+ html=html.replace('class="reader-settings momin-reader-settings-v8"','class="reader-settings momin-reader-settings-v8 momin-juz-settings-v1"');
+ if(saved("noor-quran-settings-tab-v8","display")==="audio")localStorage.setItem("noor-quran-settings-tab-v8","display");
+ return html;
+};
 window.MominQuranSettingsV8SanitizeTajweed=sanitizeTajweedHtmlV8;
 window.MominQuranSettingsV8={
  close:function(){settingsOpen=false;applyReaderSettingsV8()},
