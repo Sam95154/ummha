@@ -143,7 +143,7 @@ var entries = [
       '<div class="dua-section-head"><div><p class="dua-eyebrow">A MOMENT OF REMEMBRANCE</p><h2>Daily Remembrances</h2></div><a href="#/dua-special/daily">See all ↗</a></div>' +
       '<a class="dua-feature-card" href="#/dua-special/daily">' + artDuaV1("dawn","☾") + '<div class="dua-feature-copy"><span class="dua-tag">CURATED COLLECTION</span><h3>Daily adhkar</h3><p>Morning, evening, and everyday remembrances</p><small>' + (categoryDuaV1("morning") ? categoryDuaV1("morning").chapters[0].entries.length : 0) + ' supplications in this collection <span>→</span></small></div></a>' +
       '<div class="dua-section-head"><div><p class="dua-eyebrow">EXPLORE COLLECTIONS</p><h2>Hisnul Muslim</h2></div><a href="#/dua-special/collection">View all ↗</a></div>' +
-      '<div class="dua-card-scroller">' + cats.filter(function (c) { return ["food","morning","travel","sleep","prayer"].indexOf(c.slug) >= 0; }).map(function (c) {
+      '<div class="dua-card-scroller">' + cats.filter(function (c) { return ["morning","prayer","praise","travel","distress","home"].indexOf(c.slug) >= 0; }).map(function (c) {
         return '<a class="dua-category-card" href="#/dua-category/' + c.slug + '">' + artDuaV1(c.art,c.icon) + '<div class="dua-category-copy"><h3>' + escapeDuaV1(c.title) + '</h3><p>' + c.chapters.length + ' chapters</p></div></a>';
       }).join("") + '</div>' +
       '<div class="dua-section-head"><div><p class="dua-eyebrow">FROM THE QURAN & DAILY LIFE</p><h2>Essential Duas</h2></div><a href="#/dua-special/collection">See all ↗</a></div>' +
