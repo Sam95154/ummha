@@ -235,3 +235,39 @@ html[data-theme="dark"] #readerSettings.momin-reader-settings-v8 .momin-quran-fi
   grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)!important
  }
 }
+
+
+/* High-contrast settings panel: headings stay readable on the dark settings surface. */
+#readerSettings.momin-reader-settings-v8.momin-settings-night-v8{
+ background:linear-gradient(180deg,#211b12 0%,#17130e 100%)!important;
+ border-color:#806332!important;color:#f5eddb!important;
+ scrollbar-color:#c7a65e #211b12!important;
+}
+#readerSettings.momin-reader-settings-v8.momin-settings-night-v8 .momin-quran-settings-pane h3,
+#readerSettings.momin-reader-settings-v8.momin-settings-night-v8 .momin-quran-settings-pane h3 *{
+ color:#edcd7e!important;text-shadow:0 1px 0 rgba(0,0,0,.35)!important;
+}
+#readerSettings.momin-reader-settings-v8.momin-settings-night-v8 .momin-quran-settings-header{
+ border-color:#59472b!important;
+}
+#readerSettings.momin-reader-settings-v8.momin-settings-night-v8 .momin-quran-settings-header strong{
+ color:#fff5df!important;
+}
+#readerSettings.momin-reader-settings-v8.momin-settings-night-v8 .momin-quran-settings-hint{
+ color:#c8b896!important;
+}
+#readerSettings.momin-reader-settings-v8.momin-settings-night-v8 .momin-quran-settings-footer{
+ border-color:#59472b!important;
+}
+#readerSettings.momin-reader-settings-v8.momin-settings-night-v8 .momin-quran-settings-tabs{
+ background:#211b12!important;border-color:#59472b!important;
+}
+#readerSettings.momin-reader-settings-v8.momin-settings-night-v8 .momin-quran-settings-tabs button{
+ color:#eee4d1!important;
+}
+#readerSettings.momin-reader-settings-v8.momin-settings-night-v8 .momin-quran-settings-tabs button.active{
+ color:#22190b!important;background:linear-gradient(135deg,#f0d38f,#c08c2f)!important;border-color:#c08c2f!important;
+}
+#readerSettings.momin-reader-settings-v8.momin-settings-night-v8 .momin-quran-save-button{
+ background:linear-gradient(135deg,#f0d38f,#c08c2f)!important;border-color:#c08c2f!important;color:#21180c!important;
+}
