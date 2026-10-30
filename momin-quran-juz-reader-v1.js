@@ -226,7 +226,7 @@
     if(typeof window.stopAudio==='function')window.stopAudio();
     window.render();window.scrollTo(0,0);
   };
-  var juzAudioIndex=0;
+  var juzAudioIndex=0,juzAudioNeedsReload=true;
   function audioReciterV1(){return localStorage.getItem('noor-quran-reciter-v8')||'ar.alafasy'}
   function audioRateV1(){return Number(localStorage.getItem('noor-quran-audio-speed-v8')||1)||1}
   function juzAudioURL(v){return 'https://cdn.islamic.network/quran/audio/128/'+encodeURIComponent(audioReciterV1())+'/'+Number(v.number)+'.mp3'}
@@ -237,7 +237,7 @@
     if(!audio)return;
     audio.onended=window.mominHandleJuzAudioEndedV1;
     audio.onerror=function(){if(typeof toast==='function')toast('This Ayah recitation is unavailable.');};
-    audio.src=juzAudioURL(v);audio.playbackRate=audioRateV1();audio.load();
+    juzAudioNeedsReload=false;audio.src=juzAudioURL(v);audio.playbackRate=audioRateV1();audio.load();
     var title=document.getElementById('mominJuzAudioTitleV1');
     if(title)title.textContent=v.surahName+' · Ayah '+v.numberInSurah+' ('+(juzAudioIndex+1)+'/'+state.data.ayahs.length+')';
     var button=document.getElementById('mominJuzPlayV1');
@@ -248,8 +248,14 @@
     var audio=document.getElementById('quranAudio'),button=document.getElementById('mominJuzPlayV1');
     if(!audio||!state.data)return;
     if(!audio.paused){audio.pause();if(button)button.textContent='▶ Resume Juz';return}
-    if(audio.src){audio.playbackRate=audioRateV1();audio.play().then(function(){if(button)button.textContent='Ⅱ Pause'}).catch(function(){})}
-    else playJuzAyah(juzAudioIndex);
+    if(juzAudioNeedsReload||!audio.src)playJuzAyah(juzAudioIndex);
+    else{audio.playbackRate=audioRateV1();audio.play().then(function(){if(button)button.textContent='Ⅱ Pause'}).catch(function(){})}
+  };
+  window.mominPrepareJuzAudioV1=function(){
+    var audio=document.getElementById('quranAudio'),button=document.getElementById('mominJuzPlayV1');
+    if(audio){audio.pause();audio.removeAttribute('src');audio.load()}
+    juzAudioNeedsReload=true;
+    if(button)button.textContent='▶ Play Juz';
   };
   window.mominHandleJuzAudioEndedV1=function(){
     if(!state.data)return;
@@ -260,8 +266,14 @@
       var firstInSurah=state.data.ayahs.findIndex(function(v){return v.surahNo===current.surahNo});
       playJuzAyah(firstInSurah<0?juzAudioIndex:firstInSurah);return;
     }
-    if(nextIndex>=state.data.ayahs.length){var b=document.getElementById('mominJuzPlayV1');if(b)b.textContent='▶ Play Juz';return}
+    if(nextIndex>=state.data.ayahs.length){
+      juzAudioIndex=0;juzAudioNeedsReload=true;
+      var endedAudio=document.getElementById('quranAudio');if(endedAudio){endedAudio.pause();endedAudio.removeAttribute('src');endedAudio.load()}
+      var b=document.getElementById('mominJuzPlayV1');if(b)b.textContent='▶ Play Juz';return
+    }
     if(state.data.ayahs[nextIndex].surahNo!==current.surahNo&&!autoNext){
+      juzAudioIndex=nextIndex;juzAudioNeedsReload=true;
+      var stopAudioEl=document.getElementById('quranAudio');if(stopAudioEl){stopAudioEl.pause();stopAudioEl.removeAttribute('src');stopAudioEl.load()}
       var stop=document.getElementById('mominJuzPlayV1');if(stop)stop.textContent='▶ Play next Surah';return;
     }
     playJuzAyah(nextIndex);
