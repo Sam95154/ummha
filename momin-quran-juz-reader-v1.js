@@ -10,6 +10,7 @@
     [9,93],[11,6],[12,53],[15,1],[17,1],[18,75],[21,1],[23,1],[25,21],[27,56],
     [29,46],[33,31],[36,28],[39,32],[41,47],[46,1],[51,31],[58,1],[67,1],[78,1]
   ];
+  var surahCounts = [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6];
   var state = {active:false,number:1,loading:false,error:'',data:null,request:0};
 
   function chaptersListV1() {
@@ -34,17 +35,15 @@
     if (number < 30) {
       var next = starts[number];
       if (next[1] > 1) return {surah:next[0],ayah:next[1]-1};
-      var previous = chaptersListV1()[next[0]-2];
-      if (!previous) throw new Error('Surah metadata is incomplete.');
-      return {surah:next[0]-1,ayah:Number(previous.numberOfAyahs)};
+      return {surah:next[0]-1,ayah:Number(surahCounts[next[0]-2])};
     }
     return {surah:114,ayah:6};
   }
   function globalNumber(surah,ayah) {
-    var list=chaptersListV1(),total=Number(ayah);
+    var total=Number(ayah);
     for(var i=0;i<Number(surah)-1;i+=1) {
-      if(!list[i]||!Number(list[i].numberOfAyahs)) throw new Error('Surah metadata is incomplete.');
-      total+=Number(list[i].numberOfAyahs);
+      if(!surahCounts[i]) throw new Error('Surah count table is incomplete.');
+      total+=surahCounts[i];
     }
     return total;
   }
@@ -210,7 +209,7 @@
   window.quranPage=function(){return state.active?readerHTML():oldQuranPage.apply(this,arguments)};
   var oldGo=window.go;
   window.go=function(target){
-    if(target!=='quran'){state.request+=1;state.active=false;state.loading=false;state.error='';state.data=null}
+    state.request+=1;state.active=false;state.loading=false;state.error='';state.data=null;
     return oldGo.apply(this,arguments);
   };
   var oldOpenSurah=window.mominOpenQuranAtV1;
@@ -218,7 +217,7 @@
     window.mominOpenQuranAtV1=function(){state.request+=1;state.active=false;state.loading=false;state.error='';state.data=null;return oldOpenSurah.apply(this,arguments)};
   }
   window.addEventListener('scroll',function(){
-    if(!state.active||!state.data)return;
+    if(!state.active||!state.data||page!=='quran')return;
     var rows=document.querySelectorAll('.qv-juz-ayah[data-global-ayah]');if(!rows.length)return;
     var current=rows[0];
     for(var i=0;i<rows.length;i+=1){if(rows[i].getBoundingClientRect().bottom>140){current=rows[i];break}}
