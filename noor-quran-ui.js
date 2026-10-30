@@ -164,7 +164,7 @@
   }
   function surahRows() {
     var list = chapterList();
-    if (list.length !== 114) return '<div class="qv7-list-state" id="qv7-catalog-status">Loading the complete 114-Surah index…</div>';
+    if (list.length !== 114) return '<div class="qv7-list-state" id="qv7-catalog-status"><strong>Loading the complete 114-Surah index…</strong><span>Surah names and reading details are being loaded.</span></div>';
     var q = qv7Query.trim().toLowerCase();
     var filtered = list.filter(function (c) {
       return [c.number, c.englishName, c.englishNameTranslation, c.name, c.revelationType].join(' ').toLowerCase().indexOf(q) >= 0;
@@ -186,7 +186,7 @@
   }
   function revelationRows() {
     var list = chapterList();
-    if (list.length !== 114) return '<div class="qv7-list-state" id="qv7-catalog-status">Loading revelation details for all 114 Surahs…</div>';
+    if (list.length !== 114) return '<div class="qv7-list-state" id="qv7-catalog-status"><strong>Loading revelation details…</strong><span>Preparing all 114 Surahs.</span></div>';
     var q = qv7Query.trim().toLowerCase();
     var groups = [
       {name:'Meccan · Makki',type:'Meccan'},
@@ -349,6 +349,11 @@
     render();
     var input = document.getElementById('qv7-search');
     if (input) input.focus();
+  };
+  window.quranRetryCatalogV7 = function () {
+    qv7CatalogPromise = null;
+    render();
+    ensureCatalog();
   };
   window.quranToggleViewMenuV7 = function () {
     qv7DropdownOpen = !qv7DropdownOpen;
