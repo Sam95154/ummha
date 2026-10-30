@@ -42,5 +42,7 @@ window.mominOpenQuranAtV1=function(n,verse){n=Math.max(1,Math.min(114,Number(n)|
 window.addEventListener("keydown",function(e){if(e.key==="Escape")window.mominCloseQuranSurahSheetV1()});
 document.addEventListener("click",function(e){var b=e.target.closest("[data-qv-bookmark]");if(b){e.preventDefault();e.stopPropagation();window.mominToggleSurahBookmarkV1(b.getAttribute("data-qv-bookmark"))}if(viewMenuOpen&&!e.target.closest(".qv-menu")&&!e.target.closest(".qv-view-button")){viewMenuOpen=false;repaint()}});
 function repaint(){if(typeof window.render==="function"&&document.querySelector(".quran-library.qv-shell"))window.render()}
+var quranPageBeforeMominLibraryV1=window.quranPage;
+window.quranPage=function(){if(window.quranView==="reader"&&typeof quranReaderPageV2==="function")return quranReaderPageV2();return pageHTML()};
 if(window.page==="quran"&&window.quranView==="library")repaint();
 })();
