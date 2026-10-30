@@ -145,7 +145,7 @@
     return html;
   }
   function readerHTML() {
-    var meta=state.data?state.data.meta:juzMeta(state.number),range=rangeLabel(meta);
+    var meta=state.data?state.data.meta:juzMeta(state.number),range=rangeLabel(meta),juzName=mominJuzNamesV1[state.number-1];
     var body=state.loading
       ?'<div class="reader-loadstatus" role="status">Loading Arabic, transliteration and translation for Juz '+state.number+'…</div>'
       :state.error
@@ -153,20 +153,21 @@
         :'<div class="reader-loadstatus">Arabic · Transliteration · '+esc(state.data.edition)+' · '+state.data.ayahs.length+' Ayahs</div><div class="ayah-list" id="mominJuzAyahList">'+juzAyahsHTML()+'</div>';
     return '<section class="quran-reader qv-juz-reader '+themeClass()+' '+translationClass()+'" style="--quran-arabic-size:'+Number(arabicSize())+'px">'+
       '<div class="quran-toolbar"><button class="reader-icon" aria-label="Back to Quran library" onclick="mominReturnToQuranLibraryV1()">←</button>'+
-      '<div class="reader-title-group"><strong class="qv-juz-reader-title">Juz '+state.number+'</strong><span class="reader-subtitle">'+esc(range)+'</span></div>'+
+      '<div class="reader-title-group"><strong class="qv-juz-reader-title">Juz '+state.number+' · '+esc(juzName[0])+'</strong><span class="reader-subtitle" lang="ar" dir="rtl">'+esc(juzName[1])+'</span><span class="reader-subtitle">'+esc(range)+'</span></div>'+
       '<button class="reader-icon-button" aria-label="Juz information" onclick="toast(&quot;Juz '+state.number+' · Complete reading range&quot;)">ⓘ</button>'+
       '<button class="reader-icon-button" aria-label="Reader settings" onclick="mominToggleJuzSettingsV1()">⚙</button></div>'+
       readerSettingsHTML()+
-      '<div class="reading-goal"><strong>Juz '+state.number+' <span class="qv-juz-count">'+(state.data?'· '+state.data.ayahs.length+' Ayahs':'')+'</span></strong><span class="qv-juz-range">'+esc(range)+'</span></div>'+
+      '<div class="reading-goal"><strong>Juz '+state.number+' · '+esc(juzName[0])+' <span class="qv-juz-count">'+(state.data?'· '+state.data.ayahs.length+' Ayahs':'')+'</span></strong><span class="qv-juz-range">'+esc(range)+'</span></div>'+
       body+
       (!state.loading&&!state.error?'<div class="qv-juz-pagination"><button type="button" '+(state.number===1?'disabled':'')+' onclick="mominOpenQuranJuzV1('+(state.number-1)+')">← Previous Juz</button><span>Juz '+state.number+' of 30</span><button type="button" '+(state.number===30?'disabled':'')+' onclick="mominOpenQuranJuzV1('+(state.number+1)+')">Next Juz →</button></div>':'')+
       '</section>';
   }
 
+  var mominJuzNamesV1=[["Alif Lam Meem","الم"],["Sayaqool","سَيَقُولُ"],["Tilkal Rusul","تِلْكَ الرُّسُلُ"],["Lan Tana Loo","لَنْ تَنَالُوا"],["Wal Muhsanat","وَالْمُحْصَنَاتُ"],["La Yuhibbullah","لَا يُحِبُّ اللَّهُ"],["Wa Iza Samiu","وَإِذَا سَمِعُوا"],["Wa Lau Annana","وَلَوْ أَنَّنَا"],["Qalal Malao","قَالَ الْمَلَأُ"],["Wa A'lamu","وَاعْلَمُوا"],["Ya'taziroon","يَعْتَذِرُونَ"],["Wa Ma Min Da'abah","وَمَا مِنْ دَابَّةٍ"],["Wa Ma Ubarri'u","وَمَا أُبَرِّئُ"],["Rubama","رُبَمَا"],["Subhanallazi","سُبْحَانَ الَّذِي"],["Qala Alam","قَالَ أَلَمْ"],["Iqtaraba","اقْتَرَبَ"],["Qad Aflaha","قَدْ أَفْلَحَ"],["Wa Qalallazina","وَقَالَ الَّذِينَ"],["Amman Khalaqa","أَمَّنْ خَلَقَ"],["Utlu Ma Oohiya","اتْلُ مَا أُوحِيَ"],["Wa Man Yaqnut","وَمَنْ يَقْنُتْ"],["Wa Mali","وَمَا لِيَ"],["Faman Azlamu","فَمَنْ أَظْلَمُ"],["Ilaihi Yuraddu","إِلَيْهِ يُرَدُّ"],["Ha Meem","حم"],["Qala Fama Khatbukum","قَالَ فَمَا خَطْبُكُمْ"],["Qad Sami Allah","قَدْ سَمِعَ اللَّهُ"],["Tabarakalladhi","تَبَارَكَ الَّذِي"],["Amma","عَمَّ"]];
   window.mominQuranJuzMetaV1=function(number){
     number=Math.max(1,Math.min(30,Number(number)||1));
-    var meta=juzMeta(number);
-    return {number:number,start:meta.start,end:meta.end,startLabel:refLabel(meta.start),endLabel:refLabel(meta.end),ayahCount:meta.globalEnd-meta.globalStart+1};
+    var meta=juzMeta(number),name=mominJuzNamesV1[number-1];
+    return {number:number,name:name[0],arabicName:name[1],start:meta.start,end:meta.end,startLabel:refLabel(meta.start),endLabel:refLabel(meta.end),ayahCount:meta.globalEnd-meta.globalStart+1};
   };
   window.mominRetryQuranIndexV1=function(){
     if(typeof window.loadChapters==='function')Promise.resolve(window.loadChapters()).then(function(){
