@@ -205,3 +205,33 @@ html[data-theme="dark"] #readerSettings.momin-reader-settings-v8 .momin-quran-fi
 @media(max-width:360px){
  #readerSettings.momin-juz-settings-v1 .momin-quran-field>span{font-size:12px!important}
 }
+
+
+/* Settings appearance follows the selected Quran reader theme (not only site theme). */
+#readerSettings.momin-settings-night-v8 .momin-quran-settings-pane h3{
+ color:#e7c97f!important;text-shadow:0 1px 0 rgba(0,0,0,.22)
+}
+#readerSettings.momin-settings-night-v8 .momin-quran-settings-header strong{color:#f5eddb!important}
+#readerSettings.momin-settings-night-v8 .momin-quran-settings-hint{color:#c9b995!important}
+#readerSettings.momin-settings-night-v8 .momin-quran-field>span{color:#f2e6ca}
+#readerSettings.momin-settings-night-v8 .momin-quran-script-options{direction:ltr!important;justify-content:flex-start!important}
+#readerSettings.momin-settings-night-v8 .momin-quran-script-card{direction:ltr!important}
+#readerSettings.momin-settings-white-v8 .momin-quran-settings-pane h3{color:#35463a!important}
+#readerSettings.momin-settings-paper-v8 .momin-quran-settings-pane h3{color:#6d5428!important}
+#readerSettings.momin-juz-settings-v1.momin-settings-night-v8 .momin-quran-field{
+ display:grid!important;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr)!important;
+ gap:10px!important;background:#211c14!important;border-color:#584629!important
+}
+#readerSettings.momin-juz-settings-v1.momin-settings-night-v8 .momin-quran-field>span{
+ color:#f5eddb!important;font-size:13px!important;line-height:1.4;overflow-wrap:anywhere
+}
+#readerSettings.momin-juz-settings-v1.momin-settings-night-v8 .momin-quran-field select{
+ width:100%!important;min-width:0!important;background:#100f0c!important;color:#f5eddb!important;
+ border-color:#8b7041!important;color-scheme:dark
+}
+@media(max-width:520px){
+ #readerSettings.momin-settings-night-v8 .momin-quran-settings-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #readerSettings.momin-juz-settings-v1.momin-settings-night-v8 .momin-quran-field{
+  grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)!important
+ }
+}
