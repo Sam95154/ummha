@@ -53,3 +53,50 @@ body:has(.qv-juz-reader) .sidebar,body:has(.qv-juz-reader) .top,body:has(.qv-juz
 .quran-library.qv-shell .qv-juz .qv-juz-arabic{display:block;min-height:25px;color:var(--qv-gold2);font:22px/1.4 'Amiri','Noto Naskh Arabic',serif;text-align:right}
 .qv-juz-reader .qv-juz-reader-title{font-size:18px!important}
 @media(max-width:360px){.quran-library.qv-shell .qv-juz .qv-juz-name{font-size:13px}}
+
+
+/* Align Quran Arabic text and apply the shared reader settings to Juz. */
+.qv-juz-reader .ayah-block{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+.qv-juz-reader .ayah-arabic-row{
+ display:grid!important;grid-template-columns:30px minmax(0,1fr)!important;align-items:start!important;gap:10px!important;
+ width:100%;min-width:0;margin:17px 0 6px!important;direction:ltr!important;box-sizing:border-box
+}
+.qv-juz-reader .ayah-arabic-row .ayah-rosette{grid-column:1;justify-self:center;align-self:start;margin-top:8px}
+.qv-juz-reader .ayah-arabic-row .arabic{
+ grid-column:2;display:block;min-width:0!important;width:100%!important;max-width:100%;margin:0;padding:0;
+ text-align:right!important;direction:rtl!important;unicode-bidi:plaintext;overflow-wrap:break-word;word-break:normal;
+ font-family:"Noto Naskh Arabic","Amiri","Traditional Arabic",serif;box-sizing:border-box
+}
+.qv-juz-reader.reader-meaning-hidden .ayah-translation,.qv-juz-reader.reader-translations-hidden .ayah-translation{display:none!important}
+.qv-juz-reader.reader-translit-hidden .ayah-transliteration,.qv-juz-reader.reader-translations-hidden .ayah-transliteration{display:none!important}
+.qv-juz-reader .momin-quran-mushaf-page-v8{
+ max-width:760px;margin:12px auto 18px;padding:17px 14px 24px;border:1px solid #53452e;border-radius:16px;
+ background:#17140f;box-shadow:0 12px 28px rgba(0,0,0,.18)
+}
+.qv-juz-reader .momin-quran-mushaf-page-head{display:flex;justify-content:space-between;gap:8px;margin:0 0 14px;padding:0 0 11px;border-bottom:1px solid #463a28;color:#dfbd6c;font-size:11px;font-weight:650}
+.qv-juz-reader .momin-quran-mushaf-page .ayah-block{margin:0;padding:12px 0 15px;border-bottom:1px solid #3d3426}
+.qv-juz-audio{max-width:820px;margin:10px auto 18px;padding:13px;border:1px solid #3d3426;border-radius:17px;background:#191713}
+.qv-juz-audio-top{display:flex;align-items:center;gap:12px;margin:0 0 10px}
+.qv-juz-audio-top button{flex:none;min-height:42px;padding:9px 14px;border:0;border-radius:13px;background:linear-gradient(135deg,#e9ca7e,#bb8d39);color:#21180d;font-weight:750}
+.qv-juz-audio-top div{display:flex;min-width:0;flex-direction:column;gap:4px}
+.qv-juz-audio-top b{color:#f3ead6;font-size:12px}
+.qv-juz-audio-top small{color:#b5a78e;font-size:10px}
+.qv-juz-audio audio{display:block;width:100%;height:38px}
+.qv-juz-reader.reader-night .ayah-translation{color:#e8dfce}
+.qv-juz-reader.reader-white{background:#fffdf7!important;color:#242018!important}
+.qv-juz-reader.reader-white .quran-toolbar{background:rgba(255,253,247,.96);border-color:#e3dccb}
+.qv-juz-reader.reader-white .qv-juz-reader-title,.qv-juz-reader.reader-white .reader-icon,.qv-juz-reader.reader-white .reader-icon-button{color:#30271f}
+.qv-juz-reader.reader-white .arabic{color:#252019}
+.qv-juz-reader.reader-white .ayah-translation{color:#3a3024}
+.qv-juz-reader.reader-white .ayah-transliteration{color:#766a58}
+.qv-juz-reader.reader-white .qv-juz-surah-title{background:#f7f1e4;border-color:#dfd3ba}
+.qv-juz-reader.reader-white .qv-juz-surah-title b{color:#30271f}
+.qv-juz-reader.reader-white .qv-juz-audio{background:#f8f4ea;border-color:#e0d4bd}
+.qv-juz-reader.reader-white .qv-juz-audio-top b{color:#30271f}
+.qv-juz-reader.reader-white .qv-juz-audio-top small{color:#7b705e}
+.qv-juz-reader.reader-white .qv-juz-audio audio{color-scheme:light}
+@media(max-width:420px){
+ .qv-juz-reader .ayah-arabic-row{grid-template-columns:27px minmax(0,1fr)!important;gap:8px!important}
+ .qv-juz-reader .ayah-arabic-row .ayah-rosette{width:25px;height:25px;margin-top:7px}
+ .qv-juz-reader .ayah-arabic-row .arabic{line-height:2.05}
+}
