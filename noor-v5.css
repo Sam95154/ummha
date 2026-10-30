@@ -161,3 +161,36 @@ body.app-sepia{--bg:#eee5cf;--paper:#fff7e4;--ink:#382e22;--muted:#817464;--line
  .momin-quran-page-nav-v8 button{padding:8px 9px;font-size:10px}
  .momin-quran-page-nav-v8 span{font-size:9px}
 }
+
+
+/* Surah reader: the live verse renderer uses .verse > .arabic, not .ayah-arabic-row. */
+.quran-reader .verse{
+ display:block;width:100%;max-width:100%;min-width:0;margin:0 0 14px;
+ padding:16px 14px;box-sizing:border-box;text-align:left;overflow:hidden
+}
+.quran-reader .verse .rowbetween{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0
+}
+.quran-reader .verse .arabic{
+ display:block;width:100%;max-width:100%;min-width:0;margin:17px 0 12px;padding:0;
+ color:var(--quran-ink,#f5eddb);font-size:var(--quran-arabic-size,48px);
+ font-family:"Noto Naskh Arabic","Amiri","Traditional Arabic",serif;
+ font-weight:400;line-height:2.05;text-align:right!important;direction:rtl!important;
+ unicode-bidi:plaintext;overflow-wrap:break-word;word-break:normal;box-sizing:border-box
+}
+.quran-reader .verse .translation{
+ display:block;width:100%;max-width:100%;min-width:0;margin:8px 0;
+ text-align:left!important;direction:ltr;line-height:1.8;overflow-wrap:anywhere;word-break:normal;
+ box-sizing:border-box
+}
+.quran-reader .verse .sub{display:block;max-width:100%;overflow-wrap:anywhere}
+.quran-reader.reader-night .verse{background:#17140f;border-color:#4b3c25;color:#f5eddb}
+.quran-reader.reader-night .verse .translation{color:#e8dfce}
+.quran-reader.reader-white .verse{background:#fffdf7;border-color:#e4dccb;color:#282119}
+.quran-reader.reader-white .verse .arabic{color:#252019}
+.quran-reader.reader-white .verse .translation{color:#3a3024}
+@media(max-width:420px){
+ .quran-reader .verse{padding:13px 11px;margin-bottom:11px}
+ .quran-reader .verse .arabic{font-size:var(--quran-arabic-size,44px);line-height:2.08;margin:14px 0 10px}
+ .quran-reader .verse .translation{font-size:14px;line-height:1.75}
+}
