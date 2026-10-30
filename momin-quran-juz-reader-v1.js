@@ -235,7 +235,6 @@
     juzAudioIndex=Math.max(0,Math.min(state.data.ayahs.length-1,Number(index)||0));
     var v=state.data.ayahs[juzAudioIndex],audio=document.getElementById('quranAudio');
     if(!audio)return;
-    audio.onended=window.mominHandleJuzAudioEndedV1;
     audio.onerror=function(){if(typeof toast==='function')toast('This Ayah recitation is unavailable.');};
     juzAudioNeedsReload=false;audio.src=juzAudioURL(v);audio.playbackRate=audioRateV1();audio.load();
     var title=document.getElementById('mominJuzAudioTitleV1');
