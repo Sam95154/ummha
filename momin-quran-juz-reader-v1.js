@@ -251,6 +251,12 @@
     var globalNo=Number(current.getAttribute('data-global-ayah'));
     if(globalNo)try{localStorage.setItem('momin-quran-last-juz-v1',String(state.number));localStorage.setItem('momin-quran-last-juz-ayah-v1',String(globalNo))}catch(_){}
   },{passive:true});
+  window.mominRefreshJuzReaderV1=function(){
+    if(!state.active||!state.data||page!=='quran')return;
+    var y=window.scrollY||0;
+    if(typeof window.render==='function')window.render();
+    window.scrollTo(0,y);
+  };
   window.MominQuranJuzReaderV1={
     get state(){return{active:state.active,number:state.number,loading:state.loading,ayahs:state.data?state.data.ayahs.length:0}},
     get verses(){return state.data?state.data.ayahs:[]},
