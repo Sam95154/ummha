@@ -115,3 +115,8 @@
 .qv-juz-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-hint{
  color:#c3b391!important
 }
+
+/* Juz reader shares Surah settings, except the Juz-only Audio tab is omitted. */
+#readerSettings.momin-juz-settings-v1 .momin-quran-settings-tabs{
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
