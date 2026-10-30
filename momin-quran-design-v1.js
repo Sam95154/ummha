@@ -43,6 +43,8 @@ window.addEventListener("keydown",function(e){if(e.key==="Escape")window.mominCl
 document.addEventListener("click",function(e){var b=e.target.closest("[data-qv-bookmark]");if(b){e.preventDefault();e.stopPropagation();window.mominToggleSurahBookmarkV1(b.getAttribute("data-qv-bookmark"))}if(viewMenuOpen&&!e.target.closest(".qv-menu")&&!e.target.closest(".qv-view-button")){viewMenuOpen=false;repaint()}});
 function repaint(){if(typeof window.render==="function"&&document.querySelector(".quran-library.qv-shell"))window.render()}
 var quranPageBeforeMominLibraryV1=window.quranPage;
-window.quranPage=function(){if(window.quranView==="reader"&&typeof quranReaderPageV2==="function")return quranReaderPageV2();return pageHTML()};
+window.quranPage=function(){if(window.quranView==="reader"&&typeof quranPageBeforeMominLibraryV1==="function")return quranPageBeforeMominLibraryV1.apply(this,arguments);return pageHTML()};
+var readSurahBeforeMominLibraryV1=window.readSurah;
+window.readSurah=function(n){rememberOpen(n);return readSurahBeforeMominLibraryV1.apply(this,arguments)};
 if(window.page==="quran"&&window.quranView==="library")repaint();
 })();
