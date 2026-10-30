@@ -4,7 +4,7 @@
   if (document.getElementById("momin-duas-design-v2")) return;
   var style = document.createElement("style");
   style.id = "momin-duas-design-v2";
-  style.textContent = String.raw\`
+  style.textContent = String.raw`
 @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
 body.dua-app-mode .layout{display:block!important;grid-template-columns:1fr!important;min-height:100dvh;padding:0!important}
 body.dua-app-mode .sidebar,body.dua-app-mode main>.top,body.dua-app-mode .mobilebar{display:none!important}
@@ -147,6 +147,6 @@ body.dua-app-mode .dua-bottom-nav a.on{color:#1b1710;background:var(--dua-gold2)
 body.dua-app-mode .dua-bottom-nav .dua-nav-quran-icon{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5}
 @media(max-width:380px){body.dua-app-mode .dua-page{padding-left:13px;padding-right:13px}body.dua-app-mode .dua-topbar{margin-left:-13px;margin-right:-13px;padding-left:13px;padding-right:13px}body.dua-app-mode .dua-feature-card{grid-template-columns:36% minmax(0,1fr)}body.dua-app-mode .dua-feature-copy{padding:14px 12px}body.dua-app-mode .dua-bottom-nav{width:calc(100% - 20px)}}
 @media(prefers-reduced-motion:reduce){body.dua-app-mode .dua-page *,body.dua-app-mode .dua-page *:before,body.dua-app-mode .dua-page *:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-  \`;
+  `;
   document.head.appendChild(style);
 })();
