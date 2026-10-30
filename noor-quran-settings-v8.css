@@ -98,3 +98,10 @@
  #readerSettings .momin-quran-settings-footer button{min-height:48px;gap:7px;padding:10px 8px;border-radius:14px;font-size:12px}
 }
 @media(max-width:360px){#readerSettings .momin-quran-theme-ar{font-size:22px}#readerSettings .momin-quran-theme-card{min-height:106px;font-size:12px}#readerSettings .momin-quran-settings-footer{grid-template-columns:1fr}}
+
+
+/* Dark Quran theme: keep section headings and help text readable in the shared settings sheet. */
+.quran-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-pane h3,
+.qv-juz-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-pane h3{color:#e7c97f!important}
+.quran-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-hint,
+.qv-juz-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-hint{color:#c3b391!important}
