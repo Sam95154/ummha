@@ -132,41 +132,55 @@ function bindAudioEndV8(){
  var audio=document.getElementById("quranAudio");if(!audio||audio.dataset.settingsEndV8)return;
  audio.dataset.settingsEndV8="1";
  audio.addEventListener("ended",function(){
+  if(window.MominQuranJuzReaderV1&&window.MominQuranJuzReaderV1.state.active&&typeof window.mominHandleJuzAudioEndedV1==="function"){window.mominHandleJuzAudioEndedV1();return}
   if(saved("noor-quran-repeat-v8","false")==="true"){audio.currentTime=0;audio.play().catch(function(){});}
   else if(saved("noor-quran-auto-next-v8","false")==="true"&&typeof changeReaderSurah==="function")changeReaderSurah(1,true);
  });
 }
+function getJuzReaderV8(){
+ var api=window.MominQuranJuzReaderV1;
+ return api&&api.state&&api.state.active?api:null;
+}
 function refreshArabicHtmlV8(){
+ var juz=getJuzReaderV8();
+ if(juz){juz.refresh();if(typeof scheduleArabicTransliterationV7==="function")scheduleArabicTransliterationV7();return}
  if(typeof verseMarkup!=="function")return;
  var area=document.getElementById("readingArea");if(area)area.innerHTML=verseMarkup();
  if(typeof scheduleArabicTransliterationV7==="function")scheduleArabicTransliterationV7();
 }
-function getVerseRowsV8(){return typeof currentVerses!=="undefined"?currentVerses:[]}
-async function applyCurrentArabicTextV8(){
- var verses=getVerseRowsV8();if(!verses.length)return;
- var chapter=typeof readerChapter==="function"?(readerChapter().number||1):Number(localStorage.getItem("noor-surah-number")||1);
- var script=saved("noor-quran-script-v8","uthmani"),taj=saved("noor-quran-show-tajweed-v8","false")==="true";
- var map=null;
- if(script!=="uthmani"||taj){
-  if(!textEditionCache[chapter]){
-   var fields="text_uthmani,text_indopak_nastaleeq,text_uthmani_simple,text_qpc_hafs,text_uthmani_tajweed";
-   var base="https://api.quran.com/api/v4/verses/by_chapter/"+chapter+"?fields="+encodeURIComponent(fields)+"&per_page=50&page=";
-   var first=await getJSON(base+"1"),all=first.verses||[],pages=Number(first.pagination&&first.pagination.total_pages)||1;
-   for(var p=2;p<=Math.min(pages,10);p++){var next=await getJSON(base+p);all=all.concat(next.verses||[])}
-   var mapping={};all.forEach(function(v){mapping[Number(v.verse_number)]=v});textEditionCache[chapter]=mapping;
-  }
-  map=textEditionCache[chapter];
- }
+function getVerseRowsV8(){
+ var juz=getJuzReaderV8();
+ if(juz&&Array.isArray(juz.verses))return juz.verses;
+ return typeof currentVerses!=="undefined"?currentVerses:[];
+}
+async function fetchArabicStyleRowsV8(chapter){
+ if(textEditionCache[chapter])return textEditionCache[chapter];
+ var fields="text_uthmani,text_indopak_nastaleeq,text_uthmani_simple,text_qpc_hafs,text_uthmani_tajweed";
+ var base="https://api.quran.com/api/v4/verses/by_chapter/"+chapter+"?fields="+encodeURIComponent(fields)+"&per_page=50&page=";
+ var first=await getJSON(base+"1"),all=first.verses||[],pages=Number(first.pagination&&first.pagination.total_pages)||1;
+ for(var p=2;p<=Math.min(pages,10);p++){var next=await getJSON(base+p);all=all.concat(next.verses||[])}
+ var mapping={};all.forEach(function(v){mapping[Number(v.verse_number)]=v});
+ textEditionCache[chapter]=mapping;return mapping;
+}
+async function applyArabicStyleToRowsV8(verses,script,taj){
+ var unique=Array.from(new Set(verses.map(function(v){return Number(v.surahNo||v.surahNumber||0)}).filter(Boolean)));
+ var maps={};
+ if(script!=="uthmani"||taj)await Promise.all(unique.map(async function(ch){maps[ch]=await fetchArabicStyleRowsV8(ch)}));
  verses.forEach(function(v){
+  var ch=Number(v.surahNo||v.surahNumber||0),row=maps[ch]&&maps[ch][Number(v.numberInSurah)];
   if(v.sourceArabicV8===undefined)v.sourceArabicV8=v.text;
-  var row=map&&map[Number(v.numberInSurah)];
   v.tajweedHtmlV8=row&&row.text_uthmani_tajweed||"";
   if(script==="uthmani")v.text=v.sourceArabicV8;
   else if(script==="simple")v.text=String(row&&(row.text_uthmani_simple||row.text_uthmani)||v.sourceArabicV8).normalize("NFD").replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u08D3-\u08FF]/g,"").replace(/\u0640/g,"").normalize("NFC");
-  else if(script==="indopak"){if(!row||!row.text_indopak_nastaleeq)throw Error("IndoPak edition unavailable");v.text=row.text_indopak_nastaleeq}
-  else if(script==="mushaf"){if(!row||!row.text_qpc_hafs)throw Error("Mushaf edition unavailable");v.text=row.text_qpc_hafs}
-  if(taj&&!v.tajweedHtmlV8)throw Error("Tajweed edition unavailable");
+  else if(script==="indopak"){if(!row||!row.text_indopak_nastaleeq)throw Error("IndoPak edition unavailable for Surah "+ch);v.text=row.text_indopak_nastaleeq}
+  else if(script==="mushaf"){if(!row||!row.text_qpc_hafs)throw Error("Mushaf edition unavailable for Surah "+ch);v.text=row.text_qpc_hafs}
+  if(taj&&!v.tajweedHtmlV8)throw Error("Tajweed edition unavailable for Surah "+ch);
  });
+}
+async function applyCurrentArabicTextV8(){
+ var verses=getVerseRowsV8();if(!verses.length)return;
+ var script=saved("noor-quran-script-v8","uthmani"),taj=saved("noor-quran-show-tajweed-v8","false")==="true";
+ await applyArabicStyleToRowsV8(verses,script,taj);
  refreshArabicHtmlV8();
 }
 function sanitizeTajweedHtmlV8(raw){
@@ -174,27 +188,58 @@ function sanitizeTajweedHtmlV8(raw){
  function serialize(n){if(n.nodeType===3)return esc(n.nodeValue||"");if(n.nodeType!==1)return "";var inside=Array.prototype.map.call(n.childNodes,serialize).join("");if(n.tagName.toLowerCase()!=="tajweed")return inside;var cl=String(n.getAttribute("class")||"").split(/\s+/).filter(function(x){return /^[a-zA-Z0-9_-]+$/.test(x)}).join(" ");return '<span class="momin-tajweed '+cl+'">'+inside+'</span>'}
  return Array.prototype.map.call(box.childNodes,serialize).join("");
 }
+var selectedSurahPageV8=0;
+function surahPagesV8(rows){return Array.from(new Set(rows.map(function(v){return Number(v.page)||0}).filter(Boolean))).sort(function(a,b){return a-b})}
+function pageNavigationV8(pages,current){
+ if(!pages.length)return "";
+ var i=pages.indexOf(current),pos=i<0?0:i;
+ return '<div class="momin-quran-page-nav-v8"><button type="button" '+(pos===0?'disabled':'')+' onclick="window.MominQuranSettingsV8.page(-1)">← Previous page</button><span>Page '+(pos+1)+' of '+pages.length+' · Mushaf '+pages[pos]+'</span><button type="button" '+(pos===pages.length-1?'disabled':'')+' onclick="window.MominQuranSettingsV8.page(1)">Next page →</button></div>';
+}
 var oldVerseMarkupSettingsV8=verseMarkup;
 verseMarkup=function(){
- var html=oldVerseMarkupSettingsV8(),verses=getVerseRowsV8();
+ var juz=getJuzReaderV8(),all=getVerseRowsV8(),rows=all,pages=[],current=0;
+ if(!juz&&mode()==="page"&&all.length&&all.some(function(v){return Number(v.page)>0})){
+  pages=surahPagesV8(all);
+  var key="noor-quran-current-page-v8-"+(Number(localStorage.getItem("noor-surah-number")||1));
+  var stored=Number(localStorage.getItem(key)||0);
+  current=pages.indexOf(stored)>=0?stored:pages[0];
+  selectedSurahPageV8=current;
+  rows=all.filter(function(v){return Number(v.page)===current});
+  var prior=currentVerses;currentVerses=rows;
+  var pageHtml=oldVerseMarkupSettingsV8();
+  currentVerses=prior;
+  if(saved("noor-quran-show-tajweed-v8","false")==="true"){
+   var index=0;pageHtml=pageHtml.replace(/<div class="arabic" lang="ar">[\s\S]*?<\/div>/g,function(old){var v=rows[index++];return v&&v.tajweedHtmlV8?'<div class="arabic" lang="ar">'+sanitizeTajweedHtmlV8(v.tajweedHtmlV8)+'</div>':old});
+  }
+  return '<div class="momin-quran-mushaf-page-v8" data-mushaf-page="'+current+'">'+pageHtml+'</div>'+pageNavigationV8(pages,current);
+ }
+ var html=oldVerseMarkupSettingsV8(),verses=all;
  if(saved("noor-quran-show-tajweed-v8","false")!=="true")return html;
  var i=0;
  return html.replace(/<div class="arabic" lang="ar">[\s\S]*?<\/div>/g,function(old){var v=verses[i++];return v&&v.tajweedHtmlV8?'<div class="arabic" lang="ar">'+sanitizeTajweedHtmlV8(v.tajweedHtmlV8)+'</div>':old});
 };
+function modalSourceForJuzV8(){
+ var tr=typeof quranTranslationOptionsV5==="function"?quranTranslationOptionsV5():'<option value="en.sahih" selected>English — Saheeh International</option>';
+ var roman=languageItems.map(function(x){return '<option value="'+x[0]+'">'+x[1]+' — '+x[2]+'</option>'}).join("");
+ return '<select aria-label="Quran translation language">'+tr+'</select><select id="readerTranslitLanguageV7">'+roman+'</select>';
+}
+window.MominQuranSettingsV8RenderModalForJuz=function(){return buildModal(modalSourceForJuzV8())};
+window.MominQuranSettingsV8SanitizeTajweed=sanitizeTajweedHtmlV8;
 window.MominQuranSettingsV8={
  close:function(){settingsOpen=false;applyReaderSettingsV8()},
  save:function(){localStorage.setItem("noor-quran-settings-last-saved-v8","true");settingsOpen=false;applyReaderSettingsV8();if(typeof toast==="function")toast("Quran reading settings saved on this device.")},
  reset:function(){if(typeof confirm==="function"&&!confirm("Reset Quran reading settings to their defaults?"))return;["noor-quran-settings-tab-v8","noor-quran-theme","noor-quran-reading-mode-v8","noor-quran-arabic-size","noor-keep-awake-v8","noor-quran-script-v8","noor-quran-show-tajweed-v8","noor-quran-show-translation-v8","noor-quran-translation","noor-quran-show-transliteration-v8","noor-quran-translit-language","noor-quran-repeat-v8","noor-quran-auto-next-v8","noor-quran-audio-speed-v8","noor-quran-reciter-v8","noor-quran-edition","noor-quran-edition-language","noor-quran-settings-last-saved-v8"].forEach(function(k){localStorage.removeItem(k)});localStorage.setItem("noor-quran-theme","night");localStorage.setItem("noor-quran-reading-mode-v8","list");localStorage.setItem("noor-quran-arabic-size","48");localStorage.setItem("noor-quran-show-translation-v8","true");localStorage.setItem("noor-quran-show-transliteration-v8","false");localStorage.setItem("noor-quran-show-tajweed-v8","false");localStorage.setItem("noor-quran-translit-language","en");localStorage.setItem("noor-quran-reciter-v8","ar.alafasy");localStorage.setItem("noor-quran-audio-speed-v8","1");localStorage.setItem("noor-quran-settings-tab-v8","display");settingsOpen=true;translationPickerOpen=false;if(typeof setQuranTheme==="function")setQuranTheme("night");if(typeof setQuranArabicSize==="function")setQuranArabicSize(48);applyReaderSettingsV8();if(typeof render==="function")render();if(typeof toast==="function")toast("Quran reading settings reset to defaults.")},
  tab:function(t){if(["display","text","audio"].indexOf(t)<0)return;localStorage.setItem("noor-quran-settings-tab-v8",t);applyReaderSettingsV8()},
  theme:function(t){if(["white","paper","night"].indexOf(t)<0)return;localStorage.setItem("noor-quran-theme",t);if(typeof setQuranTheme==="function")setQuranTheme(t);applyReaderSettingsV8()},
- mode:function(m){if(["list","page"].indexOf(m)<0)return;localStorage.setItem("noor-quran-reading-mode-v8",m);applyReaderSettingsV8()},
+ mode:function(m){if(["list","page"].indexOf(m)<0)return;localStorage.setItem("noor-quran-reading-mode-v8",m);if(typeof render==="function")render();applyReaderSettingsV8()},
+ page:function(direction){var api=getJuzReaderV8();if(api){if(typeof window.mominMoveJuzPageV1==="function")window.mominMoveJuzPageV1(direction);return}var rows=getVerseRowsV8(),pages=surahPagesV8(rows);if(!pages.length)return;var key="noor-quran-current-page-v8-"+(Number(localStorage.getItem("noor-surah-number")||1)),current=Number(localStorage.getItem(key)||pages[0]),i=pages.indexOf(current);if(i<0)i=0;i=Math.max(0,Math.min(pages.length-1,i+Number(direction||0)));localStorage.setItem(key,String(pages[i]));if(typeof render==="function")render();applyReaderSettingsV8()},
  toggleTranslationPicker:function(){translationPickerOpen=!translationPickerOpen;var e=document.getElementById("mominTranslationPickerV8");if(e)e.hidden=!translationPickerOpen;var b=document.querySelector(".momin-quran-selected-translation");if(b)b.setAttribute("aria-expanded",String(translationPickerOpen))},
  search:function(q){var s=document.getElementById("quranTranslationSelectV8");if(!s)return;q=String(q||"").toLowerCase().trim();Array.prototype.forEach.call(s.options,function(o){o.hidden=!!q&&o.textContent.toLowerCase().indexOf(q)<0});Array.prototype.forEach.call(s.querySelectorAll("optgroup"),function(g){g.hidden=!Array.prototype.some.call(g.options,function(o){return !o.hidden})})},
  translation:function(id){if(String(id).indexOf("unavailable:")===0)return;var s=document.getElementById("quranTranslationSelectV8");if(!s||!Array.prototype.some.call(s.options,function(o){return o.value===id&&!o.disabled}))return;localStorage.setItem("noor-quran-edition",id);translationPickerOpen=false;var opt=Array.prototype.find.call(s.options,function(o){return o.value===id}),label=document.getElementById("mominSelectedTranslationLabelV8");if(label&&opt)label.textContent=opt.textContent;if(typeof setQuranTranslationEditionV5==="function")setQuranTranslationEditionV5(id);else if(typeof readSurah==="function")readSurah(readerChapter().number||1);applyReaderSettingsV8()},
  showMeaning:function(on){localStorage.setItem("noor-quran-show-translation-v8",on?"true":"false");localStorage.setItem("noor-quran-translation",on?"true":"false");applyReaderSettingsV8()},
  showTranslit:function(on){localStorage.setItem("noor-quran-show-transliteration-v8",on?"true":"false");applyReaderSettingsV8()},
- translit:function(code){if(typeof setArabicTransliterationLanguageV7==="function")setArabicTransliterationLanguageV7(code);else localStorage.setItem("noor-quran-translit-language",code);updateTranslitNoteV8();applyReaderSettingsV8()},
- tajweed:function(on){localStorage.setItem("noor-quran-show-tajweed-v8",on?"true":"false");applyCurrentArabicTextV8().then(applyReaderSettingsV8).catch(function(){localStorage.setItem("noor-quran-show-tajweed-v8","false");applyReaderSettingsV8();toast("Tajweed colours could not be loaded for this Surah.")})},
+ translit:function(code){if(typeof setArabicTransliterationLanguageV7==="function")setArabicTransliterationLanguageV7(code);else localStorage.setItem("noor-quran-translit-language",code);updateTranslitNoteV8();if(window.MominQuranJuzReaderV1&&window.MominQuranJuzReaderV1.state.active)window.MominQuranJuzReaderV1.refresh();applyReaderSettingsV8()},
+ tajweed:function(on){localStorage.setItem("noor-quran-show-tajweed-v8",on?"true":"false");applyCurrentArabicTextV8().then(applyReaderSettingsV8).catch(function(){localStorage.setItem("noor-quran-show-tajweed-v8","false");applyReaderSettingsV8();toast("Tajweed colours could not be loaded for this Quran section.")})},
  keepAwake:async function(on){localStorage.setItem("noor-keep-awake-v8",on?"true":"false");if(!on){if(wakeLock){try{await wakeLock.release()}catch(_){}wakeLock=null}return}if(!navigator.wakeLock||!navigator.wakeLock.request){toast("Keep screen awake is not supported in this browser.");return}try{wakeLock=await navigator.wakeLock.request("screen")}catch(_){toast("The browser could not keep the screen awake.")}},
  repeat:function(on){localStorage.setItem("noor-quran-repeat-v8",on?"true":"false")},next:function(on){localStorage.setItem("noor-quran-auto-next-v8",on?"true":"false")},
  speed:function(v){var n=Number(v);if([0.75,1,1.25,1.5].indexOf(n)<0)return;localStorage.setItem("noor-quran-audio-speed-v8",String(n));window.readerSpeed=n;var a=document.getElementById("quranAudio");if(a)a.playbackRate=n;var l=document.getElementById("audioSpeed");if(l)l.textContent=n+"×"},
