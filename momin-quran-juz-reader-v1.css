@@ -118,3 +118,59 @@ body:has(.qv-juz-reader) .sidebar,body:has(.qv-juz-reader) .top,body:has(.qv-juz
  .qv-juz-reader .ayah-arabic-row .arabic{font-size:var(--quran-arabic-size,44px);line-height:2.08}
  .qv-juz-reader .qv-juz-ayah{padding:12px 0}
 }
+
+
+/* Juz toolbar contrast: keep the header and its controls visible over either theme. */
+.qv-juz-reader .quran-toolbar{
+ background:rgba(13,12,10,.98)!important;
+ border-bottom:1px solid #66502d!important;
+ box-shadow:0 5px 16px rgba(0,0,0,.18);
+}
+.qv-juz-reader .quran-toolbar .reader-icon,
+.qv-juz-reader .quran-toolbar .reader-icon-button{
+ color:#f2d48b!important;
+ opacity:1!important;visibility:visible!important;
+ text-shadow:0 1px 2px rgba(0,0,0,.35);
+}
+.qv-juz-reader .quran-toolbar .qv-juz-reader-title{
+ color:#fff2d5!important;
+}
+.qv-juz-reader .quran-toolbar .reader-subtitle{
+ color:#d1bc91!important;
+ opacity:1!important;
+}
+.qv-juz-reader.reader-white .quran-toolbar{
+ background:rgba(255,253,247,.99)!important;
+ border-bottom:1px solid #d8cbaa!important;
+}
+.qv-juz-reader.reader-white .quran-toolbar .reader-icon,
+.qv-juz-reader.reader-white .quran-toolbar .reader-icon-button{
+ color:#24372f!important;
+ text-shadow:none!important;
+}
+.qv-juz-reader.reader-white .quran-toolbar .qv-juz-reader-title{
+ color:#242018!important;
+}
+.qv-juz-reader.reader-white .quran-toolbar .reader-subtitle{
+ color:#685d49!important;
+ opacity:1!important;
+}
+.qv-juz-reader .quran-toolbar .reader-icon-button[aria-label="Reader settings"]{
+ width:42px;height:42px;min-width:42px;min-height:42px;
+ border:1px solid currentColor!important;border-radius:50%;
+ background:transparent!important;font-size:23px!important;
+}
+.qv-juz-reader .quran-toolbar .reader-icon-button:focus-visible{
+ outline:3px solid #e6c878!important;outline-offset:2px;
+}
+@media(max-width:520px){
+ .qv-juz-reader .quran-toolbar{
+  top:0!important;grid-template-columns:38px minmax(0,1fr) 34px 42px!important;
+  gap:5px!important;padding:10px 12px!important;
+  margin-left:-16px!important;margin-right:-16px!important;
+ }
+ .qv-juz-reader .quran-toolbar .qv-juz-reader-title{font-size:20px!important;line-height:1.2!important}
+ .qv-juz-reader .quran-toolbar .reader-subtitle{font-size:10px!important}
+ .qv-juz-reader .quran-toolbar .reader-icon-button{width:34px!important;min-width:34px!important}
+ .qv-juz-reader .quran-toolbar .reader-icon-button[aria-label="Reader settings"]{width:40px!important;min-width:40px!important}
+}
