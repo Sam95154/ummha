@@ -113,7 +113,7 @@ function applyReaderSettingsV8(){
   check("mominTajweedV8","noor-quran-show-tajweed-v8","false");
   check("mominRepeatSurahV8","noor-quran-repeat-v8","false");
   check("mominAutoNextV8","noor-quran-auto-next-v8","false");
-  var tr=document.getElementById("readerTranslitLanguageV8");if(tr)tr.value=saved("noor-quran-translit-language","en");
+  var tr=document.getElementById("readerTranslitLanguageV8");if(tr){var savedTranslit=saved("noor-quran-translit-language","en");tr.value=savedTranslit;if(tr.selectedIndex<0){tr.value="en";localStorage.setItem("noor-quran-translit-language","en")}}
   var pick=document.getElementById("quranTranslationSelectV8");if(pick)pick.value=currentTranslationId();
   var label=document.getElementById("mominSelectedTranslationLabelV8");
   if(label&&pick){var sel=Array.prototype.find.call(pick.options,function(o){return o.value===currentTranslationId()});if(sel)label.textContent=sel.textContent}
@@ -220,7 +220,7 @@ verseMarkup=function(){
 };
 function modalSourceForJuzV8(){
  var tr=typeof quranTranslationOptionsV5==="function"?quranTranslationOptionsV5():'<option value="en.sahih" selected>English — Saheeh International</option>';
- var roman=languageItems.map(function(x){return '<option value="'+x[0]+'">'+x[1]+' — '+x[2]+'</option>'}).join("");
+ var roman='<option value="en">English — Roman transliteration</option>'+languageItems.map(function(x){return '<option value="'+x[0]+'">'+x[1]+' — '+x[2]+'</option>'}).join("");
  return '<select aria-label="Quran translation language">'+tr+'</select><select id="readerTranslitLanguageV7">'+roman+'</select>';
 }
 window.MominQuranSettingsV8RenderModalForJuz=function(){
