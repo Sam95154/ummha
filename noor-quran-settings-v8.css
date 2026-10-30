@@ -158,3 +158,50 @@ html[data-theme="dark"] #readerSettings.momin-reader-settings-v8 .momin-quran-fi
  text-align:center!important;
  overflow-wrap:anywhere;
 }
+
+
+/* Juz Text settings: keep transliteration language label and selected option visible
+   even when only the reader theme (not the site theme) is set to Dark. */
+#readerSettings.momin-juz-settings-v1 .momin-quran-field{
+ display:grid!important;
+ grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)!important;
+ align-items:center!important;
+ gap:12px!important;
+ background:#211c14!important;
+ border-color:#584629!important;
+ color:#f5eddb!important;
+}
+#readerSettings.momin-juz-settings-v1 .momin-quran-field>span{
+ display:block!important;
+ min-width:0!important;
+ color:#f5eddb!important;
+ font-size:13px!important;
+ line-height:1.45!important;
+ overflow-wrap:anywhere!important;
+}
+#readerSettings.momin-juz-settings-v1 .momin-quran-field select{
+ display:block!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+ background:#100f0c!important;
+ color:#f5eddb!important;
+ border-color:#8b7041!important;
+ color-scheme:dark;
+}
+#readerSettings.momin-juz-settings-v1 .momin-quran-field select option{
+ background:#100f0c!important;
+ color:#f5eddb!important;
+}
+#readerSettings.momin-juz-settings-v1 .momin-quran-settings-pane h3{
+ color:#e7c97f!important;
+}
+@media(max-width:520px){
+ #readerSettings.momin-juz-settings-v1 .momin-quran-field{
+  grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr)!important;
+  gap:9px!important;padding:14px 12px!important;
+ }
+}
+@media(max-width:360px){
+ #readerSettings.momin-juz-settings-v1 .momin-quran-field>span{font-size:12px!important}
+}
