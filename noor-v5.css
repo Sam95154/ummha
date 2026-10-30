@@ -114,3 +114,50 @@ body.app-sepia{--bg:#eee5cf;--paper:#fff7e4;--ink:#382e22;--muted:#817464;--line
 .momin-settings-page #settingsTranslationStatusV6{margin:2px 0 14px;font-size:11px;line-height:1.5}
 @media(max-width:700px){.momin-settings-page .settings-save-actions{margin-top:14px}.momin-settings-page .settings-save-btn{width:100%;min-height:46px}}
 
+
+
+/* Quran reader alignment fix — keep the Arabic column stable on narrow screens. */
+.quran-reader .ayah-block{min-width:0;width:100%;max-width:100%;box-sizing:border-box}
+.quran-reader .ayah-arabic-row{
+ display:grid!important;grid-template-columns:38px minmax(0,1fr)!important;
+ align-items:start!important;gap:12px!important;width:100%;max-width:100%;min-width:0;
+ margin:22px 0 6px!important;direction:ltr!important;box-sizing:border-box
+}
+.quran-reader .ayah-arabic-row .ayah-rosette{grid-column:1;justify-self:center;align-self:start;flex:none;margin-top:10px}
+.quran-reader .ayah-arabic-row .arabic{
+ grid-column:2;display:block;flex:none!important;min-width:0!important;width:100%!important;max-width:100%;
+ margin:0;padding:0;text-align:right!important;direction:rtl!important;unicode-bidi:plaintext;
+ overflow-wrap:break-word;word-break:normal;font-family:"Noto Naskh Arabic","Amiri","Traditional Arabic",serif;box-sizing:border-box
+}
+.quran-reader .arabic *{unicode-bidi:plaintext}
+.quran-reader.reader-translit-hidden .ayah-transliteration{display:none!important}
+.quran-reader.reader-meaning-hidden .ayah-translation{display:none!important}
+.quran-reader.reader-translations-hidden .ayah-translation,.quran-reader.reader-translations-hidden .ayah-transliteration{display:none!important}
+.quran-reader.reader-page-mode .momin-quran-mushaf-page-v8{
+ max-width:760px;margin:12px auto 18px;padding:18px 16px 24px;
+ border:1px solid var(--reader-line,#d8cfbd);border-radius:18px;
+ background:var(--reader-paper,#fffdf6);box-shadow:0 12px 28px rgba(0,0,0,.07)
+}
+.quran-reader.reader-page-mode .momin-quran-mushaf-page-head{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 13px;padding:0 0 12px;
+ border-bottom:1px solid var(--reader-line,#d8cfbd);color:var(--reader-muted,#827969);font-size:11px;font-weight:650
+}
+.quran-reader.reader-page-mode .momin-quran-mushaf-page .ayah-block{
+ margin:0;padding:10px 0 15px;border-bottom:1px solid color-mix(in srgb,var(--reader-line,#d8cfbd) 58%,transparent)
+}
+.momin-quran-page-nav-v8{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:760px;margin:14px auto 24px;padding:12px 0
+}
+.momin-quran-page-nav-v8 button{
+ min-height:42px;padding:9px 13px;border:1px solid #b99b5c;border-radius:99px;background:#f6edda;color:#3c3020;font-size:12px;font-weight:700
+}
+.momin-quran-page-nav-v8 button:disabled{opacity:.35}
+.momin-quran-page-nav-v8 span{color:var(--reader-muted,#887d68);font-size:11px;text-align:center}
+@media(max-width:420px){
+ .quran-reader .ayah-arabic-row{grid-template-columns:32px minmax(0,1fr)!important;gap:9px!important}
+ .quran-reader .ayah-arabic-row .ayah-rosette{width:30px;height:30px;flex-basis:30px;margin-top:8px}
+ .quran-reader .ayah-arabic-row .arabic{line-height:2.05}
+ .quran-reader.reader-page-mode .momin-quran-mushaf-page-v8{padding:13px 10px 19px;border-radius:14px}
+ .momin-quran-page-nav-v8 button{padding:8px 9px;font-size:10px}
+ .momin-quran-page-nav-v8 span{font-size:9px}
+}
