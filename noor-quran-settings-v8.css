@@ -105,3 +105,13 @@
 .qv-juz-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-pane h3{color:#e7c97f!important}
 .quran-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-hint,
 .qv-juz-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-hint{color:#c3b391!important}
+
+/* Dark reader settings: maintain visible contrast in Display, Text and Audio sections. */
+.quran-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-pane h3,
+.qv-juz-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-pane h3{
+ color:#e7c97f!important;text-shadow:0 1px 0 rgba(0,0,0,.18)
+}
+.quran-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-hint,
+.qv-juz-reader.reader-night #readerSettings.momin-reader-settings-v8 .momin-quran-settings-hint{
+ color:#c3b391!important
+}
