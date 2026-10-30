@@ -131,6 +131,10 @@ var entries = [
   function duaLandingViewV1() {
     var cats = duaCategoriesV1;
     var essentialIds = ["home-01","food-01","distress-01","sleep-01"];
+    var dailyTotal = ["morning","sleep","prayer"].reduce(function (total, slug) {
+      var category = categoryDuaV1(slug);
+      return total + (category ? category.chapters.reduce(function (n, chapter) { return n + chapter.entries.length; }, 0) : 0);
+    }, 0);
     return '<section class="dua-page dua-library">' +
       topDuaV1("Duas", "#/home", '<a class="dua-favorite-trigger" href="#/dua-special/bookmarks" aria-label="Open saved duas" title="Saved duas"><svg class="dua-header-heart" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.7a5.2 5.2 0 0 0-7.4 0L12 6.1l-1.4-1.4a5.2 5.2 0 0 0-7.4 7.4l1.4 1.4L12 20l7.4-6.5 1.4-1.4a5.2 5.2 0 0 0 0-7.4Z"/></svg></a>') +
       '<div class="dua-search-wrap"><span>⌕</span><input id="dua-search" type="search" placeholder="Search duas, occasions, or categories" autocomplete="off" aria-label="Search duas"><button id="dua-clear-search" type="button" data-act="dua-clear-search" aria-label="Clear search" hidden>×</button></div>' +
@@ -141,14 +145,16 @@ var entries = [
         '<a href="#/dua-special/collection" style="display:grid;grid-template-columns:34px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;justify-items:start;column-gap:8px;row-gap:2px;min-width:0;min-height:60px;padding:8px;text-align:left;text-decoration:none;color:#e8f3ee;background:rgba(222,245,235,.055);border:1px solid rgba(226,245,235,.09);border-radius:12px;font-size:11px;line-height:1.3"><span class="shortcut-icon" style="grid-column:1;grid-row:1/span 2;display:grid;place-items:center;width:34px;height:36px;font-size:22px">📖</span><span style="grid-column:2;grid-row:1;min-width:0;overflow-wrap:anywhere">Hisnul Muslim</span><small style="grid-column:2;grid-row:2;display:block;width:100%;min-width:0;color:#aac8bf;font-size:10px;line-height:1.25;text-align:left;white-space:normal;overflow-wrap:anywhere">Collections</small></a>' +
         '<a href="#/tasbih" style="display:grid;grid-template-columns:34px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;justify-items:start;column-gap:8px;row-gap:2px;min-width:0;min-height:60px;padding:8px;text-align:left;text-decoration:none;color:#e8f3ee;background:rgba(222,245,235,.055);border:1px solid rgba(226,245,235,.09);border-radius:12px;font-size:11px;line-height:1.3"><span class="shortcut-icon" style="grid-column:1;grid-row:1/span 2;display:grid;place-items:center;width:34px;height:36px;font-size:22px">📿</span><span style="grid-column:2;grid-row:1;min-width:0;overflow-wrap:anywhere">Tasbih</span><small style="grid-column:2;grid-row:2;display:block;width:100%;min-width:0;color:#aac8bf;font-size:10px;line-height:1.25;text-align:left;white-space:normal;overflow-wrap:anywhere">Dhikr counter</small></a></div>' +
       '<div class="dua-section-head"><div><p class="dua-eyebrow">A MOMENT OF REMEMBRANCE</p><h2>Daily Remembrances</h2></div><a href="#/dua-special/daily">See all ↗</a></div>' +
-      '<a class="dua-feature-card" href="#/dua-special/daily">' + artDuaV1("dawn","☾") + '<div class="dua-feature-copy"><span class="dua-tag">CURATED COLLECTION</span><h3>Daily adhkar</h3><p>Morning, evening, and everyday remembrances</p><small>' + (categoryDuaV1("morning") ? categoryDuaV1("morning").chapters[0].entries.length : 0) + ' supplications in this collection <span>→</span></small></div></a>' +
+      '<a class="dua-feature-card" href="#/dua-special/daily">' + artDuaV1("dawn","☾") + '<div class="dua-feature-copy"><span class="dua-tag">CURATED COLLECTION</span><h3>Daily adhkar</h3><p>Morning, evening, and everyday remembrances</p><small>' + dailyTotal + ' supplications in this collection <span>→</span></small></div></a>' +
       '<div class="dua-section-head"><div><p class="dua-eyebrow">EXPLORE COLLECTIONS</p><h2>Hisnul Muslim</h2></div><a href="#/dua-special/collection">View all ↗</a></div>' +
       '<div class="dua-card-scroller">' + cats.filter(function (c) { return ["morning","prayer","praise","travel","distress","home"].indexOf(c.slug) >= 0; }).map(function (c) {
-        return '<a class="dua-category-card" href="#/dua-category/' + c.slug + '">' + artDuaV1(c.art,c.icon) + '<div class="dua-category-copy"><h3>' + escapeDuaV1(c.title) + '</h3><p>' + c.chapters.length + ' chapters</p></div></a>';
+        var count = c.chapters.reduce(function (n, chapter) { return n + chapter.entries.length; }, 0);
+        return '<a class="dua-category-card" href="#/dua-category/' + c.slug + '">' + artDuaV1(c.art,c.icon) + '<div class="dua-category-copy"><h3>' + escapeDuaV1(c.title) + '</h3><p>' + count + ' duas</p></div></a>';
       }).join("") + '</div>' +
       '<div class="dua-section-head"><div><p class="dua-eyebrow">FROM THE QURAN & DAILY LIFE</p><h2>Essential Duas</h2></div><a href="#/dua-special/collection">See all ↗</a></div>' +
       '<div class="dua-essential-grid">' + cats.filter(function (c) { return ["home","food","distress","sleep"].indexOf(c.slug) >= 0; }).map(function (c) {
-        return '<a class="dua-essential-card" href="#/dua-category/' + c.slug + '">' + artDuaV1(c.art,c.icon) + '<div><h3>' + escapeDuaV1(c.title) + '</h3><p>' + c.chapters.length + ' topics</p><span>Explore collection ↗</span></div></a>';
+        var count = c.chapters.reduce(function (n, chapter) { return n + chapter.entries.length; }, 0);
+        return '<a class="dua-essential-card" href="#/dua-category/' + c.slug + '">' + artDuaV1(c.art,c.icon) + '<div><h3>' + escapeDuaV1(c.title) + '</h3><p>' + count + ' duas</p><span>Explore collection ↗</span></div></a>';
       }).join("") + '</div>' +
       '<div class="dua-note">A source-linked starter collection. Check each reference for original text and narration context.</div>' + navDuaV1("duas") + '</section>';
   }
