@@ -120,3 +120,41 @@
 #readerSettings.momin-juz-settings-v1 .momin-quran-settings-tabs{
  grid-template-columns:repeat(2,minmax(0,1fr))!important;
 }
+
+
+/* Mobile settings fix: visible dark-theme field labels and LTR script carousel. */
+html[data-theme="dark"] #readerSettings.momin-reader-settings-v8 .momin-quran-field{
+ color:#f5eddb!important;
+ background:#211c14!important;
+ border-color:#584629!important;
+}
+html[data-theme="dark"] #readerSettings.momin-reader-settings-v8 .momin-quran-field>span{
+ color:#f5eddb!important;
+}
+html[data-theme="dark"] #readerSettings.momin-reader-settings-v8 .momin-quran-field select{
+ color:#f5eddb!important;
+ background:#100f0c!important;
+ border-color:#584629!important;
+ color-scheme:dark;
+}
+html[data-theme="dark"] #readerSettings.momin-reader-settings-v8 .momin-quran-field select option{
+ color:#f5eddb!important;background:#100f0c!important;
+}
+#readerSettings.momin-reader-settings-v8 .momin-quran-script-options{
+ direction:ltr!important;
+ display:flex!important;
+ flex-direction:row!important;
+ justify-content:flex-start!important;
+ align-items:stretch!important;
+ scroll-snap-type:x mandatory;
+ scroll-padding-inline:2px;
+}
+#readerSettings.momin-reader-settings-v8 .momin-quran-script-card{
+ direction:ltr!important;
+ flex:0 0 clamp(118px,36vw,138px)!important;
+ scroll-snap-align:start;
+}
+#readerSettings.momin-reader-settings-v8 .momin-quran-script-card>span:last-child{
+ text-align:center!important;
+ overflow-wrap:anywhere;
+}
