@@ -411,4 +411,40 @@ var entries = [
       if(document.body.classList.contains("dua-app-mode")&&typeof renderDuaV1==="function")renderDuaV1();
     }
   };
+
+  /* Public bridge for the redesigned Duas catalogue and the native reader. */
+  window.MominDuasNativeV1={
+    openDua:function(id){
+      var entry=itemDuaV1(String(id||""));
+      if(!entry)return false;
+      page="duas";
+      document.body.classList.add("dua-app-mode");
+      var chapter=chapterDuaV1(entry.chapter);
+      var target="#/dua-detail/"+encodeURIComponent(entry.id)+"/"+encodeURIComponent(chapter?chapter.slug:entry.chapter);
+      if(location.hash===target)renderDuaV1();
+      else location.hash=target;
+      window.scrollTo(0,0);
+      return true;
+    },
+    syncState:function(savedIds,seenIds){
+      if(Array.isArray(savedIds)){
+        duaStateV1.bookmarks=savedIds.map(function(id){return "d:"+String(id||"")}).filter(function(k){return itemDuaV1(k.slice(2))}).filter(function(k,i,a){return a.indexOf(k)===i;});
+      }
+      if(Array.isArray(seenIds)){
+        duaStateV1.recents=seenIds.map(function(id){return String(id||"")}).filter(function(id){return !!itemDuaV1(id)}).filter(function(id,i,a){return a.indexOf(id)===i;}).slice(0,30);
+      }
+      persistDuaV1();
+      return {bookmarks:duaStateV1.bookmarks.length,recents:duaStateV1.recents.length};
+    },
+    getDua:function(id){
+      var entry=itemDuaV1(String(id||""));
+      if(!entry)return null;
+      return {
+        id:entry.id,title:entry.title,category:entry.category,chapter:entry.chapter,
+        arabic:entry.arabic,transliteration:entry.transliteration,
+        translation:entry.translation,reference:entry.reference,
+        sourceUrl:entry.sourceUrl,occasion:entry.occasion
+      };
+    }
+  };
 })();
