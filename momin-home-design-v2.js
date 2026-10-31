@@ -149,7 +149,7 @@ function build(){
     '<button class="tab" aria-current="page" data-i="0" type="button" onclick="go(\'home\')"><svg class="i"><use href="#i-home"/></svg>Home</button>'+
     '<button class="tab" data-i="1" data-name="Prayers" type="button" onclick="go(\'prayers\')"><svg class="i"><use href="#i-clock"/></svg>Prayers</button>'+
     '<button class="tab" data-i="2" data-name="Quran" type="button" onclick="go(\'quran\')"><svg class="i"><use href="#i-book"/></svg>Quran</button>'+
-    '<button class="tab" data-i="3" data-name="Journey" type="button" onclick="go(\'journey\')"><svg class="i"><use href="#i-path"/></svg>Journey</button></nav></div>';
+    '<button class="tab" data-i="3" data-name="Journey" type="button" onclick="go(\'profile\')"><svg class="i"><use href="#i-path"/></svg>Journey</button></nav></div>';
 }
 function sync(){
   if(!document.querySelector('.app')||!document.body.classList.contains('momin-home-v3-active'))return;
