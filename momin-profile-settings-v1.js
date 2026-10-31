@@ -32,7 +32,7 @@
       (firebaseProviders[0]&&String(firebaseProviders[0].providerId||"").replace(".com",""))||"";
     var name=user.name||user.displayName||meta.full_name||meta.name||meta.display_name||"";
     var email=user.email||"";
-    var avatar=user.picture||user.photoURL||meta.avatar_url||meta.picture||meta.photo_url||"";
+    var avatar=meta.avatar_url||meta.picture||meta.photo_url||user.picture||user.photoURL||"";
     var verified=!!(user.email_verified||user.emailVerified||user.email_confirmed_at||meta.email_verified);
     return {
       id:String(user.id||user.sub||""),
@@ -257,7 +257,7 @@
         invoke("listDevices");
       }
     },
-    setUser:function(user,quiet){authUser=normaliseUser(user);if(!quiet){refreshScreen();if(authUser&&typeof actions.listDevices==="function")invoke("listDevices");}return authUser?Object.assign({},authUser):null;},
+    setUser:function(user,quiet){authUser=normaliseUser(user);if(!quiet){refreshScreen();if(authUser&&typeof actions.listDevices==="function")invoke("listDevices");}else{syncChrome();}return authUser?Object.assign({},authUser):null;},
     setDevices:function(list){devices=Array.isArray(list)?list.slice():[];refreshScreen();},
     clearSession:function(){authUser=null;devices=[];refreshScreen();},
     getUser:function(){return authUser?Object.assign({},authUser):null;},
