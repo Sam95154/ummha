@@ -132,6 +132,7 @@ function profileMarkup(){
  }).join(""):'<div class="pf-empty">'+(u?"No additional devices were returned by your account service.":"Sign in to view devices linked to your MOMIN account.")+'</div>';
  return '<div class="pf" id="pfBox"><h4 class="pf-t">'+(u?"Your account":"Guest profile")+'</h4>'+
   '<div class="pf-line"><span>Profile image</span><span class="pf-av">'+photo+'</span></div>'+
+  (u?'<button type="button" class="pf-link" data-act="change-profile-photo">Upload / Change profile photo</button><p class="pf-hint">You can update your profile photo whenever you like. JPG, PNG, WebP or AVIF · Max 5 MB.</p>':'')+
   '<div class="pf-line"><span>Name</span><b>'+(u?esc(u.name||"Name not supplied"):"Available after sign-in")+'</b></div>'+
   '<div class="pf-f"><span>Email address</span><div class="pf-em"><b>'+(u?esc(u.email||"No email supplied"):"Available after sign-in")+'</b></div>'+(u?'<small class="'+(u.emailVerified?"pf-ok":"pf-warn")+'">'+(u.emailVerified?"Verified by sign-in provider":"Verification status not supplied")+'</small>':"")+'</div>'+
   '<div class="pf-f"><span>Sign-in method</span><div class="pf-em"><b>'+(u?esc(u.provider||"Account sign-in"):"Not connected")+'</b></div></div>'+
@@ -229,7 +230,8 @@ function buildSections(){
   '<div class="card2"><h4>Privacy &amp; transparency</h4><p>Signed-in account details are supplied by your sign-in provider. App preferences remain stored in this browser. Some features use external online services, and background notifications are not guaranteed.</p><p>Prayer timings and Hijri dates can vary by location, calculation method and moon-sighting practice.</p></div>'+
   '<p class="tag">Made to support your daily journey of faith.</p>'+
   rowAction("Share MOMIN","Share the app link.",button("Share MOMIN","ghost sm","share"))+
-  rowAction("Privacy & Data","Learn what is stored and what online features may share.",button("View privacy details","ghost sm","privacy"))});
+  rowAction("Privacy & Data","Learn what is stored and what online features may share.",button("View privacy details","ghost sm","privacy"))+
+  '<div class="card2 momin-support-card"><h4>Support</h4><p>For any inquiry, please email us at <a href="mailto:mominsupport0@gmail.com">mominsupport0@gmail.com</a>.</p></div>'});
  var target=document.getElementById("secs");
  target.innerHTML=sections.map(function(sec,i){
   var open=sec.id==="profile";
@@ -370,6 +372,15 @@ function saveSection(section,saveId){
  try{localStorage.setItem("momin-settings",JSON.stringify(saved));}catch(_){}
  refresh();toast(section.querySelector(".t b").textContent+" saved");
 }
+window.refreshMominSettingsProfileV2=function(){
+ var current=document.getElementById("pfBox");
+ if(current)current.outerHTML=profileMarkup();
+ var avatar=document.getElementById("avBtn"),u=user();
+ if(avatar){
+  if(u&&u.avatar)avatar.innerHTML='<img class="pf-avatar-photo" src="'+esc(u.avatar)+'" alt="">';
+  else avatar.textContent=((u&&u.name||"Guest").trim().charAt(0)||"G").toUpperCase();
+ }
+};
 function updateDraft(k,v){
  draft[k]=v;if(k==="calc")window.settingsMethodModeDraftV6=v==="auto"?"auto":"manual";
  refresh();
@@ -398,6 +409,7 @@ function act(action,button){
   if(dest.indexOf("settings-")===0){openSettingsSection(dest.slice(9));return;}
   if(typeof go==="function")go(dest);return;
  }
+ if(action==="change-profile-photo"){var input=document.getElementById("pfFile");if(input){input.value="";input.click();}else toast("Photo upload control is unavailable.");return;}
  if(action==="gps"){if(typeof window.useSettingsGpsV1==="function")window.useSettingsGpsV1();else if(typeof setLocation==="function")setLocation();else toast("Location access is not available here.");return;}
  if(action==="founder"){
   if(typeof window.openMominFounderRouteV1==="function")window.openMominFounderRouteV1();
@@ -444,6 +456,87 @@ function initializePage(){
  document.getElementById("secs").addEventListener("input",function(e){var el=e.target;if(el.dataset&&el.dataset.k&&el.tagName==="INPUT")updateDraft(el.dataset.k,el.value);});
  document.getElementById("secs").addEventListener("change",function(e){var el=e.target;if(el.dataset&&el.dataset.k&&el.tagName==="SELECT")updateDraft(el.dataset.k,el.value);});
  document.getElementById("extras").addEventListener("click",function(e){var action=e.target.closest("[data-act]");if(action)act(action.dataset.act,action);});
+async function uploadMominProfilePhotoV2(file,input){
+ var sb=window.mominSupabase,profileApi=window.MominProfileSettingsV1;
+ if(!sb||!sb.auth||!sb.storage){toast("Profile photo storage is not available. Refresh MOMIN and try again.");return;}
+ if(!file)return;
+ var allowed=["image/jpeg","image/png","image/webp","image/avif"];
+ if(allowed.indexOf(file.type)<0){toast("Choose a JPG, PNG, WebP or AVIF image.");return;}
+ if(file.size>5*1024*1024){toast("Choose an image smaller than 5 MB.");return;}
+ var uploadButton=document.querySelector('#pfBox [data-act="change-profile-photo"]');
+ var oldLabel=uploadButton&&uploadButton.textContent;
+ if(uploadButton){uploadButton.disabled=true;uploadButton.textContent="Uploading photo…";}
+ toast("Uploading your profile photo…");
+ var uploadedPath=null;
+ try{
+  var auth=await sb.auth.getUser();
+  if(auth.error)throw auth.error;
+  var currentUser=auth.data&&auth.data.user;
+  if(!currentUser)throw new Error("Please sign in before uploading a profile photo.");
+  var bitmap=await createImageBitmap(file);
+  var longest=Math.max(bitmap.width,bitmap.height);
+  var scale=Math.min(1,640/longest);
+  var canvas=document.createElement("canvas");
+  canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+  canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+  var context=canvas.getContext("2d");
+  if(!context)throw new Error("This browser could not prepare the selected photo.");
+  context.drawImage(bitmap,0,0,canvas.width,canvas.height);
+  if(bitmap.close)bitmap.close();
+  var blob=await new Promise(function(resolve,reject){
+    canvas.toBlob(function(result){if(result)resolve(result);else reject(new Error("Could not process the selected photo."));},"image/jpeg",0.86);
+  });
+  var token=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():Date.now().toString(36)+"-"+Math.random().toString(36).slice(2);
+  uploadedPath=currentUser.id+"/"+token+".jpg";
+  var uploaded=await sb.storage.from("avatars").upload(uploadedPath,blob,{
+    contentType:"image/jpeg",cacheControl:"31536000",upsert:false
+  });
+  if(uploaded.error)throw uploaded.error;
+  var publicResult=sb.storage.from("avatars").getPublicUrl(uploadedPath);
+  var photoUrl=publicResult&&publicResult.data&&publicResult.data.publicUrl;
+  if(!photoUrl)throw new Error("The uploaded photo URL could not be created.");
+  var updated=await sb.auth.updateUser({data:{avatar_url:photoUrl}});
+  if(updated.error)throw updated.error;
+  var updatedUser=updated.data&&updated.data.user;
+  if(!updatedUser)throw new Error("The photo uploaded, but the account did not return the updated profile.");
+  if(profileApi&&typeof profileApi.setUser==="function")profileApi.setUser(updatedUser,true);
+  try{
+    var meta=updatedUser.user_metadata||{};
+    await sb.from("momin_profiles").upsert({
+      user_id:updatedUser.id,
+      display_name:meta.full_name||meta.name||meta.display_name||updatedUser.email||"",
+      email:updatedUser.email||null,
+      avatar_url:photoUrl,
+      auth_provider:(updatedUser.app_metadata&&updatedUser.app_metadata.provider)||"email",
+      email_verified:!!updatedUser.email_confirmed_at,
+      updated_at:new Date().toISOString()
+    },{onConflict:"user_id"});
+  }catch(profileError){console.warn("MOMIN profile avatar sync:",profileError&&profileError.message);}
+  if(typeof window.refreshMominSettingsProfileV2==="function")window.refreshMominSettingsProfileV2();
+  var oldUrl=currentUser.user_metadata&&currentUser.user_metadata.avatar_url||"";
+  var marker="/storage/v1/object/public/avatars/";
+  var oldAt=oldUrl.indexOf(marker);
+  if(oldAt>=0){
+    var oldPath="";
+    try{oldPath=decodeURIComponent(oldUrl.slice(oldAt+marker.length).split("?")[0]);}catch(_){}
+    if(oldPath&&oldPath.indexOf(currentUser.id+"/")===0&&oldPath!==uploadedPath){
+      sb.storage.from("avatars").remove([oldPath]).catch(function(){});
+    }
+  }
+  toast("Profile photo updated successfully.");
+ }catch(error){
+  if(uploadedPath){try{await sb.storage.from("avatars").remove([uploadedPath]);}catch(_){}}
+  toast(error&&error.message||"Could not upload the profile photo.");
+ }finally{
+  if(uploadButton){uploadButton.disabled=false;uploadButton.textContent=oldLabel||"Upload / Change profile photo";}
+  if(input)input.value="";
+ }
+}
+
+ document.getElementById("pfFile").addEventListener("change",function(e){
+  var input=e.target,file=input.files&&input.files[0];
+  if(file)uploadMominProfilePhotoV2(file,input);
+ });
  document.getElementById("imp").addEventListener("change",function(e){
   var input=e.target,file=input.files&&input.files[0];if(!file)return;
   if(typeof window.importMominDataV1==="function")window.importMominDataV1(file,input);else toast("MOMIN backup import is not available.");
