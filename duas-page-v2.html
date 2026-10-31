@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<!--
+MOMIN DUAS — REDESIGNED SECTION (single standalone file)
+
+INTEGRATION NOTES
+1. Data: edit only the DATA block in the script (HILLS, C, DAILY, ITEMS). Replace those arrays with calls to your
+   native Dua engine. Each item = {id, t:title, s:reference, c:[collection ids]}. Nothing else needs to change.
+2. Parent bridge (unchanged contract): window.parent.MominDuasBridgeV1.openDua(id) and .navigate(route).
+   NEW: .navigate("home") is also called when Back is pressed on the first Duas screen (leaves the section).
+   Routes used: "home", "quran", "tasbeeh".
+3. Storage keys (unchanged): duas-saved, duas-seen. RECENT_BASE keeps the original "views already recorded" offset.
+4. Hash routes (unchanged): #home #collections #saved #recent #daily #c-<collectionId>.
+5. Height: posts {type:"momin-duas-height-v1", height} to the parent as before.
+6. Theme: fixed dark charcoal and gold. The parent light/dark sync was removed on purpose.
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c0a07">
+<meta name="color-scheme" content="dark">
+<title>MOMIN — Duas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<style>
+:root{--bg:#0c0a07;--card:#17140f;--card2:#1f1a12;--line:#2e2819;--ink:#f4ecd8;--muted:#a39a85;--gold:#d4a63f;--gold2:#e8c071;--soft:rgba(212,166,63,.13);--glass:rgba(14,11,8,.88);--shadow:rgba(0,0,0,.6);
+--serif:"Playfair Display",Georgia,"Times New Roman",serif;--sans:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--ease:cubic-bezier(.22,1,.36,1);color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg);scroll-padding-top:90px}
+body{margin:0;background:radial-gradient(80% 34% at 100% 0%,rgba(212,166,63,.11),transparent 70%),var(--bg);color:var(--ink);font:400 15px/1.45 var(--sans);padding:0 max(16px,env(safe-area-inset-right,0px)) 136px max(16px,env(safe-area-inset-left,0px));-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+button,input{font:inherit;color:inherit}button{cursor:pointer;border:0;background:none;padding:0}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--gold2);outline-offset:3px;border-radius:12px}
+svg{display:block}.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.app{max-width:480px;margin:0 auto}
+
+/* top bar: back (left), compact title (centre), saved (right) */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-inline:-16px;padding:10px 16px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid transparent;transition:border-color .3s}
+.bar.sc{border-bottom-color:var(--line)}
+.back{justify-self:start;display:inline-flex;align-items:center;gap:2px;height:44px;max-width:100%;padding:0 16px 0 8px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-weight:600;font-size:14.5px;transition:transform .25s var(--ease),border-color .25s,background .25s}
+.back .i{color:var(--gold2);transition:transform .3s var(--ease)}
+.back:hover{border-color:var(--gold);background:var(--soft)}.back:hover .i{transform:translateX(-3px)}.back:active{transform:scale(.95)}
+.back span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:112px}
+.btitle{margin:0;max-width:38vw;font:600 17px var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translateY(6px);transition:opacity .3s,transform .35s var(--ease)}
+.bar.tt .btitle{opacity:1;transform:none}
+.act{position:relative;justify-self:end;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--gold2);transition:transform .25s var(--ease),border-color .25s}
+.act:hover{border-color:var(--gold)}.act:active{transform:scale(.9)}
+.act .cnt{position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--gold);color:#1a1204;font-size:11px;font-weight:700;display:grid;place-items:center}
+.act .cnt[hidden]{display:none}
+
+/* view transitions */
+#view{animation:vin .55s var(--ease) both}
+#view.bwd{--dx:-26px}
+@keyframes vin{from{opacity:0;transform:translateX(var(--dx,26px))}}
+.rise{animation:rise .65s var(--ease) both;animation-delay:calc(var(--d,0)*60ms)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.ph{padding:20px 2px 2px}
+.ph h1{margin:0;font:600 clamp(32px,9vw,38px)/1.08 var(--serif);letter-spacing:-.015em}
+.ph p{margin:8px 0 0;color:var(--muted)}
+
+/* search */
+.search{margin-top:18px;display:flex;align-items:center;gap:10px;height:56px;padding:0 8px 0 18px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);transition:border-color .25s,box-shadow .25s}
+.search:focus-within{border-color:var(--gold);box-shadow:0 0 0 4px var(--soft)}
+.search .i{color:var(--muted)}
+.search input{flex:1;min-width:0;height:100%;background:none;border:0;outline:0;font-size:16px}
+.search input::placeholder{color:var(--muted)}
+.search input::-webkit-search-cancel-button{display:none}
+.search .x{width:40px;height:40px;border-radius:50%;background:var(--soft);color:var(--gold2);display:grid;place-items:center;transform:scale(0);transition:transform .3s var(--ease)}
+.search.has .x{transform:scale(1)}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.q{display:flex;flex-direction:column;align-items:flex-start;gap:14px;min-width:0;padding:16px;text-align:left;border-radius:22px;background:var(--card);border:1px solid var(--line);transition:transform .35s var(--ease),border-color .25s}
+.q:hover{transform:translateY(-3px);border-color:var(--gold)}.q:active{transform:scale(.96)}
+.q .qi{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--soft);color:var(--gold2)}
+.q div{min-width:0;width:100%}.q span span{display:inline}.q b{display:block;font-weight:600;font-size:15.5px}
+.q span{display:block;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.sh{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:36px 2px 14px}
+.sh small{display:block;margin-bottom:6px;color:var(--gold);font-weight:700;letter-spacing:.16em;font-size:11px;text-transform:uppercase}
+.sh h2{margin:0;font:600 26px/1.1 var(--serif);letter-spacing:-.01em}
+.sh a{display:inline-flex;gap:6px;color:var(--gold);font-weight:600;font-size:14.5px;white-space:nowrap;transition:gap .3s var(--ease)}.sh a:hover{gap:10px}
+
+/* scenes: warm dusk skies, no green, fixed icon size */
+.scene{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--s1),var(--s2))}
+.scene .sun{position:absolute;right:10%;top:8%;width:50%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(255,226,160,.5),transparent 68%);animation:breathe 6s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.15);opacity:.7}}
+.scene .st{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff3d0;animation:tw 3.6s ease-in-out infinite}
+@keyframes tw{50%{opacity:.2;transform:scale(.6)}}
+.scene .hills{position:absolute;left:0;bottom:0;width:100%;height:58%}
+.hills .h1{fill:rgba(10,8,5,.5)}.hills .h2{fill:rgba(10,8,5,.74)}
+.scene .ico{position:absolute;z-index:2;right:17%;top:20%;width:clamp(34px,26%,52px);height:auto;aspect-ratio:1;color:#fff3d6;fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 4px 12px rgba(255,214,130,.55));animation:bob 7s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px) rotate(-2deg)}}
+
+.hero{display:block;overflow:hidden;border-radius:28px;background:var(--card);border:1px solid var(--line);box-shadow:0 26px 44px -30px var(--shadow);transition:transform .4s var(--ease),border-color .25s}
+.hero:hover{transform:translateY(-4px);border-color:var(--gold)}.hero:active{transform:scale(.985)}
+.hero .scene{aspect-ratio:2.2}
+.hero .hb2{display:flex;flex-direction:column;gap:8px;padding:18px 20px 20px}
+.tag{align-self:flex-start;padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--gold);font-size:10.5px;letter-spacing:.15em;font-weight:700;text-transform:uppercase}
+.hero h3{margin:0;font:600 25px/1.1 var(--serif)}
+.hero p{margin:0;color:var(--muted);font-size:14px}
+.hero .ft{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;color:var(--muted);font-size:13px}
+.hero .ft .go{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--soft);color:var(--gold2);transition:transform .3s var(--ease)}
+.hero:hover .go{transform:translateX(5px)}
+
+.ccard{display:flex;flex-direction:column;min-width:0;overflow:hidden;border-radius:24px;background:var(--card);border:1px solid var(--line);transition:transform .4s var(--ease),border-color .25s,box-shadow .4s}
+.ccard:hover{transform:translateY(-5px);border-color:var(--gold);box-shadow:0 22px 34px -24px var(--shadow)}.ccard:active{transform:scale(.97)}
+.ccard .scene{aspect-ratio:1.45}
+.ccard .cb{display:flex;flex-direction:column;gap:6px;padding:14px 16px 16px}
+.ccard b{font-size:16.5px;font-weight:600;line-height:1.2}
+.cn{align-self:flex-start;padding:3px 10px;border-radius:99px;background:var(--soft);color:var(--gold2);font-size:12.5px;font-weight:600}
+.cn.soon{background:rgba(255,255,255,.06);color:var(--muted)}
+.rail{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x proximity;margin-inline:-16px;padding:4px 16px 16px;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.rail .ccard{flex:none;width:min(62vw,236px);scroll-snap-align:start}
+.railwrap{position:relative}.railwrap::after{content:"";position:absolute;right:-16px;top:0;bottom:16px;width:36px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--bg))}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.note{margin-top:24px;padding:16px 18px;border-radius:20px;border:1px solid var(--line);color:var(--muted);font-size:13.5px}
+
+/* collection + lists */
+.banner{position:relative;margin-top:16px;overflow:hidden;border-radius:28px;border:1px solid var(--line)}
+.banner .scene{height:176px}
+.banner .bt{position:absolute;z-index:3;inset:auto 0 0;padding:48px 20px 18px;background:linear-gradient(0deg,rgba(8,6,3,.9),transparent);color:#f7f0df}
+.banner h1{margin:0;font:600 28px/1.1 var(--serif)}.banner p{margin:6px 0 0;font-size:14px;color:#d8cfb8}
+.lblrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:20px 2px 0;color:var(--muted);font-size:13.5px}
+.lblrow button{color:var(--gold);font-weight:600;font-size:13.5px;padding:8px 4px}
+.list{margin-top:12px;overflow:hidden;border-radius:24px;background:var(--card);border:1px solid var(--line)}
+.item{position:relative;display:flex;align-items:center;gap:14px;min-height:76px;padding:14px 12px 14px 16px;border-top:1px solid var(--line);cursor:pointer;transition:background .25s;animation:rise .55s var(--ease) both;animation-delay:calc(var(--d,0)*50ms)}
+.item:first-child{border-top:0}.item:hover{background:var(--card2)}
+.item .ib{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--soft);color:var(--gold2);font:600 15px var(--serif);font-variant-numeric:tabular-nums}
+.item .tx{flex:1;min-width:0}
+.item .tx b{display:block;font-size:16px;font-weight:600;line-height:1.3}
+.item .tx span{display:block;margin-top:3px;color:var(--gold);font-size:13px;line-height:1.35}
+.item .bm{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--muted);transition:transform .3s var(--ease),background .25s,color .25s}
+.item .bm:hover{background:var(--soft);color:var(--gold2)}.item .bm:active{transform:scale(.82)}
+.item .bm[aria-pressed="true"]{color:var(--gold2)}.item .bm[aria-pressed="true"] svg{fill:currentColor}
+.item .bm.pop{animation:pop .45s var(--ease)}@keyframes pop{40%{transform:scale(1.28)}}
+.item .go{flex:none;width:28px;color:var(--muted);transition:transform .3s var(--ease),color .25s}.item:hover .go{transform:translateX(3px);color:var(--gold)}
+@media(max-width:360px){.item .go{display:none}}
+mark{background:var(--soft);color:var(--gold2);border-radius:4px;padding:0 2px}
+.empty{margin-top:18px;padding:36px 24px;border-radius:26px;border:1px dashed var(--line);text-align:center;color:var(--muted)}
+.empty .eico{width:56px;height:56px;margin:0 auto 14px;border-radius:18px;display:grid;place-items:center;background:var(--soft);color:var(--gold2)}
+.empty b{display:block;margin-bottom:6px;color:var(--ink);font:600 21px var(--serif)}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:16px}
+.chip{padding:9px 16px;min-height:40px;border-radius:99px;border:1px solid var(--line);color:var(--gold2);font-weight:600;font-size:14px;transition:border-color .25s,background .25s}.chip:hover{border-color:var(--gold);background:var(--soft)}
+
+/* tab bar + toast */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;padding:0 max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));pointer-events:none}
+.tabs nav{pointer-events:auto;position:relative;max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);padding:6px;border-radius:26px;background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:0 22px 40px -18px var(--shadow)}
+.ind{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/5);border-radius:20px;background:var(--soft);border:1px solid var(--gold);transition:transform .5s var(--ease)}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 9px;font-size:12px;font-weight:600;color:var(--muted);transition:color .3s}
+.tab[aria-current="page"]{color:var(--gold2)}.tab .i{transition:transform .4s var(--ease)}.tab[aria-current="page"] .i{transform:translateY(-2px) scale(1.08)}
+.toast{position:fixed;left:50%;bottom:calc(98px + env(safe-area-inset-bottom,0px));z-index:40;display:flex;align-items:center;gap:14px;max-width:calc(100vw - 40px);padding:12px 18px;border-radius:16px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:500;opacity:0;transform:translate(-50%,20px);pointer-events:none;transition:opacity .3s,transform .4s var(--ease)}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{color:#7a5410;font-weight:700;padding:6px 2px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Embedded mode: MOMIN shared shell owns the only global header and bottom navigation. */
+body.momin-duas-embedded{padding:0 16px calc(126px + env(safe-area-inset-bottom,0px));background:transparent;min-height:0}
+body.momin-duas-embedded::before{display:none!important}
+body.momin-duas-embedded .bar,body.momin-duas-embedded .tabs{display:none!important}
+body.momin-duas-embedded .app{width:100%;max-width:480px;margin:0 auto}
+body.momin-duas-embedded .ph{padding-top:9px}
+body.momin-duas-embedded .toast{bottom:18px}
+.view-back{display:inline-flex;align-items:center;gap:9px;min-height:42px;margin:5px 0 11px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.035);color:var(--gold2);font-size:13px;font-weight:600;transition:background .2s,border-color .2s,transform .2s}
+.view-back .i{width:17px;height:17px}
+.view-back:active{transform:scale(.97)}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ic-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
+<symbol id="ic-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+<symbol id="ic-bookmark" viewBox="0 0 24 24"><path d="M6.5 3.5h11a1 1 0 0 1 1 1V21L12 16.8 5.5 21V4.5a1 1 0 0 1 1-1Z"/></symbol>
+<symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/></symbol>
+<symbol id="ic-book" viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5ZM12 6.5v13"/></symbol>
+<symbol id="ic-beads" viewBox="0 0 24 24"><circle cx="12" cy="4" r="1.6"/><circle cx="6.5" cy="7.5" r="1.6"/><circle cx="17.5" cy="7.5" r="1.6"/><circle cx="4.5" cy="13.5" r="1.6"/><circle cx="19.5" cy="13.5" r="1.6"/><circle cx="8" cy="18.5" r="1.6"/><circle cx="16" cy="18.5" r="1.6"/><path d="M12 20v2.5"/></symbol>
+<symbol id="ic-home" viewBox="0 0 24 24"><path d="M3.5 11 12 3.5 20.5 11V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1V11Z"/></symbol>
+<symbol id="ic-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></symbol>
+<symbol id="ic-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="ic-chev" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="ic-doc" viewBox="0 0 24 24"><rect x="4.5" y="3.5" width="15" height="17" rx="3"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></symbol>
+<symbol id="ic-sunrise" viewBox="0 0 24 24"><path d="M12 3v3M4.9 7.9l2.1 2.1M19.1 7.9 17 10M2 17h4M18 17h4M7 17a5 5 0 0 1 10 0M3 21h18"/></symbol>
+<symbol id="ic-mosque" viewBox="0 0 24 24"><path d="M12 2.5c1.2 1.2 1.2 2.6 0 3.5M7 21V12a5 5 0 0 1 10 0v9M3 21h18M3 21v-8M21 21v-8M10.5 21v-4a1.5 1.5 0 0 1 3 0v4"/></symbol>
+<symbol id="ic-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3ZM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/></symbol>
+<symbol id="ic-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></symbol>
+<symbol id="ic-hands" viewBox="0 0 24 24"><path d="M12 21c-3.5 0-7-2.5-7-7V9.5a1.5 1.5 0 0 1 3 0V12M8 12V6.5a1.5 1.5 0 0 1 3 0V11M11 11V5a1.5 1.5 0 0 1 3 0v6M14 11V6.5a1.5 1.5 0 0 1 3 0V14c0 4-2.5 7-5 7Z"/></symbol>
+<symbol id="ic-house" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-5h4v5"/></symbol>
+<symbol id="ic-plate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.4"/><path d="M2.5 4v6M5 4v6M3.75 10v10M21.5 4c-1.7 1.4-2.5 3.5-2.5 6h2.5v10"/></symbol>
+<symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8 7.5 9.5 4.4-1.5 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.8 12 2.4 2.4 4-4.4"/></symbol>
+<symbol id="ic-drop" viewBox="0 0 24 24"><path d="M12 3C9 7.5 6 10.6 6 14.5a6 6 0 0 0 12 0C18 10.6 15 7.5 12 3Z"/><path d="M9.2 15a2.8 2.8 0 0 0 2.4 2.5"/></symbol>
+<symbol id="ic-kaaba" viewBox="0 0 24 24"><path d="M3.5 8.5 12 5l8.5 3.5v9L12 21l-8.5-3.5v-9ZM12 12v9M3.5 8.5 12 12l8.5-3.5M3.5 11.5 12 15l8.5-3.5"/></symbol>
+<symbol id="ic-leaf" viewBox="0 0 24 24"><path d="M5 20C5 11 10 5 20 4c0 10-5 15-13 15M5 20c2-5 5-8 9-10"/></symbol>
+</defs></svg>
+
+<div class="app">
+  <header class="bar" id="bar">
+    <button class="back" id="back" type="button"><svg class="i" aria-hidden="true"><use href="#ic-back"/></svg><span id="backLbl">Home</span></button>
+    <h2 class="btitle" id="btitle">Duas</h2>
+    <button class="act" id="act" type="button" aria-label="Saved duas"><svg class="i" aria-hidden="true"><use href="#ic-bookmark"/></svg><span class="cnt" id="actCnt" hidden>0</span></button>
+  </header>
+  <main id="view"></main>
+</div>
+
+<div class="tabs"><nav aria-label="Primary">
+  <span class="ind" id="ind"></span>
+  <button class="tab" type="button" data-i="0" data-route="home" data-name="Home"><svg class="i" aria-hidden="true"><use href="#ic-home"/></svg>Home</button>
+  <button class="tab" type="button" data-i="1" data-route="quran" data-name="Quran"><svg class="i" aria-hidden="true"><use href="#ic-book"/></svg>Quran</button>
+  <button class="tab" type="button" data-i="2" aria-current="page"><svg class="i" aria-hidden="true"><use href="#ic-moon"/></svg>Duas</button>
+  <button class="tab" type="button" data-i="3" data-route="tasbeeh" data-name="Tasbih"><svg class="i" aria-hidden="true"><use href="#ic-beads"/></svg>Tasbih</button>
+  <button class="tab" type="button" data-i="4"><svg class="i" aria-hidden="true"><use href="#ic-bookmark"/></svg>Saved</button>
+</nav></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  var embedded=new URLSearchParams(location.search).get("embed")==="1";
+  if(embedded)document.body.classList.add("momin-duas-embedded");
+  var $=function(id){return document.getElementById(id)};
+  var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+
+  /* ================= DATA (replace with the native Dua engine) ================= */
+  var HILLS={
+    dome:'<path class="h2" d="M0 120V70C40 52 80 50 110 64C140 78 170 60 200 76V120Z"/><path class="h1" d="M30 120V84C50 62 90 58 120 72C150 86 175 80 200 92V120Z"/>',
+    peaks:'<path class="h2" d="M0 120V58L38 24L76 62L108 40L146 70L176 52L200 72V120Z"/><path class="h1" d="M0 120V84L44 50L92 90L124 70L170 96L200 80V120Z"/>',
+    city:'<path class="h2" d="M0 120V70H18V48L30 34L42 48V70H70L82 54L96 70H120V44L134 28L148 44V70H200V120Z"/><path class="h1" d="M0 120V92H40L60 74L84 92H130L150 80L176 92H200V120Z"/>'
+  };
+  var C=[
+  {
+    "id": "morning",
+    "n": "Morning & Evening",
+    "a": "#3b3257",
+    "b": "#e0a46a",
+    "h": "dome",
+    "i": "sunrise",
+    "d": "Begin and end the day with remembrance."
+  },
+  {
+    "id": "prayer",
+    "n": "Prayer & Mosque",
+    "a": "#3a2f1c",
+    "b": "#c9973f",
+    "h": "city",
+    "i": "mosque",
+    "d": "Duas for the masjid and moments around salah."
+  },
+  {
+    "id": "praise",
+    "n": "Praising Allah",
+    "a": "#2c3358",
+    "b": "#d9a35f",
+    "h": "dome",
+    "i": "spark",
+    "d": "Words of gratitude, glorification, and remembrance."
+  },
+  {
+    "id": "travel",
+    "n": "Travel",
+    "a": "#2e4057",
+    "b": "#cfa268",
+    "h": "dome",
+    "i": "compass",
+    "d": "Remember Allah when setting out and returning."
+  },
+  {
+    "id": "distress",
+    "n": "Joy & Distress",
+    "a": "#4a3550",
+    "b": "#e0a76e",
+    "h": "peaks",
+    "i": "hands",
+    "d": "Supplications for hardship, worry, and gratitude."
+  },
+  {
+    "id": "home",
+    "n": "Home & Family",
+    "a": "#4a3a28",
+    "b": "#d4a85c",
+    "h": "peaks",
+    "i": "house",
+    "d": "Remembrance at home and Quranic prayers for family."
+  },
+  {
+    "id": "food",
+    "n": "Food & Drink",
+    "a": "#5a3a1c",
+    "b": "#d89a3c",
+    "h": "dome",
+    "i": "plate",
+    "d": "Before, during, and after a meal; fasting."
+  },
+  {
+    "id": "sleep",
+    "n": "Sleep & Waking",
+    "a": "#151a38",
+    "b": "#5b4a7a",
+    "h": "dome",
+    "i": "moon",
+    "d": "Remembrance for rest and a new morning."
+  },
+  {
+    "id": "protection",
+    "n": "Protection",
+    "a": "#2a2f45",
+    "b": "#b88c4a",
+    "h": "peaks",
+    "i": "shield",
+    "d": "Seek Allah’s protection through Quran and remembrance."
+  },
+  {
+    "id": "forgiveness",
+    "n": "Forgiveness",
+    "a": "#2d2f58",
+    "b": "#d9a77a",
+    "h": "dome",
+    "i": "drop",
+    "d": "Ask Allah for pardon and turn back to Him."
+  },
+  {
+    "id": "hajj",
+    "n": "Hajj & Umrah",
+    "a": "#2b2415",
+    "b": "#c9a24d",
+    "h": "city",
+    "i": "kaaba",
+    "d": "Talbiyah and remembrance for the sacred journey."
+  },
+  {
+    "id": "health",
+    "n": "Sickness & Loss",
+    "a": "#3b3a30",
+    "b": "#bfa267",
+    "h": "peaks",
+    "i": "leaf",
+    "d": "Duas for healing, patience, and comfort."
+  }
+];
+  var DAILY={
+  "id": "daily",
+  "n": "Daily adhkar",
+  "a": "#2f3560",
+  "b": "#e2a971",
+  "h": "dome",
+  "i": "moon",
+  "d": "Morning, evening and everyday remembrances."
+};
+  var ITEMS=[
+  {
+    "id": "morning-01",
+    "t": "A morning remembrance",
+    "s": "Hisn al-Muslim · Morning remembrance",
+    "c": [
+      "morning",
+      "daily"
+    ]
+  },
+  {
+    "id": "morning-02",
+    "t": "Protection in the morning and evening",
+    "s": "Hisn al-Muslim · Morning and evening adhkar",
+    "c": [
+      "morning",
+      "daily"
+    ]
+  },
+  {
+    "id": "morning-03",
+    "t": "The master supplication for forgiveness",
+    "s": "Sahih al-Bukhari 6306 · Hisn al-Muslim 90",
+    "c": [
+      "morning",
+      "daily"
+    ]
+  },
+  {
+    "id": "prayer-01",
+    "t": "On entering the mosque",
+    "s": "Sahih Muslim 713 · Hisn al-Muslim 20",
+    "c": [
+      "prayer"
+    ]
+  },
+  {
+    "id": "prayer-02",
+    "t": "On leaving the mosque",
+    "s": "Sahih Muslim 713 · Hisn al-Muslim 21",
+    "c": [
+      "prayer"
+    ]
+  },
+  {
+    "id": "prayer-03",
+    "t": "A prayer for this life and the next",
+    "s": "Quran 2:201",
+    "c": [
+      "prayer"
+    ]
+  },
+  {
+    "id": "praise-01",
+    "t": "Glory and praise be to Allah",
+    "s": "Sahih al-Bukhari 6405 · Sahih Muslim 2691",
+    "c": [
+      "praise",
+      "daily"
+    ]
+  },
+  {
+    "id": "praise-02",
+    "t": "Words beloved to Allah",
+    "s": "Sahih Muslim 2137 · Hisn al-Muslim",
+    "c": [
+      "praise",
+      "daily"
+    ]
+  },
+  {
+    "id": "travel-01",
+    "t": "When setting out on a journey",
+    "s": "Quran 43:13–14 · Sahih Muslim 1342",
+    "c": [
+      "travel"
+    ]
+  },
+  {
+    "id": "travel-02",
+    "t": "When stopping during a journey",
+    "s": "Sahih Muslim 2708 · Hisn al-Muslim 216",
+    "c": [
+      "travel"
+    ]
+  },
+  {
+    "id": "travel-03",
+    "t": "A traveler's return",
+    "s": "Sahih al-Bukhari 1797 · Sahih Muslim 1344",
+    "c": [
+      "travel"
+    ]
+  },
+  {
+    "id": "distress-01",
+    "t": "When facing a difficult matter",
+    "s": "Hisn al-Muslim 139",
+    "c": [
+      "distress"
+    ]
+  },
+  {
+    "id": "distress-02",
+    "t": "For worry and sorrow",
+    "s": "Sahih al-Bukhari 6369 · Hisn al-Muslim 137",
+    "c": [
+      "distress"
+    ]
+  },
+  {
+    "id": "distress-03",
+    "t": "The supplication of Prophet Yunus",
+    "s": "Quran 21:87",
+    "c": [
+      "distress"
+    ]
+  },
+  {
+    "id": "distress-04",
+    "t": "For patience and steadiness",
+    "s": "Quran 2:250",
+    "c": [
+      "distress"
+    ]
+  },
+  {
+    "id": "home-01",
+    "t": "When leaving home",
+    "s": "Sunan Abi Dawud 5095 · Hisn al-Muslim 16",
+    "c": [
+      "home"
+    ]
+  },
+  {
+    "id": "home-02",
+    "t": "When entering home",
+    "s": "Sunan Abi Dawud 5096 · Hisn al-Muslim 18",
+    "c": [
+      "home"
+    ]
+  },
+  {
+    "id": "home-03",
+    "t": "A prayer for a peaceful family",
+    "s": "Quran 25:74",
+    "c": [
+      "home"
+    ]
+  },
+  {
+    "id": "home-04",
+    "t": "For children to establish prayer",
+    "s": "Quran 14:40",
+    "c": [
+      "home"
+    ]
+  },
+  {
+    "id": "food-01",
+    "t": "Before eating",
+    "s": "Sahih al-Bukhari 5376 · Hisn al-Muslim 178",
+    "c": [
+      "food"
+    ]
+  },
+  {
+    "id": "food-02",
+    "t": "If you forgot to begin with Allah's name",
+    "s": "Sunan Abi Dawud 3767 · Hisn al-Muslim 178",
+    "c": [
+      "food"
+    ]
+  },
+  {
+    "id": "food-03",
+    "t": "After finishing a meal",
+    "s": "Jamiʿ at-Tirmidhi 3458 · Hisn al-Muslim 180",
+    "c": [
+      "food"
+    ]
+  },
+  {
+    "id": "food-04",
+    "t": "When breaking the fast",
+    "s": "Sunan Abi Dawud 2357 · Hisn al-Muslim 176",
+    "c": [
+      "food"
+    ]
+  },
+  {
+    "id": "sleep-01",
+    "t": "Before sleeping",
+    "s": "Sahih al-Bukhari 6324 · Hisn al-Muslim 99",
+    "c": [
+      "sleep",
+      "daily"
+    ]
+  },
+  {
+    "id": "sleep-02",
+    "t": "Upon waking",
+    "s": "Sahih al-Bukhari 6312 · Hisn al-Muslim 100",
+    "c": [
+      "sleep",
+      "daily"
+    ]
+  },
+  {
+    "id": "protection-01",
+    "t": "Seeking refuge from harm",
+    "s": "Sahih Muslim 2708 · Hisn al-Muslim 216",
+    "c": [
+      "protection"
+    ]
+  },
+  {
+    "id": "protection-02",
+    "t": "Surah Al-Ikhlas",
+    "s": "Quran 112:1–4 · Hisn al-Muslim 99",
+    "c": [
+      "protection"
+    ]
+  },
+  {
+    "id": "forgiveness-01",
+    "t": "Seeking forgiveness and turning back",
+    "s": "Sahih al-Bukhari 6307 · Hisn al-Muslim 96",
+    "c": [
+      "forgiveness"
+    ]
+  },
+  {
+    "id": "forgiveness-02",
+    "t": "A prayer for forgiveness and mercy",
+    "s": "Quran 7:23",
+    "c": [
+      "forgiveness"
+    ]
+  },
+  {
+    "id": "hajj-01",
+    "t": "The Talbiyah",
+    "s": "Sahih al-Bukhari 1549 · Sahih Muslim 1184",
+    "c": [
+      "hajj"
+    ]
+  },
+  {
+    "id": "health-01",
+    "t": "A prayer for healing",
+    "s": "Sahih al-Bukhari 5743 · Sahih Muslim 2191",
+    "c": [
+      "health"
+    ]
+  },
+  {
+    "id": "health-02",
+    "t": "When struck by a calamity",
+    "s": "Quran 2:156 · Sahih Muslim 918",
+    "c": [
+      "health"
+    ]
+  }
+];
+  var CM={};C.forEach(function(c){CM[c.id]=c});
+  var BY={};ITEMS.forEach(function(x){BY[x.id]=x});
+  function inCol(id){return ITEMS.filter(function(x){return x.c.indexOf(id)>-1})}
+  function cnt(id){var n=inCol(id).length;return n?n+(n===1?" dua":" duas"):"Coming soon"}
+
+  /* state */
+  var RECENT_BASE=0,saved=[],seen=[];
+  try{saved=JSON.parse(localStorage.getItem("duas-saved")||"[]")||[]}catch(e){}
+  try{seen=JSON.parse(localStorage.getItem("duas-seen")||"[]")||[]}catch(e){}
+  var LEGACY_DUA_IDS={m1:"morning-01",m2:"morning-02",f1:"morning-03",s1:"sleep-01",s2:"sleep-02",q1:"prayer-01",q2:"prayer-02",j1:"prayer-03"};
+  function normalizeIds(list){
+    if(!Array.isArray(list))return [];
+    return list.map(function(value){
+      var id=String(value&&value.id!=null?value.id:value).replace(/^d:/,"");
+      id=LEGACY_DUA_IDS[id]||id;
+      return BY[id]?id:"";
+    }).filter(function(id,index,all){return id&&all.indexOf(id)===index});
+  }
+  saved=normalizeIds(saved);seen=normalizeIds(seen);
+  function persist(){
+    try{localStorage.setItem("duas-saved",JSON.stringify(saved));localStorage.setItem("duas-seen",JSON.stringify(seen))}catch(e){}
+    var b=bridge();if(b&&b.syncState)b.syncState(saved.slice(),seen.slice());
+    notifyParentHeight();
+  }
+  function isSaved(id){return saved.indexOf(id)>-1}
+  function recentsN(){return RECENT_BASE+seen.length}
+  function bridge(){try{return window.parent!==window&&window.parent.MominDuasBridgeV1||null}catch(_){return null}}
+  persist();
+
+  /* partials */
+  var STARS=[[12,18],[30,10],[48,26],[66,12],[82,30],[20,40]];
+  function scene(c){
+    return '<div class="scene" style="--s1:'+c.a+';--s2:'+c.b+'"><i class="sun"></i>'+STARS.map(function(p,k){return '<i class="st" style="left:'+p[0]+'%;top:'+p[1]+'%;animation-delay:'+(k*.6)+'s"></i>'}).join("")+
+      '<svg class="hills" viewBox="0 0 200 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true">'+HILLS[c.h]+'</svg><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-'+c.i+'"/></svg></div>';
+  }
+  function colCard(c,d){
+    var n=inCol(c.id).length;
+    return '<a class="ccard rise" href="#c-'+c.id+'" style="--d:'+d+'">'+scene(c)+'<div class="cb"><b>'+esc(c.n)+'</b><span class="cn'+(n?'':' soon')+'">'+cnt(c.id)+'</span></div></a>';
+  }
+  function hl(s,v){
+    if(!v)return esc(s);
+    var re=new RegExp("("+v.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","ig");
+    return String(s).split(re).map(function(p,k){return k%2?"<mark>"+esc(p)+"</mark>":esc(p)}).join("");
+  }
+  function itemRow(x,d,idx,v){
+    var on=isSaved(x.id),lead=(typeof idx==="number")?String(idx+1).padStart(2,"0"):'<svg class="i" aria-hidden="true"><use href="#ic-doc"/></svg>';
+    return '<div class="item" data-id="'+x.id+'" style="--d:'+d+'" tabindex="0" role="link"><span class="ib">'+lead+'</span><div class="tx"><b>'+hl(x.t,v)+'</b><span>'+hl(x.s,v)+'</span></div>'+
+      '<button class="bm" type="button" aria-label="'+(on?"Remove from saved: ":"Save: ")+esc(x.t)+'" aria-pressed="'+on+'" data-st="'+x.id+'"><svg class="i" aria-hidden="true"><use href="#ic-bookmark"/></svg></button>'+
+      '<svg class="i go" aria-hidden="true"><use href="#ic-chev"/></svg></div>';
+  }
+  function listHTML(arr,numbered,v){return '<div class="list">'+arr.map(function(x,i){return itemRow(x,i,numbered?i:null,v)}).join("")+'</div>'}
+  function emptyHTML(icon,title,msg,extra){return '<div class="empty rise"><div class="eico"><svg class="i" aria-hidden="true"><use href="#ic-'+icon+'"/></svg></div><b>'+esc(title)+'</b>'+esc(msg)+(extra||"")+'</div>'}
+  function phead(t,p){return '<div class="ph rise"><h1 id="ptitle">'+esc(t)+'</h1>'+(p?'<p>'+esc(p)+'</p>':'')+'</div>'}
+
+  /* views */
+  var view=$("view"),current="home",stack=[],scrolls={},TITLES={collections:"Hisnul Muslim collections",saved:"Saved duas",recent:"Recent duas"};
+  function homeHTML(){
+    var rail=C.slice(0,6).map(function(c,i){return colCard(c,i)}).join("");
+    var ess=["distress","home","food","sleep"].map(function(id,i){return colCard(CM[id],i)}).join("");
+    var q=function(go,ic,b,s,attr){return '<button class="q" type="button" '+attr+'><span class="qi"><svg class="i" aria-hidden="true"><use href="#ic-'+ic+'"/></svg></span><div><b>'+b+'</b><span>'+s+'</span></div></button>'};
+    return phead("Duas","Remembrance for every moment of your day")+
+    '<div class="search rise" id="searchBox" style="--d:1" role="search"><svg class="i" aria-hidden="true"><use href="#ic-search"/></svg><input id="q" type="search" enterkeyhint="search" placeholder="Search duas or categories" autocomplete="off" aria-label="Search duas"><button class="x" id="qx" type="button" aria-label="Clear search"><svg class="i" aria-hidden="true"><use href="#ic-x"/></svg></button></div>'+
+    '<div id="homeBody">'+
+      '<div class="quick rise" style="--d:2">'+
+        q("saved","bookmark","Bookmarks",'<span id="cBm" data-count="'+saved.length+'">'+saved.length+'</span> saved','data-go="saved"')+
+        q("recent","clock","Recents",'<span id="cRc" data-count="'+recentsN()+'">'+recentsN()+'</span> viewed','data-go="recent"')+
+        q("collections","book","Hisnul Muslim","Collections",'data-go="collections"')+
+        q("","beads","Tasbih","Dhikr counter",'data-parent-route="tasbeeh"')+
+      '</div>'+
+      '<div class="sh rise" style="--d:3"><div><small>A moment of remembrance</small><h2>Daily Remembrances</h2></div><a href="#daily">See all <span aria-hidden="true">↗</span></a></div>'+
+      '<a class="hero rise" href="#daily" style="--d:3">'+scene(DAILY)+'<div class="hb2"><span class="tag">Curated collection</span><h3>Daily adhkar</h3><p>'+esc(DAILY.d)+'</p><div class="ft"><span>'+inCol("daily").length+' supplications in this collection</span><span class="go"><svg class="i" aria-hidden="true"><use href="#ic-arrow"/></svg></span></div></div></a>'+
+      '<div class="sh rise" style="--d:4"><div><small>Explore collections</small><h2>Hisnul Muslim</h2></div><a href="#collections">View all <span aria-hidden="true">↗</span></a></div>'+
+      '<div class="railwrap"><div class="rail">'+rail+'</div></div>'+
+      '<div class="sh rise" style="--d:5"><div><small>From the Quran &amp; daily life</small><h2>Essential Duas</h2></div><a href="#collections">See all <span aria-hidden="true">↗</span></a></div>'+
+      '<div class="grid">'+ess+'</div>'+
+      '<p class="note rise" style="--d:6">A source-linked starter collection. Check each reference for original text and narration context.</p>'+
+    '</div><div id="results" hidden></div>';
+  }
+  function collectionsHTML(){return phead(TITLES.collections,C.length+" collections")+'<div class="grid" style="margin-top:20px">'+C.map(function(c,i){return colCard(c,i)}).join("")+'</div>'}
+  function listViewHTML(c){
+    var arr=inCol(c.id),head='<div class="banner rise">'+scene(c)+'<div class="bt"><h1 id="ptitle">'+esc(c.n)+'</h1><p>'+esc(c.d)+'</p></div></div>';
+    if(!arr.length)return head+emptyHTML("book","Duas are on the way","This collection is being prepared with sources for every dua.");
+    return head+'<div class="lblrow"><span>'+cnt(c.id)+' · tap the bookmark to save one</span></div>'+listHTML(arr,true);
+  }
+  function savedHTML(){
+    var arr=saved.map(function(id){return BY[id]}).filter(Boolean);
+    if(!arr.length)return phead(TITLES.saved)+emptyHTML("bookmark","Nothing saved yet","Tap the bookmark on any dua to keep it here.");
+    return phead(TITLES.saved)+'<div class="lblrow"><span>'+arr.length+(arr.length===1?" dua":" duas")+' saved</span><button type="button" data-clear="saved">Clear all</button></div>'+listHTML(arr);
+  }
+  function recentHTML(){
+    var arr=seen.slice().reverse().map(function(id){return BY[id]}).filter(Boolean);
+    if(!arr.length)return phead(TITLES.recent)+emptyHTML("clock","No recent duas yet","Open a supplication to see it here.");
+    return phead(TITLES.recent)+'<div class="lblrow"><span>'+arr.length+(arr.length===1?" dua":" duas")+' recently viewed</span><button type="button" data-clear="recent">Clear</button></div>'+listHTML(arr);
+  }
+
+  /* routing with direction, scroll memory and a single back control */
+  function key(){var h=(location.hash||"").slice(1);if(!h)return"home";if(h==="home"||h==="collections"||h==="saved"||h==="recent"||h==="daily")return h;if(h.indexOf("c-")===0&&CM[h.slice(2)])return h;return"home"}
+  function nameOf(h){return h==="home"?"Duas":h==="collections"?"Collections":h==="saved"?"Saved":h==="recent"?"Recents":h==="daily"?"Daily adhkar":(CM[h.slice(2)]||{n:"Duas"}).n}
+  function route(){
+    var h=key(),dir=1;
+    scrolls[stack[stack.length-1]||"home"]=window.scrollY;
+    if(stack.length>1&&stack[stack.length-2]===h){stack.pop();dir=-1}else if(stack[stack.length-1]!==h){stack.push(h)}else dir=0;
+    var type=h==="home"?"home":h==="collections"?"collections":h==="saved"?"saved":h==="recent"?"recent":"list",html,title;
+    current=type==="list"?h:type;
+    if(type==="home"){html=homeHTML();title="Duas"}
+    else if(type==="collections"){html=collectionsHTML();title=TITLES.collections}
+    else if(type==="saved"){html=savedHTML();title=TITLES.saved}
+    else if(type==="recent"){html=recentHTML();title=TITLES.recent}
+    else{var c=h==="daily"?DAILY:CM[h.slice(2)];html=listViewHTML(c);title=c.n}
+    view.className=dir<0?"bwd":"";view.style.animation="none";void view.offsetWidth;view.style.animation="";
+    view.innerHTML=html;
+    window.scrollTo(0,dir<0?(scrolls[h]||0):0);
+    $("btitle").textContent=title;
+    $("backLbl").textContent=stack.length>1?nameOf(stack[stack.length-2]):(h==="home"?"Home":(h.indexOf("c-")===0?"Collections":"Duas"));
+    setTab(type==="saved"?4:2);
+    if(type!=="home"){
+      var previousRoute=stack.length>1?stack[stack.length-2]:"home";
+      var previousLabel=previousRoute==="home"?"Duas home":previousRoute==="collections"?"All collections":(CM[previousRoute.slice(2)]?CM[previousRoute.slice(2)].n:"Back");
+      html='<button class="view-back" type="button" data-view-back="'+esc(previousRoute)+'"><svg class="i" aria-hidden="true"><use href="#ic-back"/></svg><span>'+esc(previousLabel)+'</span></button>'+html;
+    }
+    if(type==="home")bindSearch();
+    pulseCounts();onScroll();notifyParentHeight();
+  }
+  window.addEventListener("hashchange",route);
+  function goBack(){
+    if(stack.length>1){history.back();return}
+    var h=key();
+    if(h!=="home"){location.hash=h.indexOf("c-")===0?"collections":"home";return}
+    var b=bridge();
+    if(b&&b.navigate){b.navigate("home");return}
+    toast("This is the first Duas screen");
+  }
+  $("back").onclick=goBack;
+  $("act").onclick=function(){location.hash="saved"};
+  document.addEventListener("keydown",function(e){
+    if(e.key!=="Escape")return;
+    var q=$("q");if(q&&q.value){$("qx").click();return}
+    goBack();
+  });
+
+  /* actions */
+  view.addEventListener("click",function(e){
+    var back=e.target.closest("[data-view-back]");if(back){location.hash=back.dataset.viewBack;return}
+    var st=e.target.closest("[data-st]");if(st){e.stopPropagation();toggle(st.dataset.st,st);return}
+    var it=e.target.closest(".item");if(it){open(it.dataset.id);return}
+    var g=e.target.closest("[data-go]");if(g){location.hash=g.dataset.go;return}
+    var pr=e.target.closest("[data-parent-route]");if(pr){go(pr.dataset.parentRoute);return}
+    var cl=e.target.closest("[data-clear]");if(cl){clearList(cl.dataset.clear);return}
+    var sq=e.target.closest("[data-q]");if(sq){var q=$("q");q.value=sq.dataset.q;q.dispatchEvent(new Event("input"));q.focus()}
+  });
+  view.addEventListener("keydown",function(e){
+    if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("item")){e.preventDefault();open(e.target.dataset.id)}
+  });
+  function go(r){
+    var b=bridge();
+    if(b&&b.navigate){b.navigate(r);return}
+    toast("This section is not available right now");
+  }
+  function open(id){
+    if(seen.indexOf(id)<0){seen.push(id);persist()}
+    var b=bridge();
+    if(b&&b.openDua){b.openDua(id);return}
+    toast("Opening “"+BY[id].t+"”");
+  }
+  function toggle(id,btn){
+    var k=saved.indexOf(id),was=k>-1;
+    if(was)saved.splice(k,1);else saved.push(id);
+    persist();updateAct();
+    if(current==="saved"){view.innerHTML=savedHTML();toast("Removed from saved",{label:"Undo",fn:function(){saved.splice(Math.min(k,saved.length),0,id);persist();updateAct();view.innerHTML=savedHTML()}});return}
+    var on=!was;
+    [].forEach.call(document.querySelectorAll('[data-st="'+id+'"]'),function(b){b.setAttribute("aria-pressed",on);b.setAttribute("aria-label",(on?"Remove from saved: ":"Save: ")+BY[id].t);b.classList.remove("pop");void b.offsetWidth;b.classList.add("pop")});
+    toast(on?"Saved":"Removed from saved",on?null:{label:"Undo",fn:function(){saved.push(id);persist();updateAct();[].forEach.call(document.querySelectorAll('[data-st="'+id+'"]'),function(b){b.setAttribute("aria-pressed","true")})}});
+  }
+  function clearList(w){
+    var prev=(w==="saved"?saved:seen).slice();
+    if(w==="saved")saved=[];else seen=[];
+    persist();updateAct();view.innerHTML=w==="saved"?savedHTML():recentHTML();
+    toast(w==="saved"?"All saved duas removed":"Recents cleared",{label:"Undo",fn:function(){if(w==="saved")saved=prev;else seen=prev;persist();updateAct();view.innerHTML=w==="saved"?savedHTML():recentHTML()}});
+  }
+  function updateAct(){var c=$("actCnt");c.hidden=!saved.length;c.textContent=saved.length}
+  updateAct();
+
+  /* search */
+  function bindSearch(){
+    var q=$("q"),box=$("searchBox"),body=$("homeBody"),res=$("results");
+    q.addEventListener("input",function(){
+      var raw=q.value.trim(),v=raw.toLowerCase();
+      box.classList.toggle("has",!!q.value);
+      if(!v){body.hidden=false;res.hidden=true;return}
+      var hits=ITEMS.filter(function(x){var cn=x.c.map(function(i){return i==="daily"?DAILY.n:(CM[i]?CM[i].n:"")}).join(" ");return (x.t+" "+x.s+" "+cn).toLowerCase().indexOf(v)>-1});
+      var cols=C.filter(function(c){return c.n.toLowerCase().indexOf(v)>-1});
+      var html="",total=hits.length+cols.length;
+      if(total)html+='<p class="lblrow" aria-live="polite"><span>'+total+(total===1?" result":" results")+' for “'+esc(raw)+'”</span></p>';
+      if(cols.length)html+='<div class="sh" style="margin-top:20px"><div><h2 style="font-size:21px">Collections</h2></div></div><div class="grid">'+cols.map(function(c,i){return colCard(c,i)}).join("")+'</div>';
+      if(hits.length)html+='<div class="sh" style="margin-top:24px"><div><h2 style="font-size:21px">Duas</h2></div></div>'+listHTML(hits,false,raw);
+      if(!html)html=emptyHTML("search","No matches","Try a word like sleep, mosque or forgiveness.",'<div class="chips"><button class="chip" type="button" data-q="sleep">sleep</button><button class="chip" type="button" data-q="mosque">mosque</button><button class="chip" type="button" data-q="forgiveness">forgiveness</button></div>');
+      body.hidden=true;res.hidden=false;res.innerHTML=html;
+    });
+    q.addEventListener("keydown",function(e){if(e.key==="Enter")q.blur()});
+    $("qx").onclick=function(){q.value="";q.dispatchEvent(new Event("input"));q.focus()};
+  }
+  function pulseCounts(){
+    ["cBm","cRc"].forEach(function(id){
+      var el=$(id);if(!el)return;var to=+el.dataset.count,t0=null;
+      function step(ts){if(!t0)t0=ts;var p=Math.min(1,(ts-t0)/800);el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step)}
+      el.textContent=0;requestAnimationFrame(step);
+    });
+  }
+
+  /* bar state: border after scroll, compact title once the page title has scrolled away */
+  function onScroll(){
+    var bar=$("bar"),pt=$("ptitle");
+    bar.classList.toggle("sc",window.scrollY>6);
+    bar.classList.toggle("tt",!!pt&&pt.getBoundingClientRect().bottom<64);
+  }
+  window.addEventListener("scroll",onScroll,{passive:true});
+
+  /* tabs */
+  var tabs=document.querySelectorAll(".tab"),ind=$("ind");
+  function setTab(i){
+    tabs.forEach(function(t,k){if(k===i)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current")});
+    ind.style.transform="translateX("+(i*100)+"%)";
+  }
+  tabs.forEach(function(t){t.addEventListener("click",function(){
+    var i=+t.dataset.i;
+    if(i===2){if(key()==="home")window.scrollTo({top:0,behavior:"smooth"});else location.hash="home";return}
+    if(i===4){location.hash="saved";return}
+    var b=bridge();
+    if(b&&b.navigate){b.navigate(t.dataset.route);return}
+    setTab(i);toast(t.dataset.name+" opens its own screen");
+    setTimeout(function(){setTab(current==="saved"?4:2)},1100);
+  })});
+
+  /* toast with optional action */
+  var tt;
+  function toast(m,act){
+    var t=$("toast");t.innerHTML="<span>"+esc(m)+"</span>"+(act?'<button type="button">'+esc(act.label)+"</button>":"");
+    if(act)t.querySelector("button").onclick=function(){act.fn();t.classList.remove("on")};
+    t.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){t.classList.remove("on")},act?4200:1900);
+  }
+
+  /* parent height (unchanged contract) */
+  var hq=0;
+  function notifyParentHeight(){
+    if(window.parent===window||hq)return;
+    hq=requestAnimationFrame(function(){hq=0;try{window.parent.postMessage({type:"momin-duas-height-v1",height:Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)},location.origin)}catch(_){}});
+  }
+  window.addEventListener("resize",notifyParentHeight);
+  new MutationObserver(notifyParentHeight).observe(view,{childList:true,subtree:true});
+
+  stack=[key()];
+  route();
+  setTimeout(notifyParentHeight,100);setTimeout(notifyParentHeight,450);
+})();
+</script>
+</body>
+</html>
