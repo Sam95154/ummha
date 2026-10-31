@@ -1,0 +1,288 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Noor Duas</title><meta name="claude:viewport-fit-sides" content="cover"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"><style>:root{--bg:#f3efe5;--glow:linear-gradient(transparent,transparent);--card:#fdfbf6;--card-2:#f8f3e6;--line:#e6dfcc;--ink:#1b1710;--muted:#7a7466;--gold:#a97a22;--gold-bright:#b8862f;--gold-soft:#efe2c2;--glass:rgba(253,251,246,.86);--shadow:rgba(60,40,10,.16);--field:rgba(27,23,16,.05);--hill1:#0f6157;--hill2:#0b4f47;--on-scene:#fff3d6;--ok:#2f8f5b;--serif:"Playfair Display",Georgia,"Times New Roman",serif;--sans:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--ease:cubic-bezier(.22,1,.36,1)}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d120f;--card:#151c18;--card-2:#1b2420;--line:#25302a;--ink:#f1ecdf;--muted:#9aa196;--gold:#d9aa52;--gold-bright:#e8c071;--gold-soft:#2a2515;--glass:rgba(21,28,24,.86);--shadow:rgba(0,0,0,.5);--field:rgba(255,255,255,.06);--hill1:#0f5b52;--hill2:#0a3b35;--ok:#4fbf82;color-scheme:dark}}:root[data-theme="dark"]{--bg:#0d120f;--card:#151c18;--card-2:#1b2420;--line:#25302a;--ink:#f1ecdf;--muted:#9aa196;--gold:#d9aa52;--gold-bright:#e8c071;--gold-soft:#2a2515;--glass:rgba(21,28,24,.86);--shadow:rgba(0,0,0,.5);--field:rgba(255,255,255,.06);--hill1:#0f5b52;--hill2:#0a3b35;--ok:#4fbf82;color-scheme:dark}:root[data-theme="light"]{color-scheme:light}:root[data-theme="sepia"]{--bg:#efe5d1;--card:#fff8e9;--card-2:#f5ebd8;--line:#dfd1b5;--ink:#33291c;--muted:#7c6b51;--gold:#9b6e26;--gold-bright:#b8893b;--gold-soft:#ead8b6;--glass:rgba(255,248,233,.88);--shadow:rgba(66,45,17,.14);--field:rgba(51,41,28,.05);--hill1:#0f6157;--hill2:#0b4f47;color-scheme:light}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background-color:var(--bg);background-image:var(--glow);background-repeat:no-repeat;color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:0 130px;-webkit-font-smoothing:antialiased;overflow-x:hidden}body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}button,input{font:inherit;color:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}:focus-visible{outline:2px solid var(--gold-bright);outline-offset:3px;border-radius:12px}svg{display:block}.app{max-width:480px;margin:0 auto}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;margin-inline:-16px;padding:12px 16px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid transparent;transition:border-color .3s}.bar.scrolled{border-bottom-color:var(--line)}.bar h1{margin:0;text-align:center;font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:-.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar h1.swap{animation:swap .5s var(--ease)}@keyframes swap{from{opacity:0;transform:translateY(8px)}}.hb{width:44px;height:44px;border-radius:50%;border:1px solid transparent;background:none;display:grid;place-items:center;position:relative;transition:transform .25s var(--ease),background .2s}.hb:active{transform:scale(.9)}.hb.back:hover{background:var(--field)}.hb.act{border-color:var(--gold);background:var(--gold-soft);color:var(--gold-bright)}.hb .cnt{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:var(--gold-bright);color:#1b1710;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 4px}.hb[hidden]{display:none}.hb.ph{visibility:hidden}
+#view>*{animation:rise .7s var(--ease) both;animation-delay:calc(var(--d,0)*70ms)}@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.search{margin-top:18px;display:flex;align-items:center;gap:10px;padding:0 8px 0 18px;height:56px;border-radius:999px;background:var(--field);border:1px solid var(--line);transition:border-color .25s,box-shadow .25s}.search:focus-within{border-color:var(--gold-bright);box-shadow:0 0 0 4px var(--gold-soft)}.search .i{color:var(--muted);flex:none}.search input{flex:1;min-width:0;height:100%;background:none;border:0;outline:0;font-size:16px}.search input::placeholder{color:var(--muted)}.search .x{width:40px;height:40px;border-radius:50%;border:0;background:var(--gold-soft);color:var(--gold-bright);display:grid;place-items:center;transform:scale(0);transition:transform .3s var(--ease)}.search.has .x{transform:scale(1)}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.q{display:flex;align-items:center;gap:12px;text-align:left;min-width:0;padding:18px 14px;border-radius:24px;background:var(--card);border:1px solid var(--line);transition:transform .35s var(--ease),border-color .25s}.q:hover{transform:translateY(-3px);border-color:var(--gold)}.q:active{transform:scale(.96)}.q .qi{flex:none;width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:var(--gold-soft);color:var(--gold-bright)}.q b{display:block;font-weight:600;font-size:15.5px}.q span{display:block;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.q div{min-width:0}
+.sh{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:34px 2px 14px}.sh small{display:block;color:var(--gold);font-weight:700;letter-spacing:.17em;font-size:11.5px;text-transform:uppercase;margin-bottom:6px}.sh h2{margin:0;font-family:var(--serif);font-size:27px;font-weight:600;line-height:1.1;letter-spacing:-.01em}.sh a{color:var(--gold);font-weight:600;font-size:14.5px;white-space:nowrap;display:inline-flex;gap:6px;transition:gap .3s var(--ease)}.sh a:hover{gap:10px}
+.scene{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--s1),var(--s2))}.scene .star{position:absolute;left:24%;top:30%;width:4px;height:4px;border-radius:50%;background:#fff6dc;animation:tw 3.4s ease-in-out infinite}.scene .star+ .star{display:none}@keyframes tw{50%{opacity:.25;transform:scale(.6)}}.scene::after{content:"";position:absolute;right:6%;top:6%;width:52%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(255,226,160,.5),rgba(255,226,160,0) 68%);animation:breathe 6s ease-in-out infinite}@keyframes breathe{50%{transform:scale(1.18);opacity:.7}}.scene .hills{position:absolute;left:0;bottom:0;width:100%;height:56%;z-index:1}.scene .hills .h1{fill:var(--hill1)}.scene .hills .h2{fill:var(--hill2)}.scene .ico{position:absolute;z-index:2;right:13%;top:16%;width:34%;height:auto;aspect-ratio:1;color:var(--on-scene);fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 4px 12px rgba(255,214,130,.55));animation:bob 7s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-6px) rotate(-2deg)}}
+.hero{display:grid;grid-template-columns:38% 1fr;border-radius:28px;overflow:hidden;background:var(--card);border:1px solid var(--line);box-shadow:0 24px 40px -28px var(--shadow);transition:transform .4s var(--ease),border-color .25s}.hero:hover{transform:translateY(-4px);border-color:var(--gold)}.hero:active{transform:scale(.985)}.hero .scene{min-height:100%}.hero .hb2{padding:18px 18px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}.tag{align-self:flex-start;padding:7px 12px;border-radius:999px;border:1px solid var(--line);color:var(--gold);font-size:10.5px;letter-spacing:.15em;font-weight:700;text-transform:uppercase}.hero h3{margin:0;font-family:var(--serif);font-size:24px;font-weight:600;line-height:1.1}.hero p{margin:0;color:var(--muted);font-size:14px;line-height:1.4}.hero .ft{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);font-size:13px;margin-top:auto}.hero .ft .ar{transition:transform .3s var(--ease);color:var(--ink)}.hero:hover .ft .ar{transform:translateX(6px)}@media (max-width:370px){.hero{grid-template-columns:1fr}.hero .scene{height:130px}}
+.rail{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x proximity;margin-inline:-16px;padding:4px 16px 16px;scrollbar-width:none}.rail::-webkit-scrollbar{display:none}.ccard{display:flex;flex-direction:column;border-radius:26px;overflow:hidden;background:var(--card);border:1px solid var(--line);transition:transform .4s var(--ease),border-color .25s,box-shadow .4s;min-width:0}.ccard:hover{transform:translateY(-5px);border-color:var(--gold);box-shadow:0 22px 34px -24px var(--shadow)}.ccard:active{transform:scale(.97)}.ccard .scene{aspect-ratio:1.35}.ccard .cb{padding:16px 16px 18px;display:flex;flex-direction:column;gap:4px}.ccard b{font-size:17px;font-weight:600;line-height:1.2}.ccard span{color:var(--muted);font-size:14px}.ccard em{font-style:normal;margin-top:10px;font-size:14.5px;font-weight:500;display:inline-flex;gap:6px;transition:gap .3s var(--ease),color .2s}.ccard:hover em{gap:10px;color:var(--gold-bright)}.rail .ccard{flex:none;width:min(62vw,240px);scroll-snap-align:start}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.railwrap{position:relative}.railwrap::after{content:"";position:absolute;right:-16px;top:0;bottom:16px;width:36px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--bg))}
+.note{margin-top:22px;padding:18px 20px;border-radius:22px;border:1px solid var(--line);color:var(--muted);font-size:14px;line-height:1.5}
+.banner{position:relative;margin-top:18px;border-radius:28px;overflow:hidden;border:1px solid var(--line)}.banner .scene{height:170px}.banner .bt{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:44px 20px 18px;background:linear-gradient(0deg,rgba(8,18,15,.82),rgba(8,18,15,0));color:#f7f0df}.banner .bt h2{margin:0;font-family:var(--serif);font-size:28px;font-weight:600;line-height:1.1}.banner .bt p{margin:6px 0 0;font-size:14px;color:#dad2bd}.list{margin-top:18px;border-radius:26px;background:var(--card);border:1px solid var(--line);overflow:hidden}.item{display:flex;align-items:center;gap:14px;padding:16px 14px 16px 16px;border-top:1px solid var(--line);position:relative;transition:background .25s;cursor:pointer;animation:rise .6s var(--ease) both;animation-delay:calc(var(--d,0)*60ms)}.item:first-child{border-top:0}.item:hover{background:var(--card-2)}.item .ib{flex:none;width:46px;height:46px;border-radius:15px;border:1px solid var(--line);display:grid;place-items:center;color:var(--gold-bright);background:var(--gold-soft)}.item .tx{flex:1;min-width:0}.item .tx b{display:block;font-size:16.5px;font-weight:600;line-height:1.28}.item .tx span{display:block;margin-top:4px;color:var(--gold);font-size:13px;line-height:1.35}.item .st,.item .go{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);background:none;transition:transform .3s var(--ease),border-color .25s,background .25s,color .25s}.item .st{color:var(--muted)}.item .st:hover{border-color:var(--gold)}.item .st[aria-pressed="true"]{background:var(--gold-bright);border-color:var(--gold-bright);color:#1b1710;animation:pop .5s var(--ease)}.item .st[aria-pressed="true"] svg{fill:currentColor}.item .go{transition:transform .3s var(--ease)}.item:hover .go{transform:translateX(4px);border-color:var(--gold)}.item .st:active{transform:scale(.85)}@keyframes pop{40%{transform:scale(1.25)}}@media (max-width:360px){.item .go{display:none}}.empty{margin-top:18px;padding:34px 24px;border-radius:26px;border:1px dashed var(--line);text-align:center;color:var(--muted)}.empty b{display:block;color:var(--ink);font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:6px}.empty .eico{width:54px;height:54px;margin:0 auto 14px;border-radius:18px;display:grid;place-items:center;background:var(--gold-soft);color:var(--gold-bright)}.lbl{margin:18px 2px 0;color:var(--muted);font-size:13.5px}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}.tabs nav{pointer-events:auto;max-width:480px;margin:0 auto;position:relative;display:grid;grid-template-columns:repeat(5,1fr);padding:6px;border-radius:26px;background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:0 22px 40px -18px var(--shadow)}.tabs .ind{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/5);border-radius:20px;background:var(--gold-soft);border:1px solid var(--gold);transition:transform .5s var(--ease)}.tab{position:relative;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 9px;font-size:12px;font-weight:600;color:var(--muted);transition:color .3s}.tab[aria-current="page"]{color:var(--gold-bright)}.tab .i{transition:transform .4s var(--ease)}.tab[aria-current="page"] .i{transform:translateY(-2px) scale(1.1)}.toast{position:fixed;left:50%;bottom:calc(98px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;z-index:40;padding:12px 18px;border-radius:14px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:500;max-width:calc(100vw - 40px);text-align:center;pointer-events:none;transition:opacity .3s,transform .4s var(--ease)}.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* MOMIN embedding: shared app header and bottom navigation stay outside this page. */
+body.momin-duas-embedded{padding-block:0 24px!important;padding-inline:16px!important}body.momin-duas-embedded::before{display:none!important}body.momin-duas-embedded .bar,body.momin-duas-embedded .tabs{display:none!important}body.momin-duas-embedded .app{max-width:520px!important;width:100%!important;margin:0 auto!important}body.momin-duas-embedded #view{padding-top:4px}.momin-duas-inner-back{display:inline-flex;align-items:center;gap:8px;margin:14px 0 2px;padding:9px 14px;min-height:40px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--gold);font:600 13px var(--sans);cursor:pointer}.momin-duas-inner-back:active{transform:scale(.97)}body.momin-duas-embedded .toast{bottom:20px}</style></head><body class="momin-duas-embedded"><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="ic-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol><symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol><symbol id="ic-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol><symbol id="ic-heart" viewBox="0 0 24 24"><path d="M12 20.5S3 15 3 8.8A4.8 4.8 0 0 1 12 6.6a4.8 4.8 0 0 1 9 2.2C21 15 12 20.5 12 20.5Z"/></symbol><symbol id="ic-star" viewBox="0 0 24 24"><path d="m12 3.5 2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.8l6-.8L12 3.5Z"/></symbol><symbol id="ic-bookmark" viewBox="0 0 24 24"><path d="M6.5 3.5h11a1 1 0 0 1 1 1V21L12 16.8 5.5 21V4.5a1 1 0 0 1 1-1Z"/></symbol><symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/></symbol><symbol id="ic-book" viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5ZM12 6.5v13"/></symbol><symbol id="ic-beads" viewBox="0 0 24 24"><circle cx="12" cy="4" r="1.6"/><circle cx="6.5" cy="7.5" r="1.6"/><circle cx="17.5" cy="7.5" r="1.6"/><circle cx="4.5" cy="13.5" r="1.6"/><circle cx="19.5" cy="13.5" r="1.6"/><circle cx="8" cy="18.5" r="1.6"/><circle cx="16" cy="18.5" r="1.6"/><path d="M12 20v2.5"/></symbol><symbol id="ic-home" viewBox="0 0 24 24"><path d="M3.5 11 12 3.5 20.5 11V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1V11Z"/></symbol><symbol id="ic-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></symbol><symbol id="ic-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="ic-doc" viewBox="0 0 24 24"><rect x="4.5" y="3.5" width="15" height="17" rx="3"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></symbol><!-- scene icons --><symbol id="ic-sunrise" viewBox="0 0 24 24"><path d="M12 3v3M4.9 7.9l2.1 2.1M19.1 7.9 17 10M2 17h4M18 17h4M7 17a5 5 0 0 1 10 0M3 21h18"/></symbol><symbol id="ic-mosque" viewBox="0 0 24 24"><path d="M12 2.5c1.2 1.2 1.2 2.6 0 3.5M7 21V12a5 5 0 0 1 10 0v9M3 21h18M3 21v-8M21 21v-8M10.5 21v-4a1.5 1.5 0 0 1 3 0v4"/></symbol><symbol id="ic-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3ZM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/></symbol><symbol id="ic-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></symbol><symbol id="ic-hands" viewBox="0 0 24 24"><path d="M12 21c-3.5 0-7-2.5-7-7V9.5a1.5 1.5 0 0 1 3 0V12M8 12V6.5a1.5 1.5 0 0 1 3 0V11M11 11V5a1.5 1.5 0 0 1 3 0v6M14 11V6.5a1.5 1.5 0 0 1 3 0V14c0 4-2.5 7-5 7Z"/></symbol><symbol id="ic-house" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-5h4v5"/></symbol><symbol id="ic-plate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.4"/><path d="M2.5 4v6M5 4v6M3.75 10v10M21.5 4c-1.7 1.4-2.5 3.5-2.5 6h2.5v10"/></symbol><symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8 7.5 9.5 4.4-1.5 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.8 12 2.4 2.4 4-4.4"/></symbol><symbol id="ic-drop" viewBox="0 0 24 24"><path d="M12 3C9 7.5 6 10.6 6 14.5a6 6 0 0 0 12 0C18 10.6 15 7.5 12 3Z"/><path d="M9.2 15a2.8 2.8 0 0 0 2.4 2.5"/></symbol><symbol id="ic-kaaba" viewBox="0 0 24 24"><path d="M3.5 8.5 12 5l8.5 3.5v9L12 21l-8.5-3.5v-9ZM12 12v9M3.5 8.5 12 12l8.5-3.5M3.5 11.5 12 15l8.5-3.5"/></symbol><symbol id="ic-leaf" viewBox="0 0 24 24"><path d="M5 20C5 11 10 5 20 4c0 10-5 15-13 15M5 20c2-5 5-8 9-10"/></symbol></defs></svg><div class="app"><header class="bar" id="bar"><button class="hb back ph" id="backBtn" aria-label="Back"><svg class="i"><use href="#ic-back"/></svg></button><h1 id="title">Duas</h1><button class="hb act" id="actBtn" aria-label="Saved duas"><svg class="i"><use href="#ic-heart"/></svg><span class="cnt" id="actCnt" hidden>0</span></button></header><main id="view"></main></div><div class="tabs"><nav aria-label="Primary"><span class="ind" id="ind"></span><button class="tab" data-i="0" data-name="Home"><svg class="i"><use href="#ic-home"/></svg>Home</button><button class="tab" data-i="1" data-name="Quran"><svg class="i"><use href="#ic-book"/></svg>Quran</button><button class="tab" data-i="2" aria-current="page"><svg class="i"><use href="#ic-moon"/></svg>Duas</button><button class="tab" data-i="3" data-name="Tasbih"><svg class="i"><use href="#ic-beads"/></svg>Tasbih</button><button class="tab" data-i="4"><svg class="i"><use href="#ic-star"/></svg>Saved</button></nav></div><div class="toast" id="toast" role="status"></div>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+
+  /* ---------- data ---------- */
+  var HILLS={
+    dome:'<path class="h2" d="M0 120V70C40 52 80 50 110 64C140 78 170 60 200 76V120Z"/><path class="h1" d="M30 120V84C50 62 90 58 120 72C150 86 175 80 200 92V120Z"/>',
+    peaks:'<path class="h2" d="M0 120V58L38 24L76 62L108 40L146 70L176 52L200 72V120Z"/><path class="h1" d="M0 120V84L44 50L92 90L124 70L170 96L200 80V120Z"/>',
+    city:'<path class="h2" d="M0 120V70H18V48L30 34L42 48V70H70L82 54L96 70H120V44L134 28L148 44V70H200V120Z"/><path class="h1" d="M0 120V92H40L60 74L84 92H130L150 80L176 92H200V120Z"/>'
+  };
+  // collections: id, name, sky top, sky bottom, hills, icon
+  var C=[
+    {id:"morning",n:"Morning & Evening",a:"#4e5f86",b:"#d9a679",h:"dome",i:"sunrise",d:"Remembrances for the start and the end of the day."},
+    {id:"mosque",n:"Prayer & Mosque",a:"#6d8f88",b:"#cbb47c",h:"city",i:"mosque",d:"Words for going to the mosque and for prayer."},
+    {id:"praise",n:"Praising Allah",a:"#52628a",b:"#dca97c",h:"dome",i:"spark",d:"Glorifying and thanking Allah."},
+    {id:"travel",n:"Travel",a:"#7d96a0",b:"#c9b07f",h:"dome",i:"compass",d:"For leaving home, journeys and returning."},
+    {id:"joy",n:"Joy & Distress",a:"#6a8c88",b:"#c2b284",h:"peaks",i:"hands",d:"For happiness, worry and hard days."},
+    {id:"home",n:"Home & Family",a:"#7f9a92",b:"#c9b27e",h:"peaks",i:"house",d:"For entering the home and caring for family."},
+    {id:"food",n:"Food & Drink",a:"#cc9b44",b:"#6e6b3c",h:"dome",i:"plate",d:"Before and after eating and drinking."},
+    {id:"sleep",n:"Sleep & Waking",a:"#2f4d70",b:"#6a6488",h:"dome",i:"moon",d:"For going to bed and rising in the morning."},
+    {id:"protect",n:"Protection",a:"#71908c",b:"#c8b383",h:"peaks",i:"shield",d:"Seeking Allah's protection."},
+    {id:"forgive",n:"Forgiveness",a:"#4d6286",b:"#d9a97c",h:"dome",i:"drop",d:"Asking for forgiveness and turning back."},
+    {id:"hajj",n:"Hajj & Umrah",a:"#7f9b92",b:"#c7b07b",h:"city",i:"kaaba",d:"Words for the pilgrimage."},
+    {id:"sick",n:"Sickness & Loss",a:"#7a9784",b:"#c4b27f",h:"peaks",i:"leaf",d:"For illness, healing and times of loss."}
+  ];
+  var CM={};C.forEach(function(c){CM[c.id]=c});
+  var DAILY={id:"daily",n:"Daily adhkar",a:"#3b4c76",b:"#d8a67a",h:"dome",i:"moon",d:"Morning, evening, and everyday remembrances"};
+  var ITEMS=[
+    {id:"m1",t:"A morning remembrance",s:"Hisn al-Muslim · Morning remembrance",c:["morning","daily"]},
+    {id:"m2",t:"Protection in the morning and evening",s:"Hisn al-Muslim · Morning and evening adhkar",c:["morning","protect"]},
+    {id:"f1",t:"The master supplication for forgiveness",s:"Sahih al-Bukhari 6306 · Hisn al-Muslim 90",c:["forgive"]},
+    {id:"s1",t:"Before sleeping",s:"Sahih al-Bukhari 6324 · Hisn al-Muslim 99",c:["sleep","daily"]},
+    {id:"s2",t:"Upon waking",s:"Sahih al-Bukhari 6312 · Hisn al-Muslim 100",c:["sleep"]},
+    {id:"q1",t:"On entering the mosque",s:"Sahih Muslim 713 · Hisn al-Muslim 20",c:["mosque"]},
+    {id:"q2",t:"On leaving the mosque",s:"Sahih Muslim 713 · Hisn al-Muslim 21",c:["mosque"]},
+    {id:"j1",t:"A prayer for this life and the next",s:"Quran 2:201",c:["joy"]}
+  ];
+  // m1 also belongs to daily; protect belongs to daily too so the hero says 3
+  ITEMS[1].c.push("daily");ITEMS[3].c=["sleep"]; ITEMS[3].c.push("daily");
+  var BY={};ITEMS.forEach(function(x){BY[x.id]=x});
+  function inCol(id){return ITEMS.filter(function(x){return x.c.indexOf(id)>-1})}
+  function cnt(id){var n=inCol(id).length;return n?n+(n===1?" dua":" duas"):"Coming soon"}
+
+  /* ---------- state ---------- */
+  var RECENT_BASE=11;           // views already recorded in the app before this session
+  var saved=[],seen=[];
+  try{saved=JSON.parse(localStorage.getItem("duas-saved")||"[]")||[]}catch(e){}
+  try{seen=JSON.parse(localStorage.getItem("duas-seen")||"[]")||[]}catch(e){}
+  function persist(){try{localStorage.setItem("duas-saved",JSON.stringify(saved));localStorage.setItem("duas-seen",JSON.stringify(seen))}catch(e){}}
+  function isSaved(id){return saved.indexOf(id)>-1}
+  function recentsN(){return RECENT_BASE+seen.length}
+
+  /* ---------- partials ---------- */
+  function scene(c){
+    return '<div class="scene" style="--s1:'+c.a+';--s2:'+c.b+'"><i class="star"></i><svg class="hills" viewBox="0 0 200 120" preserveAspectRatio="none" aria-hidden="true">'+HILLS[c.h]+'</svg><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-'+c.i+'"/></svg></div>';
+  }
+  function colCard(c,mode,d){
+    return '<a class="ccard" href="#c-'+c.id+'" style="--d:'+d+'">'+scene(c)+'<div class="cb"><b>'+esc(c.n)+'</b><span>'+cnt(c.id)+'</span>'+(mode==="grid2"?'<em>Explore collection <span aria-hidden="true">↗</span></em>':'')+'</div></a>';
+  }
+  function itemRow(x,d){
+    var on=isSaved(x.id);
+    return '<div class="item" data-id="'+x.id+'" style="--d:'+d+'" tabindex="0" role="link"><span class="ib"><svg class="i"><use href="#ic-doc"/></svg></span>'+
+      '<div class="tx"><b>'+esc(x.t)+'</b><span>'+esc(x.s)+'</span></div>'+
+      '<button class="st" aria-label="'+(on?"Remove from saved":"Save")+' '+esc(x.t)+'" aria-pressed="'+on+'" data-st="'+x.id+'"><svg class="i"><use href="#ic-star"/></svg></button>'+
+      '<span class="go" aria-hidden="true"><svg class="i"><use href="#ic-arrow"/></svg></span></div>';
+  }
+  function listHTML(arr){return '<div class="list">'+arr.map(function(x,i){return itemRow(x,i)}).join("")+'</div>'}
+  function emptyHTML(icon,title,msg){return '<div class="empty"><div class="eico"><svg class="i"><use href="#ic-'+icon+'"/></svg></div><b>'+esc(title)+'</b>'+esc(msg)+'</div>'}
+
+  /* ---------- views ---------- */
+  var view=$("view"),current="home";
+  function homeHTML(){
+    var rail=C.slice(0,6).map(function(c,i){return colCard(c,"rail",i)}).join("");
+    var ess=["joy","home","food","sleep"].map(function(id,i){return colCard(CM[id],"grid2",i)}).join("");
+    return '<div class="search" id="searchBox" style="--d:0"><svg class="i"><use href="#ic-search"/></svg><input id="q" type="search" placeholder="Search duas, occasions, or categories" autocomplete="off" aria-label="Search duas"><button class="x" id="qx" aria-label="Clear search"><svg class="i"><use href="#ic-x"/></svg></button></div>'+
+    '<div id="homeBody">'+
+      '<div class="quick" style="--d:1">'+
+        '<button class="q" data-go="saved"><span class="qi"><svg class="i"><use href="#ic-bookmark"/></svg></span><div><b>Bookmarks</b><span><span data-count="'+saved.length+'" id="cBm">'+saved.length+'</span> saved</span></div></button>'+
+        '<button class="q" data-go="recent"><span class="qi"><svg class="i"><use href="#ic-clock"/></svg></span><div><b>Recents</b><span><span id="cRc" data-count="'+recentsN()+'">'+recentsN()+'</span> viewed</span></div></button>'+
+        '<button class="q" data-go="collections"><span class="qi"><svg class="i"><use href="#ic-book"/></svg></span><div><b>Hisnul Muslim</b><span>Collections</span></div></button>'+
+        '<button class="q" data-parent-route="tasbeeh"><span class="qi"><svg class="i"><use href="#ic-beads"/></svg></span><div><b>Tasbih</b><span>Dhikr counter</span></div></button>'+
+      '</div>'+
+      '<div class="sh" style="--d:2"><div><small>A moment of remembrance</small><h2>Daily Remembrances</h2></div><a href="#daily">See all <span aria-hidden="true">↗</span></a></div>'+
+      '<a class="hero" href="#daily" style="--d:2">'+scene(DAILY)+'<div class="hb2"><span class="tag">Curated collection</span><h3>Daily adhkar</h3><p>'+esc(DAILY.d)+'</p><div class="ft"><span>'+inCol("daily").length+' supplications in this collection</span><span class="ar"><svg class="i"><use href="#ic-arrow"/></svg></span></div></div></a>'+
+      '<div class="sh" style="--d:3"><div><small>Explore collections</small><h2>Hisnul Muslim</h2></div><a href="#collections">View all <span aria-hidden="true">↗</span></a></div>'+
+      '<div class="railwrap" style="--d:3"><div class="rail">'+rail+'</div></div>'+
+      '<div class="sh" style="--d:4"><div><small>From the Quran &amp; daily life</small><h2>Essential Duas</h2></div><a href="#collections">See all <span aria-hidden="true">↗</span></a></div>'+
+      '<div class="grid" style="--d:4">'+ess+'</div>'+
+      '<p class="note" style="--d:5">A source-linked starter collection. Check each reference for original text and narration context.</p>'+
+    '</div><div id="results" hidden></div>';
+  }
+  function collectionsHTML(){
+    return '<div class="grid" style="margin-top:20px">'+C.map(function(c,i){return colCard(c,"grid",i)}).join("")+'</div>';
+  }
+  function listViewHTML(c){
+    var arr=inCol(c.id);
+    var head='<div class="banner" style="--d:0">'+scene(c)+'<div class="bt"><h2>'+esc(c.n)+'</h2><p>'+esc(c.d)+'</p></div></div>';
+    if(!arr.length) return head+emptyHTML("book","Duas are on the way","This collection is being prepared with sources for every dua.");
+    return head+'<p class="lbl" style="--d:1">'+cnt(c.id)+' · tap the star to save one</p>'+listHTML(arr);
+  }
+  function savedHTML(){
+    var arr=saved.map(function(id){return BY[id]}).filter(Boolean);
+    if(!arr.length) return emptyHTML("star","Nothing saved yet","Tap the star on any dua to keep it here.");
+    return '<p class="lbl">'+arr.length+(arr.length===1?" dua":" duas")+' saved</p>'+listHTML(arr);
+  }
+  function recentHTML(){
+    var arr=seen.slice().reverse().map(function(id){return BY[id]}).filter(Boolean);
+    if(!arr.length) return emptyHTML("clock","No recent duas yet","Open a supplication to see it here.");
+    return '<p class="lbl">'+arr.length+(arr.length===1?" dua":" duas")+' recently viewed</p>'+listHTML(arr);
+  }
+
+  var TITLES={home:"Duas",collections:"Hisnul Muslim collections",saved:"Saved duas",recent:"Recent duas"};
+  function route(){
+    var h=(location.hash||"").slice(1),html,title,type="home",id=null;
+    if(!h||h==="home"){type="home";html=homeHTML();title="Duas"}
+    else if(h==="collections"){type="collections";html=collectionsHTML();title=TITLES.collections}
+    else if(h==="saved"){type="saved";html=savedHTML();title=TITLES.saved}
+    else if(h==="recent"){type="recent";html=recentHTML();title=TITLES.recent}
+    else if(h==="daily"){type="list";id="daily";html=listViewHTML(DAILY);title=DAILY.n}
+    else if(h.indexOf("c-")===0&&CM[h.slice(2)]){type="list";id=h.slice(2);html=listViewHTML(CM[id]);title=CM[id].n}
+    else{type="home";html=homeHTML();title="Duas"}
+    current=type;view.innerHTML=html;window.scrollTo(0,0);
+    if(type!=="home"){
+      var back=document.createElement("button");
+      back.type="button";back.className="momin-duas-inner-back";
+      back.textContent="← Back to Duas";
+      back.addEventListener("click",function(){location.hash="home"});
+      view.insertBefore(back,view.firstChild);
+    }
+    var t=$("title");t.textContent=title;t.classList.remove("swap");void t.offsetWidth;t.classList.add("swap");
+    $("backBtn").classList.toggle("ph",type==="home");
+    setTab(type==="saved"?4:2);
+    if(type==="home")bindSearch();
+    pulseCounts();
+  }
+  window.addEventListener("hashchange",route);
+
+  /* ---------- actions ---------- */
+  $("backBtn").onclick=function(){
+    var h=(location.hash||"").slice(1);
+    location.hash=(h.indexOf("c-")===0)?"collections":"home";
+  };
+  $("actBtn").onclick=function(){location.hash="saved"};
+
+  view.addEventListener("click",function(e){
+    var st=e.target.closest("[data-st]");
+    if(st){e.stopPropagation();toggle(st.dataset.st,st);return}
+    var it=e.target.closest(".item");
+    if(it){open(it.dataset.id);return}
+    var g=e.target.closest("[data-go]");
+    if(g){location.hash=g.dataset.go;return}
+    var parentRoute=e.target.closest("[data-parent-route]");
+    if(parentRoute){
+      try{
+        if(window.parent!==window&&window.parent.MominDuasBridgeV1){
+          window.parent.MominDuasBridgeV1.navigate(parentRoute.dataset.parentRoute);
+          return;
+        }
+      }catch(_){}
+      toast("This section is not available right now");return;
+    }
+    var t=e.target.closest("[data-toast]");
+    if(t)toast(t.dataset.toast);
+  });
+  view.addEventListener("keydown",function(e){
+    if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("item")){e.preventDefault();open(e.target.dataset.id)}
+  });
+  function open(id){
+    if(seen.indexOf(id)<0){seen.push(id);persist()}
+    try{
+      if(window.parent!==window&&window.parent.MominDuasBridgeV1){
+        window.parent.MominDuasBridgeV1.openDua(id);
+        return;
+      }
+    }catch(_){}
+    toast("Opening “"+BY[id].t+"”");
+  }
+  function toggle(id,btn){
+    var k=saved.indexOf(id);
+    if(k>-1)saved.splice(k,1);else saved.push(id);
+    persist();updateAct();
+    var on=isSaved(id);
+    if(current==="saved"){view.innerHTML=savedHTML();toast("Removed from saved");return}
+    btn.setAttribute("aria-pressed",on);
+    btn.classList.remove("pop");
+    toast(on?"Saved":"Removed from saved");
+  }
+  function updateAct(){
+    var c=$("actCnt");c.hidden=!saved.length;c.textContent=saved.length;
+  }
+  updateAct();
+
+  /* search */
+  function bindSearch(){
+    var q=$("q"),box=$("searchBox"),body=$("homeBody"),res=$("results");
+    q.addEventListener("input",function(){
+      var v=q.value.trim().toLowerCase();
+      box.classList.toggle("has",!!q.value);
+      if(!v){body.hidden=false;res.hidden=true;return}
+      var hits=ITEMS.filter(function(x){
+        var cn=x.c.map(function(i){return CM[i]?CM[i].n:""}).join(" ");
+        return (x.t+" "+x.s+" "+cn).toLowerCase().indexOf(v)>-1;
+      });
+      var cols=C.filter(function(c){return c.n.toLowerCase().indexOf(v)>-1});
+      var html="";
+      if(cols.length)html+='<p class="lbl">Collections</p><div class="grid" style="margin-top:12px">'+cols.map(function(c,i){return colCard(c,"grid",i)}).join("")+'</div>';
+      if(hits.length)html+='<p class="lbl">Duas</p>'+listHTML(hits);
+      if(!html)html=emptyHTML("search","No matches","Try a word like sleep, mosque or forgiveness.");
+      body.hidden=true;res.hidden=false;res.innerHTML=html;
+    });
+    $("qx").onclick=function(){q.value="";q.dispatchEvent(new Event("input"));q.focus()};
+  }
+
+  /* count-up on the quick tiles */
+  function pulseCounts(){
+    ["cBm","cRc"].forEach(function(id){
+      var el=$(id);if(!el)return;var to=+el.dataset.count,t0=null;
+      function step(ts){if(!t0)t0=ts;var p=Math.min(1,(ts-t0)/900),e=1-Math.pow(1-p,3);el.textContent=Math.round(to*e);if(p<1)requestAnimationFrame(step)}
+      el.textContent=0;requestAnimationFrame(step);
+    });
+  }
+
+  /* header border once scrolled */
+  window.addEventListener("scroll",function(){$("bar").classList.toggle("scrolled",window.scrollY>6)},{passive:true});
+
+  /* tabs */
+  var tabs=document.querySelectorAll(".tab"),ind=$("ind");
+  function setTab(i){
+    tabs.forEach(function(t,k){if(k===i)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current")});
+    ind.style.transform="translateX("+(i*100)+"%)";
+  }
+  tabs.forEach(function(t){t.addEventListener("click",function(){
+    var i=+t.dataset.i;
+    if(i===2){location.hash="home";window.scrollTo({top:0,behavior:"smooth"});route();return}
+    if(i===4){location.hash="saved";return}
+    setTab(i);toast(t.dataset.name+" opens its own screen");
+    setTimeout(function(){setTab(current==="saved"?4:2)},1100);
+  })});
+
+  var tt;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){t.classList.remove("on")},1900)}
+
+  function syncParentTheme(){
+    try{
+      if(window.parent!==window){
+        var theme=window.parent.document.documentElement.getAttribute("data-theme");
+        if(theme)document.documentElement.setAttribute("data-theme",theme);
+      }
+    }catch(_){}
+  }
+  function notifyParentHeight(){
+    if(window.parent===window)return;
+    try{
+      window.parent.postMessage({
+        type:"momin-duas-height-v1",
+        height:Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)
+      },location.origin);
+    }catch(_){}
+  }
+  syncParentTheme();
+  try{
+    if(window.parent!==window&&typeof MutationObserver!=="undefined"){
+      new MutationObserver(syncParentTheme).observe(window.parent.document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+    }
+  }catch(_){}
+  window.addEventListener("resize",notifyParentHeight);
+  new MutationObserver(notifyParentHeight).observe(document.body,{childList:true,subtree:true,attributes:true});
+  route();
+  setTimeout(notifyParentHeight,100);
+  setTimeout(notifyParentHeight,450);
+})();
+</script></body></html>
