@@ -1,0 +1,144 @@
+/* Profile & Account card — MOMIN Settings reference adaptation */
+.momin-profile-settings-v1{
+  margin:0 0 16px;
+  padding:22px;
+  border:1px solid var(--line,#e6e9e2);
+  border-radius:22px;
+  background:var(--paper,#fff);
+  color:var(--ink,#17271f);
+  box-shadow:0 12px 30px rgba(17,38,26,.045);
+}
+.momin-profile-settings-v1 .pf-head{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding-bottom:18px;border-bottom:1px solid var(--line,#e6e9e2);
+}
+.momin-profile-settings-v1 .pf-head-main{
+  display:flex;align-items:center;gap:14px;min-width:0;
+}
+.momin-profile-settings-v1 .pf-avatar-v1{
+  flex:none;width:64px;height:64px;border-radius:50%;overflow:hidden;
+  display:grid;place-items:center;background:var(--mint,#e8f0e6);
+  border:1px solid var(--gold,#bd9b5e);color:var(--green,#184332);
+  font-family:var(--serif,Georgia,serif);font-size:1.45rem;font-weight:700;
+}
+.momin-profile-settings-v1 .pf-avatar-v1 img{width:100%;height:100%;display:block;object-fit:cover}
+.momin-profile-settings-v1 .pf-head-copy{min-width:0}
+.momin-profile-settings-v1 .pf-kicker{
+  display:block;color:var(--gold,#bd9b5e);font-size:.68rem;font-weight:800;
+  letter-spacing:.16em;text-transform:uppercase;margin-bottom:4px;
+}
+.momin-profile-settings-v1 .pf-head-copy h3{
+  margin:0;font-family:var(--serif,Georgia,serif);font-size:1.45rem;line-height:1.15;
+}
+.momin-profile-settings-v1 .pf-head-copy p{
+  margin:5px 0 0;color:var(--muted,#7b867e);font-size:.88rem;line-height:1.45;
+}
+.momin-profile-settings-v1 .pf-status{
+  flex:none;display:inline-flex;align-items:center;gap:7px;padding:7px 11px;
+  border-radius:999px;font-size:.72rem;font-weight:750;white-space:nowrap;
+}
+.momin-profile-settings-v1 .pf-status::before{
+  content:"";width:7px;height:7px;border-radius:50%;background:currentColor;
+}
+.momin-profile-settings-v1 .pf-status.is-guest{background:rgba(189,155,94,.13);color:var(--gold,#a97a22)}
+.momin-profile-settings-v1 .pf-status.is-in{background:rgba(47,143,91,.12);color:#2f8f5b}
+.momin-profile-settings-v1 .pf-login-prompt{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin-top:16px;padding:15px;border-radius:18px;
+  background:linear-gradient(125deg,rgba(189,155,94,.13),rgba(24,67,50,.045));
+  border:1px solid var(--gold-line,#d9c28a);
+}
+.momin-profile-settings-v1 .pf-login-prompt>div{min-width:0}
+.momin-profile-settings-v1 .pf-login-prompt b{display:block;font-size:.95rem}
+.momin-profile-settings-v1 .pf-login-prompt small{
+  display:block;margin-top:4px;color:var(--muted,#7b867e);font-size:.82rem;line-height:1.45;
+}
+.momin-profile-settings-v1 .pf-primary,.momin-profile-settings-v1 .pf-outline,
+.momin-profile-settings-v1 .pf-danger{
+  min-height:42px;padding:0 14px;border-radius:13px;border:1px solid var(--line,#e6e9e2);
+  font:600 .86rem var(--sans,system-ui,sans-serif);cursor:pointer;transition:transform .2s,border-color .2s,background .2s;
+}
+.momin-profile-settings-v1 .pf-primary{
+  flex:none;background:linear-gradient(135deg,#e6c47c,#b8892f);color:#1b1710;border-color:#c49a4a;
+}
+.momin-profile-settings-v1 .pf-outline{background:var(--paper,#fff);color:var(--ink,#17271f)}
+.momin-profile-settings-v1 .pf-danger{background:transparent;color:#b3402f;border-color:rgba(179,64,47,.35)}
+.momin-profile-settings-v1 .pf-primary:active,.momin-profile-settings-v1 .pf-outline:active,
+.momin-profile-settings-v1 .pf-danger:active{transform:scale(.97)}
+.momin-profile-settings-v1 .pf-section{
+  padding:17px 0 14px;border-bottom:1px solid var(--line,#e6e9e2);
+}
+.momin-profile-settings-v1 .pf-section:last-of-type{border-bottom:0}
+.momin-profile-settings-v1 .pf-section h4{
+  margin:0 0 11px;font-family:var(--serif,Georgia,serif);font-size:1.18rem;font-weight:650;
+}
+.momin-profile-settings-v1 .pf-info-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+}
+.momin-profile-settings-v1 .pf-info{
+  min-width:0;padding:13px 14px;border:1px solid var(--line,#e6e9e2);
+  border-radius:15px;background:var(--bg,#f7f7f2);
+}
+.momin-profile-settings-v1 .pf-info span{
+  display:block;color:var(--muted,#7b867e);font-size:.78rem;margin-bottom:5px;
+}
+.momin-profile-settings-v1 .pf-info b{
+  display:block;min-width:0;font-size:.92rem;line-height:1.35;overflow-wrap:anywhere;
+}
+.momin-profile-settings-v1 .pf-info small{
+  display:block;margin-top:4px;color:var(--muted,#7b867e);font-size:.73rem;line-height:1.35;
+}
+.momin-profile-settings-v1 .pf-hint,.momin-profile-settings-v1 .pf-footnote{
+  margin:10px 0 0;color:var(--muted,#7b867e);font-size:.8rem;line-height:1.55;
+}
+.momin-profile-settings-v1 .pf-account-row,.momin-profile-settings-v1 .pf-device{
+  display:flex;align-items:center;gap:12px;min-height:58px;padding:8px 0;
+}
+.momin-profile-settings-v1 .pf-google-mark{
+  flex:none;width:38px;height:38px;border:1px solid var(--line,#e6e9e2);border-radius:12px;
+  display:grid;place-items:center;background:#fff;color:#4285f4;font-size:1.25rem;font-weight:800;
+}
+.momin-profile-settings-v1 .pf-account-copy,.momin-profile-settings-v1 .pf-device-copy{flex:1;min-width:0}
+.momin-profile-settings-v1 .pf-account-copy b,.momin-profile-settings-v1 .pf-device-copy b{
+  display:block;font-size:.9rem;
+}
+.momin-profile-settings-v1 .pf-account-copy small,.momin-profile-settings-v1 .pf-device-copy small{
+  display:block;margin-top:3px;color:var(--muted,#7b867e);font-size:.78rem;line-height:1.4;overflow-wrap:anywhere;
+}
+.momin-profile-settings-v1 .pf-link{
+  flex:none;border:0;background:transparent;color:var(--gold,#a97a22);
+  font-size:.84rem;font-weight:750;padding:8px 4px;cursor:pointer;
+}
+.momin-profile-settings-v1 .pf-linked{flex:none;color:#2f8f5b;font-size:.82rem;font-weight:750}
+.momin-profile-settings-v1 .pf-empty{
+  padding:14px;border:1px dashed var(--line,#e6e9e2);border-radius:14px;
+  color:var(--muted,#7b867e);font-size:.83rem;line-height:1.5;background:var(--bg,#f7f7f2);
+}
+.momin-profile-settings-v1 .pf-device-icon{
+  flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  color:var(--gold,#a97a22);background:rgba(189,155,94,.13);font-size:1.2rem;
+}
+.momin-profile-settings-v1 .pf-refresh-devices{margin-top:8px}
+.momin-profile-settings-v1 .pf-account-actions{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;
+}
+.momin-profile-side-copy{min-width:0;flex:1}
+.momin-profile-side-copy b,.momin-profile-side-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.momin-profile-side-copy b{font-size:12px}
+.momin-profile-side-copy small{font-size:10px;color:var(--muted,#7b867e);margin-top:2px}
+.sidebar .profile .avatar img,.topright>.avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.sidebar .profile .avatar,.topright>.avatar{overflow:hidden}
+@media(max-width:700px){
+ .momin-profile-settings-v1{padding:17px;border-radius:18px}
+ .momin-profile-settings-v1 .pf-head{align-items:flex-start;flex-direction:column}
+ .momin-profile-settings-v1 .pf-status{align-self:flex-start}
+ .momin-profile-settings-v1 .pf-info-grid{grid-template-columns:minmax(0,1fr)}
+ .momin-profile-settings-v1 .pf-login-prompt{align-items:stretch;flex-direction:column}
+ .momin-profile-settings-v1 .pf-primary{width:100%}
+ .momin-profile-settings-v1 .pf-account-actions{grid-template-columns:1fr}
+}
+@media(max-width:380px){
+ .momin-profile-settings-v1 .pf-head-main{align-items:flex-start}
+ .momin-profile-settings-v1 .pf-avatar-v1{width:54px;height:54px}
+ .momin-profile-settings-v1 .pf-head-copy h3{font-size:1.22rem}
+}
