@@ -249,13 +249,17 @@ function sectionKeys(section,saveId){
 }
 function dirtyUpdate(){
  var any=false;
- document.querySelectorAll("#secs .acc").forEach(function(a){var dirty=sectionKeys(a).some(function(k){return draft[k]!==saved[k]});a.classList.toggle("dirty",dirty);if(dirty)any=true});
- var c=document.getElementById("chip");if(c){c.classList.toggle("dirty",any);c.textContent=any?"Unsaved changes":"All changes saved"}
+ document.querySelectorAll("#secs .acc").forEach(function(a){
+  var allKeys={};a.querySelectorAll("[data-k]").forEach(function(el){allKeys[el.dataset.k]=true;});
+  var dirty=Object.keys(allKeys).some(function(k){return draft[k]!==saved[k];});
+  a.classList.toggle("dirty",dirty);if(dirty)any=true;
+ });
+ var c=document.getElementById("chip");if(c){c.classList.toggle("dirty",any);c.textContent=any?"Unsaved changes":"All changes saved";}
 }
 function refresh(){
- var theme=document.getElementById("curTheme");if(theme){var labels={system:"System default",light:"Light",dark:"Dark",sepia:"Sepia"};theme.textContent=labels[draft.theme]||draft.theme}
+ var theme=document.getElementById("curTheme");if(theme){var labels={System:"System default",Light:"Light",Dark:"Dark",Sepia:"Sepia"};theme.textContent=labels[draft.theme]||draft.theme;}
  var loc=[draft.city,draft.country].filter(Boolean).join(", ")||"Not set";
- var cur=document.getElementById("curLoc"),sub=document.getElementById("locSub");
+ var cur=document.getElementById("curLoc")||document.getElementById("settingsLocationSummaryV1"),sub=document.getElementById("locSub");
  if(cur)cur.textContent=loc;if(sub)sub.textContent=loc+" · Calculation and Asr preferences";
  var date=document.getElementById("hdrDate");
  if(date){try{var p=new Intl.DateTimeFormat("en-u-ca-islamic-umalqura",{day:"numeric",month:"long",year:"numeric"}).format(new Date());date.textContent=p}catch(_){date.textContent="Islamic calendar"}}
