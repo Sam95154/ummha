@@ -62,6 +62,7 @@
       .eq("user_id",user.id).eq("device_key",deviceKey).maybeSingle();
     if(error)console.warn("MOMIN device check:",error.message);
     if(data&&data.revoked_at){
+      try{await supabase.functions.invoke("momin-push-register",{body:{action:"unsubscribe",device_key:deviceKey}})}catch(_){}
       await supabase.auth.signOut({scope:"local"});
       throw new Error("This device was signed out from your MOMIN account. Please sign in again.");
     }
