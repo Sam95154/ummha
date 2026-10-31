@@ -66,6 +66,24 @@ var entries = [
     visible: loadJsonV1("noor-dua-prototype-text", {arabic:true, transliteration:true, translation:true}),
     arabicSize: Number(loadJsonV1("noor-dua-prototype-text-size", 30)) || 30
   };
+  /* Preserve saved and recently opened items from the previous Duas prototype. */
+  (function migrateIframeDuaStateV1(){
+    var legacyIds={m1:"morning-01",m2:"morning-02",f1:"morning-03",s1:"sleep-01",s2:"sleep-02",q1:"prayer-01",q2:"prayer-02",j1:"prayer-03"};
+    function mapped(list,prefix){
+      if(!Array.isArray(list))return [];
+      return list.map(function(value){
+        var key=String(value&&value.id!=null?value.id:value);
+        return legacyIds[key] ? prefix+legacyIds[key] : "";
+      }).filter(Boolean);
+    }
+    if(!Array.isArray(duaStateV1.bookmarks))duaStateV1.bookmarks=[];
+    if(!Array.isArray(duaStateV1.recents))duaStateV1.recents=[];
+    duaStateV1.bookmarks=duaStateV1.bookmarks.concat(mapped(loadJsonV1("duas-saved",[]),"d:")).filter(function(v,n,a){return a.indexOf(v)===n;});
+    duaStateV1.recents=mapped(loadJsonV1("duas-seen",[]),"").concat(duaStateV1.recents).filter(function(v,n,a){return v&&a.indexOf(v)===n;}).slice(0,30);
+    saveJsonV1("noor-dua-prototype-bookmarks",duaStateV1.bookmarks);
+    saveJsonV1("noor-dua-prototype-recents",duaStateV1.recents);
+  })();
+
   function persistDuaV1() {
     saveJsonV1("noor-dua-prototype-bookmarks", duaStateV1.bookmarks);
     saveJsonV1("noor-dua-prototype-recents", duaStateV1.recents);
@@ -161,14 +179,34 @@ var entries = [
   function duaCategoryViewV1(slug) {
     var c = categoryDuaV1(slug);
     if (!c) return duaLandingViewV1();
-    var all = c.chapters.reduce(function (n,ch) { return n + ch.entries.length; }, 0);
+    var ids = c.chapters.reduce(function (all, chapter) {
+      return all.concat(chapter.entries || []);
+    }, []);
+    var entries = ids.map(itemDuaV1).filter(Boolean);
+    var count = entries.length;
     return '<section class="dua-page dua-category-page">' +
       topDuaV1(c.title,"#/duas",'<button class="dua-icon-btn" data-act="dua-share-category" data-slug="' + c.slug + '" aria-label="Share category">↗</button>') +
-      '<div class="dua-category-hero">' + artDuaV1(c.art,c.icon,"wide") + '<div><span class="dua-eyebrow">' + escapeDuaV1(c.group.toUpperCase()) + '</span><h2>' + escapeDuaV1(c.title) + '</h2><p>' + escapeDuaV1(c.subtitle) + '</p><small>' + c.chapters.length + ' chapters · ' + all + ' supplications</small></div></div>' +
-      '<p class="dua-list-intro">' + escapeDuaV1(c.subtitle) + '</p>' +
-      '<div class="dua-chapter-list">' + c.chapters.map(function (ch) {
-        return '<a class="dua-list-row" href="#/dua-chapter/' + ch.slug + '"><span class="dua-row-book">▤</span><span class="dua-row-copy"><strong>' + escapeDuaV1(ch.title) + '</strong><small>' + ch.entries.length + ' ' + (ch.entries.length===1?'Dua':'Duas') + '</small></span><span class="dua-row-arrow">→</span></a>';
-      }).join("") + '</div>' + navDuaV1("duas") + '</section>';
+      '<div class="dua-category-hero">' +
+        artDuaV1(c.art,c.icon,"wide") +
+        '<div><span class="dua-eyebrow">' + escapeDuaV1(c.group.toUpperCase()) + '</span>' +
+        '<h2>' + escapeDuaV1(c.title) + '</h2>' +
+        '<p>' + escapeDuaV1(c.subtitle) + '</p>' +
+        '<small>' + count + ' ' + (count===1 ? 'supplication' : 'supplications') + '</small></div>' +
+      '</div>' +
+      '<p class="dua-list-intro">' + escapeDuaV1(c.subtitle) + ' <span class="dua-list-hint">Select a dua to read its Arabic, transliteration and meaning.</span></p>' +
+      '<div class="dua-chapter-list">' + entries.map(function (e,i) {
+        return '<div class="dua-list-row dua-entry-row">' +
+          '<a class="dua-entry-open" href="#/dua-detail/' + encodeURIComponent(e.id) + '/' + encodeURIComponent(e.chapter) + '">' +
+            '<span class="dua-row-book" aria-hidden="true">۞</span>' +
+            '<span class="dua-row-copy"><strong>' + escapeDuaV1(e.title) + '</strong>' +
+              '<small>' + escapeDuaV1(e.occasion || e.reference || "Everyday supplication") + ' · ' + (i+1) + ' of ' + count + '</small>' +
+            '</span><span class="dua-row-arrow" aria-hidden="true">→</span>' +
+          '</a>' +
+          '<button class="dua-small-bookmark ' + (savedDuaV1(e.id) ? "is-saved" : "") + '" data-act="bm" data-k="d:' + e.id + '" aria-label="' + (savedDuaV1(e.id) ? "Remove bookmark for " : "Bookmark ") + escapeDuaV1(e.title) + '" aria-pressed="' + savedDuaV1(e.id) + '">' + (savedDuaV1(e.id) ? "★" : "☆") + '</button>' +
+        '</div>';
+      }).join("") + '</div>' +
+      (!count ? '<div class="dua-empty-state"><span>☾</span><h2>Collection in preparation</h2><p>Supplications for this collection will appear here when their text and references are ready.</p></div>' : '') +
+      navDuaV1("duas") + '</section>';
   }
   function duaChapterViewV1(slug) {
     var ch = chapterDuaV1(slug);
