@@ -197,11 +197,14 @@ body.momin-app-shell-active .momin-shell-bottom-space{
 }
 .momin-shell-home-logo img{display:block;width:100%;height:100%;object-fit:contain}
 .momin-shell-actions .momin-shell-action[aria-label="Settings"]{
- box-sizing:border-box;padding:0;line-height:0;
- display:grid;place-items:center;align-self:center;
+ box-sizing:border-box;width:40px;height:40px;min-width:40px;min-height:40px;
+ padding:0;margin:0;line-height:0;display:grid;place-items:center;align-self:center;
+ aspect-ratio:1;overflow:visible;
 }
 .momin-shell-actions .momin-shell-action[aria-label="Settings"] svg{
- display:block;flex:none;width:22px;height:22px;margin:0;
+ display:block;width:22px;height:22px;min-width:22px;min-height:22px;
+ margin:auto;flex:none;overflow:visible;transform:none;
+ stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
 }
 .momin-shell-avatar{
  width:42px;height:42px;min-width:42px;min-height:42px;border-radius:50%;
@@ -281,8 +284,8 @@ body.momin-app-shell-active.momin-shell-enter #view :is(.card,.card2,.acc):nth-c
  .momin-shell-actions{gap:4px}
  .momin-shell-actions .momin-shell-action{width:36px;height:36px;min-width:36px;min-height:36px}
 .momin-shell-home-logo{width:42px;height:42px;min-width:42px;min-height:42px;padding:3px}
- .momin-shell-actions .momin-shell-action[aria-label="Settings"]{width:36px;height:36px;min-width:36px;min-height:36px}
- .momin-shell-actions .momin-shell-action[aria-label="Settings"] svg{width:21px;height:21px}
+ .momin-shell-actions .momin-shell-action[aria-label="Settings"]{width:36px;height:36px;min-width:36px;min-height:36px;padding:0}
+ .momin-shell-actions .momin-shell-action[aria-label="Settings"] svg{width:21px;height:21px;min-width:21px;min-height:21px;margin:auto}
   .momin-shell-avatar{width:38px;height:38px;min-width:38px;min-height:38px}
  .momin-shell-bottom-nav{left:12px;right:12px;width:calc(100% - 24px)}
 }
@@ -408,7 +411,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     var paths={
       back:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
       bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>',
-      settings:'<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1a2 2 0 1 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4v.3a2 2 0 1 1-4 0v-.2a2 2 0 0 0-3.4-1.5l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 1.6 12H1.5a2 2 0 1 1 0-4h.2a2 2 0 0 0 1.4-3.4L3 4.5a2 2 0 1 1 2.8-2.8l.1.1a2 2 0 0 0 3.4-1.4V.3a2 2 0 1 1 4 0v.2a2 2 0 0 0 3.4 1.5l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A2 2 0 0 0 21 8.2h.3a2 2 0 1 1 0 4h-.2a2 2 0 0 0-1.7 2.8Z"/>',
+      settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.08a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
       home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
       prayers:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
       quran:'<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22z"/><path d="M4 5.5V22"/>',
