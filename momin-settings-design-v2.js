@@ -217,7 +217,7 @@ function buildSections(){
   note("Estimate includes MOMIN- and Noor-namespaced localStorage text data only, not audio downloads, browser cache or files.")+
   rowAction("Offline content","Download manager is not available in this web build.",'<p class="val">Not available yet</p>')});
  sections.push({id:"help",ic:"help",title:"Help & About",sub:"Application information",body:
-  '<div class="night brand"><div class="stars" aria-hidden="true" style="position:absolute;inset:0"></div><span class="lt" aria-hidden="true"><img src="./momin-mark.svg?v=settings-about-logo-v2" alt="MOMIN logo"></span><div style="position:relative;z-index:1;min-width:0"><span class="eyebrow">Your Islamic daily companion</span><h3>MOMIN</h3><p>Where Faith Meets Devotion</p><span class="ver">Version 1.1 · Web Companion</span></div></div>'+
+  '<div class="night brand"><div class="stars" aria-hidden="true" style="position:absolute;inset:0"></div><span class="lt" aria-hidden="true"><svg class="lg" viewBox="600 520 800 685"><use href="#logo" x="600" y="520" width="800" height="685"/></svg></span><div style="position:relative;z-index:1;min-width:0"><span class="eyebrow">Your Islamic daily companion</span><h3>MOMIN</h3><p>Where Faith Meets Devotion</p><span class="ver">Version 1.1 · Web Companion</span></div></div>'+
   '<div class="card2"><h4>Our purpose</h4><p>MOMIN brings useful Islamic worship tools together in one place, supporting daily prayers, Quran reading, supplications and remembrance of Allah.</p></div>'+
   '<p class="sub">Explore MOMIN</p><div class="list">'+[
     ["Prayer Times & Adhan","Prayer schedule and calculation preferences","prayers","clock"],
