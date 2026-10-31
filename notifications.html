@@ -109,8 +109,8 @@ svg{display:block}.i{width:22px;height:22px;flex:none;fill:none;stroke:currentCo
 .mk.cur i{box-shadow:0 0 0 4px var(--soft)}
 
 /* lead segmented */
-.seg{position:relative;display:grid;grid-template-columns:repeat(4,1fr);margin-top:14px;padding:4px;border-radius:99px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
-.seg i{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/4);border-radius:99px;background:var(--gold);transition:transform .45s var(--ease)}
+.seg{position:relative;display:grid;grid-template-columns:repeat(5,1fr);margin-top:14px;padding:4px;border-radius:99px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.seg i{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/5);border-radius:99px;background:var(--gold);transition:transform .45s var(--ease)}
 .seg button{position:relative;z-index:1;min-height:42px;font-size:13.5px;font-weight:700;color:var(--muted);transition:color .3s}
 .seg button[aria-pressed="true"]{color:#1a1204}
 .rows{margin-top:6px}
@@ -200,7 +200,7 @@ var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"
 var PRAYER_NAMES=["Fajr","Dhuhr","Asr","Maghrib","Isha"];var P=PRAYER_NAMES.map(function(n){return {n:n,m:null}});
 var RECENT=[];
 var UPS=[{k:"jumuah",t:"Jumuʿah reminder",s:"A gentle reminder on Fridays",i:"cal"},{k:"adhkar",t:"Morning and evening adhkar",s:"Daily remembrance prompts",i:"mo"},{k:"dates",t:"Islamic dates and occasions",s:"Important days in the Hijri calendar",i:"bk"}];
-var LEADS=[0,5,10,15];
+var LEADS=[0,5,10,15,30];
 /* ===== end of data ===== */
 function fmt(m){m=((m%1440)+1440)%1440;var h=Math.floor(m/60),mm=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+(mm<10?"0":"")+mm+" "+ap}
 function bridge(){try{return window.parent!==window&&window.parent.MominNotificationsBridgeV1||null}catch(e){return null}}
