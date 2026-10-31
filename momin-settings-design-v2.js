@@ -391,7 +391,7 @@ function openSettingsSection(sectionId){
  },120);
 }
 function act(action,button){
- var route={"open-quran":"quran","open-duas":"duas","open-tasbeeh":"tasbeeh","open-qibla":"qibla","open-mosques":"mosques","open-calendar":"calendar"};
+ var route={"open-quran":"quran","open-duas":"duas","open-tasbeeh":"tasbeeh","open-qibla":"qibla","open-mosques":"qibla","open-calendar":"calendar"};
  if(route[action]){if(typeof go==="function")go(route[action]);return;}
  if(action==="route"){
   var dest=button.dataset.route||"home";
