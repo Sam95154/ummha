@@ -20,7 +20,16 @@
     var coords=rawLat!==""&&rawLon!==""&&Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180,method=3;
     try{if(typeof API_STORE!=="undefined"&&API_STORE&&API_STORE.method!==undefined)method=Number(API_STORE.method)||3}catch(_){}
     if(get("noor-method","")!=="")method=Number(get("noor-method","3"))||3;
-    return {latitude:coords?lat:null,longitude:coords?lon:null,city:get("noor-city",""),country:get("noor-country",""),timezone:(Intl.DateTimeFormat().resolvedOptions().timeZone||"Asia/Kolkata"),calculation_method:method,asr_school:get("noor-asr-method","standard")==="hanafi"?1:0};
+    var timezone="";
+    try{if(typeof livePrayer!=="undefined"&&livePrayer&&livePrayer.meta&&livePrayer.meta.timezone)timezone=String(livePrayer.meta.timezone)}catch(_){}
+    if(!timezone){
+      try{
+        var cached=parseJSON(get("noor-prayer-cache","null"),null);
+        if(cached&&cached.data&&cached.data.meta&&cached.data.meta.timezone)timezone=String(cached.data.meta.timezone);
+      }catch(_){}
+    }
+    if(!timezone)timezone=Intl.DateTimeFormat().resolvedOptions().timeZone||"Asia/Kolkata";
+    return {latitude:coords?lat:null,longitude:coords?lon:null,city:get("noor-city",""),country:get("noor-country",""),timezone:timezone,calculation_method:method,asr_school:get("noor-asr-method","standard")==="hanafi"?1:0};
   }
   async function pushApi(action,extra){
     var session=await getPushSession();if(!session)throw new Error("Please sign in to MOMIN again before enabling background notifications.");
