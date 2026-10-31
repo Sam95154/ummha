@@ -1,0 +1,320 @@
+<title>MOMIN Sign In</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<style>
+/* Layout: night-sky hero (moon, lanterns, city, logo arch) on top, cream sheet rising over it with the
+   greeting and a white sign-in card. Colours follow the Home screen: cream, gold, night sky.
+   Green appears only in the logo, the main button and the active toggle. */
+:root{
+  --bg:#f3efe5; --card:#fdfbf6; --field:#f6f1e4; --ink:#1b1710; --muted:#7a7466; --line:#e6dfcc;
+  --gold:#a97a22; --gold-bright:#d6a74a; --gold-soft:#efe2c2; --teal:#0b4f47; --teal-2:#0f6157; --on-teal:#f3dca0;
+  --err:#b3402f; --shadow:rgba(60,40,10,.22);
+  --sky-a:#0c0a06; --sky-b:#15110a; --sky-c:#3f2f17;
+  --serif:"Playfair Display",Georgia,"Times New Roman",serif;
+  --sans:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d120f; --card:#151c18; --field:#1b2420; --ink:#f1ecdf; --muted:#9aa196; --line:#25302a;
+  --gold:#d9aa52; --gold-soft:#2a2515; --teal:#0f5b52; --teal-2:#147166; --err:#ef8a78; --shadow:rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d120f; --card:#151c18; --field:#1b2420; --ink:#f1ecdf; --muted:#9aa196; --line:#25302a;
+  --gold:#d9aa52; --gold-soft:#2a2515; --teal:#0f5b52; --teal-2:#147166; --err:#ef8a78; --shadow:rgba(0,0,0,.6); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--sky-a);z-index:30}
+h1,h2{font-family:var(--serif);font-weight:600;margin:0}
+p{margin:0}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--gold-bright);outline-offset:3px}
+.auth-msg{display:none;margin:0 0 14px;padding:11px 13px;border-radius:13px;font-size:13px;line-height:1.45;text-align:left}
+.auth-msg.show{display:block}.auth-msg.error{background:rgba(179,64,47,.1);border:1px solid rgba(179,64,47,.3);color:var(--err)}
+.auth-msg.success{background:rgba(36,117,82,.1);border:1px solid rgba(36,117,82,.28);color:var(--teal-2)}
+.auth-msg.info{background:var(--gold-soft);border:1px solid var(--line);color:var(--ink)}
+
+svg{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.page{position:relative;min-height:100vh;display:flex;flex-direction:column}
+
+/* hero */
+.hero{position:relative;flex:none;height:300px;overflow:hidden;display:flex;justify-content:center;align-items:flex-start;padding-top:34px;
+  background:radial-gradient(90% 70% at 85% 8%,rgba(246,220,142,.2),transparent 70%),linear-gradient(180deg,var(--sky-a) 0%,var(--sky-b) 60%,var(--sky-c) 100%)}
+.scene{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.sstars i{position:absolute;border-radius:50%;background:#fff;opacity:0;animation:tw 4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.9}}
+.moon{position:absolute;right:22px;top:46px;width:56px;height:56px;border-radius:50%;box-shadow:inset -18px 5px 0 0 #f6dc8e;transform:rotate(-12deg);filter:drop-shadow(0 0 18px rgba(246,220,142,.7));animation:pulse 6s ease-in-out infinite}
+.moon::after{content:"";position:absolute;inset:-70px;border-radius:50%;background:radial-gradient(circle,rgba(246,220,142,.2),transparent 65%);z-index:-1}
+@keyframes pulse{50%{filter:drop-shadow(0 0 30px rgba(246,220,142,.95))}}
+.shoot{position:absolute;top:12%;left:78%;width:120px;height:2px;border-radius:2px;background:linear-gradient(90deg,#fff,transparent);opacity:0;animation:shoot 11s 3s infinite}
+@keyframes shoot{0%{transform:translate(0,0) rotate(-32deg);opacity:0}3%{opacity:1}12%,100%{transform:translate(-300px,190px) rotate(-32deg);opacity:0}}
+.lw{position:absolute;transform-origin:50% 0;animation:swing 6.5s ease-in-out infinite}
+.lw svg{width:100%;height:auto}
+.lw::before{content:"";position:absolute;left:50%;top:58%;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;background:radial-gradient(circle,rgba(255,196,90,.4),transparent 68%);animation:flick 3s ease-in-out infinite}
+@keyframes swing{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes flick{0%,100%{opacity:.8}30%{opacity:1}55%{opacity:.6}75%{opacity:.95}}
+.mist{position:absolute;left:-30%;width:160%;height:110px;bottom:50px;background:radial-gradient(50% 100% at 50% 100%,rgba(246,220,142,.14),transparent);animation:mist 26s ease-in-out infinite alternate}
+.mist.m2{bottom:20px;animation-duration:34s;animation-direction:alternate-reverse;opacity:.8}
+@keyframes mist{to{transform:translateX(14%)}}
+.city{position:absolute;left:0;right:0;bottom:0;height:180px}
+.city svg{position:absolute;inset:0;width:100%;height:100%}
+.win{animation:flick 3.4s ease-in-out infinite}
+
+.arch{position:relative;z-index:2;flex:none;width:118px;height:148px;border-radius:59px 59px 18px 18px;padding:3px;background:linear-gradient(160deg,#f3d27a,#a8750f 60%,#f3d27a);box-shadow:0 0 60px rgba(232,185,74,.3),0 24px 50px rgba(0,0,0,.45);animation:in 1s var(--ease) both,bob 6s 1s ease-in-out infinite}
+.arch>div{width:100%;height:100%;border-radius:56px 56px 15px 15px;background:linear-gradient(#fbf7ea,#efe7d0);display:grid;place-items:center;padding:18px 12px 12px;overflow:hidden;position:relative}
+.arch>div::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.7) 50%,transparent 65%);transform:translateX(-130%);animation:shine 5s 2s infinite}
+@keyframes shine{35%,100%{transform:translateX(130%)}}
+.arch svg{width:100%;height:auto}
+@keyframes in{from{opacity:0;transform:translateY(-30px) scale(.85)}}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.t1{opacity:0;animation:fd .9s .3s forwards}.t2{opacity:0;animation:fd .9s 1s forwards}
+@keyframes fd{to{opacity:1}}
+
+/* sheet */
+.sheet{position:relative;z-index:3;flex:1;margin-top:-34px;border-radius:34px 34px 0 0;background:var(--bg);box-shadow:0 -18px 34px -18px rgba(0,0,0,.5);
+  padding-block:28px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.col{max-width:420px;margin:0 auto;display:flex;flex-direction:column;align-items:center}
+.rise{opacity:0;animation:rs .8s calc(var(--d)*1ms) forwards var(--ease)}
+@keyframes rs{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.greet{color:var(--gold);font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+h1{font-size:36px;line-height:1.1;margin-top:8px;text-align:center;text-wrap:balance}
+.lead{color:var(--muted);margin-top:8px;text-align:center}
+
+.panel{width:100%;margin-top:24px;padding:22px;border-radius:30px;background:var(--card);border:1px solid var(--line);box-shadow:0 26px 44px -30px var(--shadow)}
+.google{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;height:56px;border-radius:99px;border:1px solid var(--line);background:#fff;color:#1f1f1f;font-weight:700;font-size:16px;box-shadow:0 12px 24px -14px var(--shadow);position:relative;overflow:hidden;transition:transform .2s var(--ease),border-color .2s}
+.google:hover{border-color:var(--gold-bright)}
+.google:active{transform:scale(.97)}
+.google::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 35%,rgba(214,167,74,.22) 50%,transparent 65%);transform:translateX(-130%);animation:shine 5s 2.5s infinite}
+.sp{display:none;width:22px;height:22px;border-radius:50%;border:3px solid currentColor;border-right-color:transparent;animation:spin .7s linear infinite}
+.busy .sp{display:block}.busy .lb{display:none}
+.or{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--muted);font-size:13px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.mail{width:100%;height:54px;border-radius:99px;border:1.5px solid var(--gold-bright);background:var(--gold-soft);color:var(--gold);font-weight:700;transition:background .25s,color .25s,transform .2s var(--ease)}
+.mail:hover{background:var(--gold-bright);color:#1b1710}
+.mail:active{transform:scale(.97)}
+.drawer{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s var(--ease)}
+.drawer>div{overflow:hidden;min-height:0}
+.open .drawer{grid-template-rows:1fr}.open .mail,.open .or{display:none}
+.seg{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:99px;background:var(--field);border:1px solid var(--line)}
+.seg i{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:99px;background:linear-gradient(155deg,var(--teal-2),var(--teal));transition:transform .4s var(--ease)}
+.up .seg i{transform:translateX(100%)}
+.seg button{position:relative;border:0;background:none;padding:10px;font-weight:700;font-size:14px;color:var(--muted);transition:color .3s}
+.seg button[aria-pressed="true"]{color:var(--on-teal)}
+form{display:grid;gap:12px;margin-top:14px;padding-bottom:4px}
+.sub{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s var(--ease)}
+.sub>div{overflow:hidden;min-height:0}
+.up .sub.u{grid-template-rows:1fr}.in .sub.i{grid-template-rows:1fr}
+.f{position:relative}
+.f input{width:100%;height:56px;padding:22px 48px 6px 16px;border-radius:18px;border:1.5px solid var(--line);background:var(--field);outline:none;transition:border-color .2s,box-shadow .2s}
+.f input:focus{border-color:var(--gold-bright);box-shadow:0 0 0 4px var(--gold-soft)}
+.f label{position:absolute;left:17px;top:18px;color:var(--muted);font-size:15px;pointer-events:none;transition:.2s}
+.f input:focus+label,.f input:not(:placeholder-shown)+label{top:8px;font-size:11.5px;font-weight:700;color:var(--gold)}
+.f.bad input{border-color:var(--err)}.f.bad{animation:sh .4s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.eye{position:absolute;right:8px;top:9px;width:38px;height:38px;border:0;background:none;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.err{color:var(--err);font-size:12.5px;margin:4px 6px 0}
+.hint{color:var(--muted);font-size:12.5px;margin:6px 4px 0}
+.meter{display:flex;gap:5px;margin:2px 4px 0}.meter span{flex:1;height:4px;border-radius:4px;background:var(--line);transition:background .3s}
+.meter.s1 span:nth-child(1){background:var(--err)}.meter.s2 span:nth-child(-n+2){background:var(--gold-bright)}.meter.s3 span:nth-child(-n+3),.meter.s4 span{background:var(--teal-2)}
+.link{background:none;border:0;color:var(--gold);font-weight:700;font-size:13.5px;float:right;padding:2px 4px}
+.go{display:grid;place-items:center;height:56px;border-radius:99px;border:0;background:linear-gradient(155deg,var(--teal-2),var(--teal));color:var(--on-teal);font-weight:700;font-size:16px;box-shadow:0 16px 28px -14px var(--teal);transition:transform .2s var(--ease)}
+.go:active{transform:scale(.97)}
+.legal{text-align:center;color:var(--muted);font-size:12.5px;margin-top:20px}
+.legal a{color:var(--ink)}
+
+/* success overlay */
+.done{position:fixed;inset:0;z-index:40;display:grid;place-content:center;gap:10px;text-align:center;background:radial-gradient(120% 90% at 100% 0%,var(--sky-c) 0%,transparent 60%),linear-gradient(160deg,var(--sky-a),var(--sky-b));color:#f6efdf;opacity:0;pointer-events:none;transition:opacity .5s;padding:20px}
+.ok .done{opacity:1;pointer-events:auto}
+.done svg{margin:0 auto 6px}.done circle{fill:var(--gold-bright);transform:scale(0);transform-origin:center;transition:transform .6s .1s cubic-bezier(.3,1.5,.4,1)}
+.done path{fill:none;stroke:#1b1710;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:50;stroke-dashoffset:50;transition:stroke-dashoffset .5s .6s}
+.ok .done circle{transform:scale(1)}.ok .done path{stroke-dashoffset:0}
+.done h2{font-size:30px}.done p{color:#cdbf9f}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.t1,.t2,.rise{opacity:1}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="lgrad" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#fff2b8"/><stop offset=".55" stop-color="#ffc95a"/><stop offset="1" stop-color="#d4880f"/></radialGradient><symbol id="lan" viewBox="0 0 60 130"><line x1="30" y1="0" x2="30" y2="40" stroke="#e8b94a" stroke-width="1.2"/><circle cx="30" cy="43" r="3.2" fill="none" stroke="#e8b94a" stroke-width="1.4"/><path d="M21 52H39L36 46H24Z" fill="#e8b94a"/><path d="M22 54H38C47 66 47 90 38 104H22C13 90 13 66 22 54Z" fill="url(#lgrad)" stroke="#e8b94a" stroke-width="1.6"/><path d="M30 64L35 74L30 84L25 74Z" fill="none" stroke="#7a4d08" stroke-width="1.2" opacity=".6"/><path d="M24 104H36L33 112H27Z" fill="#e8b94a"/><line x1="30" y1="112" x2="30" y2="124" stroke="#e8b94a" stroke-width="1.2"/><circle cx="30" cy="126" r="2.4" fill="#e8b94a"/></symbol></defs></svg>
+
+<main class="page" id="page">
+  <header class="hero">
+    <div class="scene" aria-hidden="true">
+      <div class="sstars" id="stars"></div><i class="shoot"></i><div class="moon"></div>
+      <div class="lw" style="left:7%;top:-30px;width:52px"><svg viewBox="0 0 60 130"><use href="#lan"/></svg></div>
+      <div class="lw" style="left:23%;top:-64px;width:40px;animation-delay:-3s"><svg viewBox="0 0 60 130"><use href="#lan"/></svg></div>
+      <div class="mist"></div><div class="mist m2"></div>
+      <div class="city">
+    <svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMax slice"><path fill="#4a3818" opacity=".55" d="M0 160V120H40V104C40 90 56 86 64 74C72 86 88 90 88 104V120H140V96C140 70 172 60 190 40C208 60 240 70 240 96V120H300V108C300 94 316 90 324 78C332 90 348 94 348 108V120H400V160Z"/><path fill="#4a3818" opacity=".55" d="M100 120V70L106 46L112 70V120ZM268 120V74L274 52L280 74V120ZM189 28h2v14h-2Z"/></svg>
+    <svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMax slice"><path fill="#241a0c" d="M0 160V138H60V126C60 114 74 110 82 100C90 110 104 114 104 126V138H190V120C190 100 214 92 228 78C242 92 266 100 266 120V138H330V128C330 118 342 114 350 106C358 114 370 118 370 128V138H400V160ZM14 138V96L20 74L26 96V138ZM374 138V92L380 68L386 92V138Z"/><g fill="#ffd778"><circle class="win" cx="82" cy="122" r="1.6"/><circle class="win" cx="228" cy="108" r="1.8" style="animation-delay:-1s"/><circle class="win" cx="350" cy="124" r="1.5" style="animation-delay:-2s"/><circle class="win" cx="20" cy="104" r="1.4" style="animation-delay:-.6s"/><circle class="win" cx="380" cy="100" r="1.4" style="animation-delay:-1.6s"/></g></svg>
+    <svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMax slice"><path fill="#15110a" d="M0 160V148H400V160Z"/></svg>
+  </div>
+    </div>
+    <div class="arch"><div><svg viewBox="600 520 800 685" role="img" aria-label="Logo"><g class="t1"><path fill="#21675f" fill-rule="evenodd" d="M610 1061L612 1062L624 1059L661 1055L711 1055L735 1057L782 1064L804 1069L862 1087L898 1103L916 1113L936 1127L947 1137L956 1149L960 1162L972 1182L982 1191L989 1195L997 1197L1003 1197L1014 1193L1028 1181L1035 1171L1042 1152L1047 1143L1063 1127L1096 1106L1116 1096L1146 1084L1195 1069L1204 1068L1217 1064L1264 1057L1288 1055L1338 1055L1368 1058L1389 1062L1382 1058L1352 1047L1340 1040L1327 1038L1264 1038L1240 1040L1193 1047L1167 1053L1166 1052L1169 1050L1176 1049L1185 1045L1234 1035L1281 1030L1325 1029L1308 1024L1302 1024L1279 1019L1276 1017L1276 1015L1281 1011L1264 1011L1245 1014L1235 1014L1195 1021L1162 1030L1134 1040L1100 1056L1081 1067L1060 1082L1035 1104L1015 1127L1002 1147L999 1148L985 1128L965 1105L943 1085L926 1072L924 1072L901 1057L877 1045L831 1028L804 1021L765 1014L735 1011L718 1011L724 1016L723 1018L674 1029L718 1030L766 1035L817 1046L822 1048L824 1050L823 1051L801 1046L759 1040L746 1040L734 1038L672 1038L659 1040L645 1048ZM774 995L799 995L834 998L863 1004L897 1015L926 1028L952 1043L982 1064L998 1078L1003 1077L1025 1058L1052 1040L1073 1028L1102 1015L1136 1004L1159 999L1201 995L1225 996L1223 993L1189 977L1173 972L1144 967L1099 968L1066 976L1029 992L1001 1010L996 1009L970 992L944 980L911 970L891 967L855 967L826 972L802 980ZM718 926L718 973L765 974L766 923L769 911L776 897L787 886L801 878L817 874L845 873L855 841L867 817L884 792L902 774L917 764L928 759L947 755L973 745L990 735L998 728L1001 728L1009 735L1033 748L1052 755L1076 761L1086 766L1102 778L1120 798L1135 822L1147 848L1153 871L1155 873L1171 873L1192 876L1208 883L1220 893L1225 900L1232 916L1233 971L1235 974L1281 973L1281 923L1279 910L1272 888L1266 876L1255 861L1241 848L1225 838L1210 832L1191 828L1188 825L1175 796L1164 778L1147 756L1133 742L1118 730L1103 721L1086 714L1058 707L1041 699L1032 692L1012 670L1002 650L1001 645L998 645L994 657L982 677L964 695L944 706L913 714L899 720L877 733L865 743L847 762L833 781L822 800L811 825L808 828L796 830L781 835L764 844L749 856L734 875L726 891L721 906Z"/></g><g class="t2"><path fill="#b98a2e" fill-rule="evenodd" d="M999 545L994 561L991 565L972 565L971 566L973 569L982 575L987 580L987 583L985 586L984 592L981 599L983 600L992 594L993 592L998 589L1001 589L1017 600L1018 598L1012 580L1025 569L1027 569L1028 566L1027 565L1008 565L1006 563L1003 552L1001 549L1001 546ZM969 530L953 545L947 556L944 566L944 575L943 576L944 591L947 600L953 611L961 620L970 627L988 634L994 634L995 635L1011 634L1031 626L1043 615L1046 611L1047 607L1044 608L1038 613L1027 618L1019 620L1003 620L992 617L981 611L970 601L969 598L963 591L962 586L959 581L959 576L958 575L958 558L962 545L972 530Z"/></g></svg></div></div>
+  </header>
+
+  <section class="sheet">
+    <div class="col">
+      <p class="greet rise" style="--d:400">As-salāmu ʿalaykum</p>
+      <h1 class="rise" style="--d:500" id="title">Welcome back</h1>
+      <p class="lead rise" style="--d:600" id="lead">Sign in to continue your journey</p>
+
+      <section class="panel in rise" style="--d:700" id="panel">
+         <p id="authMsg" class="auth-msg" role="status" aria-live="polite"></p>
+        <button class="google" id="g" type="button">
+          <svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-2.9-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.300-8.500 2.300-6.300 0-11.600-4.100-13.500-9.800l-7.900 6.100C6.500 42.600 14.600 48 24 48z"/></svg>
+          <span class="lb">Continue with Google</span><span class="sp" style="color:#4285F4"></span>
+        </button>
+        <div class="or">or</div>
+        <button class="mail" id="mail" type="button">Continue with email</button>
+        <div class="drawer"><div>
+          <div class="seg" role="group" aria-label="Mode"><i></i><button type="button" data-m="in" aria-pressed="true">Sign in</button><button type="button" data-m="up" aria-pressed="false">Create account</button></div>
+          <form id="form" novalidate>
+            <div class="sub u"><div><div class="f" id="fn"><input id="name" autocomplete="name" placeholder=" "><label for="name">Full name</label></div></div></div>
+            <div><div class="f" id="fe"><input id="email" type="email" autocomplete="email" inputmode="email" placeholder=" "><label for="email">Email address</label></div><p class="err" id="ee"></p></div>
+            <div><div class="f" id="fp"><input id="pw" type="password" autocomplete="current-password" placeholder=" "><label for="pw">Password</label><button type="button" class="eye" id="eye" aria-label="Show password"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p class="err" id="pe"></p></div>
+            <div class="sub u"><div><div class="meter" id="meter"><span></span><span></span><span></span><span></span></div><p class="hint">Use 8+ characters with letters, numbers and a symbol.</p></div></div>
+            <div class="sub i"><div><button type="button" class="link" id="forgot">Forgot password?</button></div></div>
+            <button class="go" id="submit" type="submit"><span class="lb" id="stxt">Sign in</span><span class="sp"></span></button>
+          </form>
+        </div></div>
+        <p class="legal">By continuing you agree to our <a href="#terms">Terms</a> and <a href="#privacy">Privacy Policy</a>.</p>
+      </section>
+    </div>
+  </section>
+</main>
+<div class="done" role="status"><svg width="96" height="96" viewBox="0 0 84 84"><circle cx="42" cy="42" r="40"/><path d="M26 43l11 11 21-23"/></svg><h2 id="dt">Welcome back</h2><p id="dp">Taking you to your home…</p></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+"use strict";
+var $=function(i){return document.getElementById(i)},panel=$("panel"),mode="in";
+var SUPABASE_URL="https://qzwqpiquvhpjwqgaxorp.supabase.co";
+var SUPABASE_PUBLISHABLE_KEY="sb_publishable_SAHjdts8xtuQSXE_lPa1cw_V6J3PjQt";
+var supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+});
+window.mominSupabase=supabaseClient;
+function nextPath(){
+  var next=new URLSearchParams(location.search).get("next")||"/";
+  try{var u=new URL(next,location.origin);return u.origin===location.origin?u.pathname+u.search+u.hash:"/";}
+  catch(e){return "/";}
+}
+function showMessage(message,type){
+  var el=$("authMsg");el.textContent=message;el.className="auth-msg show "+(type||"info");
+}
+function hideMessage(){var el=$("authMsg");el.textContent="";el.className="auth-msg";}
+function setBusy(button,busy){
+  if(!button)return;
+  button.classList.toggle("busy",!!busy);
+  if("disabled"in button)button.disabled=!!busy;
+}
+function setMode(m){
+  mode=m;panel.classList.remove("in","up");panel.classList.add(m);
+  document.querySelectorAll(".seg button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.m===m)});
+  $("title").textContent=m==="in"?"Welcome back":"Create your account";
+  $("lead").textContent=m==="in"?"Sign in to continue your journey":"Join in under a minute";
+  $("stxt").textContent=m==="in"?"Sign in":"Create account";
+  $("pw").autocomplete=m==="in"?"current-password":"new-password";clr();
+}
+function clr(){
+  ["fe","fp","fn"].forEach(function(i){$(i).classList.remove("bad")});
+  $("ee").textContent=$("pe").textContent="";
+}
+function bad(id,eid,msg){
+  var f=$(id);f.classList.remove("bad");void f.offsetWidth;f.classList.add("bad");
+  if(eid)$(eid).textContent=msg;
+}
+function finish(t,p){
+  $("dt").textContent=t;$("dp").textContent=p;
+  document.body.classList.add("ok");
+  setTimeout(function(){location.replace(nextPath());},650);
+}
+var okMail=function(v){return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)};
+$("mail").onclick=function(){hideMessage();panel.classList.add("open");setTimeout(function(){$("email").focus()},450)};
+document.querySelectorAll(".seg button").forEach(function(b){b.onclick=function(){setMode(b.dataset.m)}});
+$("eye").onclick=function(){
+  var p=$("pw"),visible=p.type==="password";p.type=visible?"text":"password";
+  this.setAttribute("aria-label",visible?"Hide password":"Show password");this.style.color=visible?"var(--gold)":"";
+};
+$("pw").oninput=function(){
+  var v=this.value,n=0;if(v.length>=8)n++;if(/[a-z]/i.test(v)&&/\d/.test(v))n++;
+  if(/[^\w\s]/.test(v))n++;if(v.length>=12)n++;
+  $("meter").className="meter"+(v?" s"+Math.max(n,1):"");
+};
+$("g").onclick=async function(){
+  var button=this;if(button.disabled)return;
+  hideMessage();setBusy(button,true);
+  try{
+    var result=await supabaseClient.auth.signInWithOAuth({
+      provider:"google",
+      options:{redirectTo:location.origin+nextPath(),queryParams:{access_type:"offline",prompt:"select_account"}}
+    });
+    if(result.error)throw result.error;
+    if(!result.data||!result.data.url)throw new Error("Google sign-in could not be started.");
+  }catch(error){
+    setBusy(button,false);
+    showMessage(error.message||"Google sign-in is not configured yet. Please try email sign-in.", "error");
+  }
+};
+$("form").onsubmit=async function(event){
+  event.preventDefault();clr();hideMessage();
+  var email=$("email").value.trim(),password=$("pw").value,fullName=$("name").value.trim(),valid=true;
+  if(mode==="up"&&fullName.length<2){bad("fn");valid=false}
+  if(!okMail(email)){bad("fe","ee","Enter a valid email address");valid=false}
+  if(password.length<8){bad("fp","pe","Password must be at least 8 characters");valid=false}
+  if(!valid)return;
+  var button=$("submit");setBusy(button,true);
+  try{
+    if(mode==="up"){
+      var signUp=await supabaseClient.auth.signUp({
+        email:email,password:password,
+        options:{
+          data:{full_name:fullName,name:fullName},
+          emailRedirectTo:location.origin+nextPath()
+        }
+      });
+      if(signUp.error)throw signUp.error;
+      if(signUp.data.session){
+        finish("Account created","Welcome to MOMIN. Opening your account…");
+      }else{
+        showMessage("Your account has been created. Check your email and confirm your address, then return here to sign in.","success");
+        setMode("in");$("email").value=email;
+      }
+    }else{
+      var signIn=await supabaseClient.auth.signInWithPassword({email:email,password:password});
+      if(signIn.error)throw signIn.error;
+      finish("Welcome back","You’re signed in. Opening MOMIN…");
+    }
+  }catch(error){
+    showMessage(error.message||"We could not complete sign-in. Please check your details and try again.","error");
+  }finally{setBusy(button,false);}
+};
+$("forgot").onclick=async function(){
+  hideMessage();var email=$("email").value.trim();
+  if(!okMail(email)){bad("fe","ee","Enter your email first");$("email").focus();return}
+  var button=this;button.disabled=true;
+  try{
+    var result=await supabaseClient.auth.resetPasswordForEmail(email,{
+      redirectTo:location.origin+"/reset-password.html"
+    });
+    if(result.error)throw result.error;
+    showMessage("If an account exists for this email, a password-reset link has been sent.","success");
+  }catch(error){showMessage(error.message||"Unable to send the reset email. Please try again.","error");}
+  finally{button.disabled=false;}
+};
+var stars=$("stars");
+for(var k=0;k<55;k++){
+  var star=document.createElement("i"),z=1+Math.random()*1.8;
+  star.style.cssText="left:"+Math.random()*100+"%;top:"+Math.random()*65+"%;width:"+z+"px;height:"+z+"px;animation-delay:"+Math.random()*4+"s;animation-duration:"+(3+Math.random()*3)+"s";
+  stars.appendChild(star);
+}
+setMode("in");
+if(new URLSearchParams(location.search).get("provider")==="google")$("g").click();
+supabaseClient.auth.getSession().then(function(result){
+  if(result.data&&result.data.session)location.replace(nextPath());
+});
+</script>
