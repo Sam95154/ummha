@@ -189,6 +189,20 @@ body.momin-app-shell-active .momin-shell-bottom-space{
 .momin-shell-back svg,.momin-shell-action svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .momin-shell-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px}
 .momin-shell-actions .momin-shell-action{width:40px;height:40px;min-width:40px;min-height:40px}
+.momin-shell-home-logo{
+ width:44px;height:44px;min-width:44px;min-height:44px;
+ display:grid;place-items:center;overflow:hidden;padding:4px;
+ border:1px solid var(--momin-gold-border);border-radius:14px;
+ background:#f8f0db;box-shadow:0 4px 12px rgba(0,0,0,.12);
+}
+.momin-shell-home-logo img{display:block;width:100%;height:100%;object-fit:contain}
+.momin-shell-actions .momin-shell-action[aria-label="Settings"]{
+ box-sizing:border-box;padding:0;line-height:0;
+ display:grid;place-items:center;align-self:center;
+}
+.momin-shell-actions .momin-shell-action[aria-label="Settings"] svg{
+ display:block;flex:none;width:22px;height:22px;margin:0;
+}
 .momin-shell-avatar{
  width:42px;height:42px;min-width:42px;min-height:42px;border-radius:50%;
  display:grid;place-items:center;overflow:hidden;border:1px solid var(--momin-gold-border);
@@ -266,7 +280,10 @@ body.momin-app-shell-active.momin-shell-enter #view :is(.card,.card2,.acc):nth-c
  .momin-shell-header__title p{font-size:12px}
  .momin-shell-actions{gap:4px}
  .momin-shell-actions .momin-shell-action{width:36px;height:36px;min-width:36px;min-height:36px}
- .momin-shell-avatar{width:38px;height:38px;min-width:38px;min-height:38px}
+.momin-shell-home-logo{width:42px;height:42px;min-width:42px;min-height:42px;padding:3px}
+ .momin-shell-actions .momin-shell-action[aria-label="Settings"]{width:36px;height:36px;min-width:36px;min-height:36px}
+ .momin-shell-actions .momin-shell-action[aria-label="Settings"] svg{width:21px;height:21px}
+  .momin-shell-avatar{width:38px;height:38px;min-width:38px;min-height:38px}
  .momin-shell-bottom-nav{left:12px;right:12px;width:calc(100% - 24px)}
 }
 @media(min-width:700px){
@@ -430,7 +447,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
           '<button class="momin-shell-action" type="button" data-shell-action="settings" aria-label="Settings" title="Settings">'+icon("settings")+'</button>'+
         '</div>':'<span></span>';
       return '<div class="momin-shell-header__inner">'+
-        '<span aria-hidden="true"></span><div class="momin-shell-header__title"><h1>'+esc(title)+'</h1><p>'+esc(hijriDate())+'</p></div>'+actions+
+        '<span class="momin-shell-home-logo" aria-label="MOMIN"><img src="./momin-mark.svg?v=islamic-logo-v3" alt="MOMIN"></span><div class="momin-shell-header__title"><h1>'+esc(title)+'</h1><p>'+esc(hijriDate())+'</p></div>'+actions+
       '</div>';
     }
     return '<div class="momin-shell-header__inner">'+
