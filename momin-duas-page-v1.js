@@ -1,10 +1,10 @@
-/* MOMIN Duas Page V1 — uploaded design hosted inside the shared app shell. */
+/* MOMIN Duas Page V1 — iframe host for the supplied design, using DOM construction. */
 (function () {
   "use strict";
   if (window.MominDuasPageV1 && window.MominDuasPageV1.initialized) return;
 
   var FRAME_ID = "momin-duas-page-v1-frame";
-  var PAGE_URL = "./duas-page-v1.html?embed=1&v=20261101-duas-v1";
+  var PAGE_URL = "./duas-page-v1.html?embed=1&v=20261101-duas-v2";
   var DETAIL_IDS = {
     m1: "morning-01",
     m2: "morning-02",
@@ -19,11 +19,27 @@
   var originalRender = window.render;
 
   function frameMarkup() {
-    return '<div class="momin-duas-frame-wrap" style="width:100%;max-width:520px;margin:0 auto;overflow:visible">' +
-      '<iframe id="' + FRAME_ID + '" title="MOMIN Duas" src="' + PAGE_URL + '" ' +
-      'loading="eager" scrolling="no" ' +
-      'style="display:block;width:100%;height:1500px;border:0;background:var(--momin-bg,#0d120f)" ' +
-      'referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
+    var wrap = document.createElement("div");
+    wrap.className = "momin-duas-frame-wrap";
+    wrap.style.width = "100%";
+    wrap.style.maxWidth = "520px";
+    wrap.style.margin = "0 auto";
+    wrap.style.overflow = "visible";
+
+    var frame = document.createElement("iframe");
+    frame.id = FRAME_ID;
+    frame.title = "MOMIN Duas";
+    frame.src = PAGE_URL;
+    frame.loading = "eager";
+    frame.scrolling = "no";
+    frame.referrerPolicy = "strict-origin-when-cross-origin";
+    frame.style.display = "block";
+    frame.style.width = "100%";
+    frame.style.height = "1500px";
+    frame.style.border = "0";
+    frame.style.background = "var(--momin-bg,#0d120f)";
+    wrap.appendChild(frame);
+    return wrap.outerHTML;
   }
 
   function renderRoot() {
