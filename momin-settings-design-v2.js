@@ -380,6 +380,7 @@ window.refreshMominSettingsProfileV2=function(){
   if(u&&u.avatar)avatar.innerHTML='<img class="pf-avatar-photo" src="'+esc(u.avatar)+'" alt="">';
   else avatar.textContent=((u&&u.name||"Guest").trim().charAt(0)||"G").toUpperCase();
  }
+ if(window.MominSharedShellV1&&typeof window.MominSharedShellV1.sync==="function")window.MominSharedShellV1.sync();
 };
 function updateDraft(k,v){
  draft[k]=v;if(k==="calc")window.settingsMethodModeDraftV6=v==="auto"?"auto":"manual";
