@@ -57,7 +57,28 @@
     try{var session=await getPushSession();if(session)await pushApi("unsubscribe",{});if("serviceWorker" in navigator){var reg=pushRegistration||await navigator.serviceWorker.getRegistration("/");if(reg){var sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe()}}put("momin-push-enabled","false");return true}
     catch(error){console.warn("MOMIN push unsubscribe:",error);return false}
   }
-  if("serviceWorker" in navigator&&window.isSecureContext)getPushWorker().catch(function(error){console.warn("MOMIN service worker:",error)});
+  async function refreshPushSubscriptionIfNeeded(){
+    if(get("momin-push-enabled","false")!=="true"||!("Notification" in window)||Notification.permission!=="granted")return false;
+    try{
+      var registration=await getPushWorker();
+      var subscription=await registration.pushManager.getSubscription();
+      if(subscription){
+        await registerExistingPush(currentPushPreferences());
+      }else{
+        await enableBackgroundPush(currentPushPreferences());
+      }
+      return true;
+    }catch(error){
+      console.warn("MOMIN background push refresh:",error);
+      return false;
+    }
+  }
+  if("serviceWorker" in navigator&&window.isSecureContext){
+    getPushWorker().then(function(){return refreshPushSubscriptionIfNeeded()})
+      .catch(function(error){console.warn("MOMIN service worker:",error)});
+    window.addEventListener("focus",refreshPushSubscriptionIfNeeded);
+    document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshPushSubscriptionIfNeeded()});
+  }
   window.addEventListener("message",function(event){if(event.origin!==location.origin||!event.data||event.data.type!=="MOMIN_PUSH_OPEN")return;var route=String(event.data.route||"home");if(["home","prayers","quran","duas","calendar","notifications","settings","journey"].indexOf(route)<0)route="home";navigate(route)});
 
   function get(key,fallback){try{var v=localStorage.getItem(key);return v===null?fallback:v}catch(_){return fallback}}
