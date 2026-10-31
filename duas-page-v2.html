@@ -630,15 +630,23 @@ body.momin-duas-embedded .toast{bottom:18px}
     }).filter(function(id,index,all){return id&&all.indexOf(id)===index});
   }
   saved=normalizeIds(saved);seen=normalizeIds(seen);
-  function persist(){
+  function persist(mergeExisting){
     try{localStorage.setItem("duas-saved",JSON.stringify(saved));localStorage.setItem("duas-seen",JSON.stringify(seen))}catch(e){}
-    var b=bridge();if(b&&b.syncState)b.syncState(saved.slice(),seen.slice());
+    var b=bridge();
+    if(b&&b.syncState){
+      var state=b.syncState(saved.slice(),seen.slice(),!!mergeExisting);
+      if(mergeExisting&&state){
+        saved=normalizeIds(state.saved||saved);
+        seen=normalizeIds(state.seen||seen);
+        try{localStorage.setItem("duas-saved",JSON.stringify(saved));localStorage.setItem("duas-seen",JSON.stringify(seen))}catch(e){}
+      }
+    }
     notifyParentHeight();
   }
   function isSaved(id){return saved.indexOf(id)>-1}
   function recentsN(){return RECENT_BASE+seen.length}
   function bridge(){try{return window.parent!==window&&window.parent.MominDuasBridgeV1||null}catch(_){return null}}
-  persist();
+  persist(true);
 
   /* partials */
   var STARS=[[12,18],[30,10],[48,26],[66,12],[82,30],[20,40]];
