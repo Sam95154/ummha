@@ -12,6 +12,19 @@
 (function(){
   "use strict";
   var root=document.documentElement,redirecting=false;
+  /* MOMIN already authenticates the top-level app. Reusing a second Supabase
+     client inside this same-origin iframe can contend with the parent's
+     session lock and cause the embedded page to flash/reload. */
+  var trustedMominParent=false;
+  try{
+    trustedMominParent=window.top!==window.self &&
+      window.parent.location.origin===location.origin &&
+      !!window.parent.MominNotificationsBridgeV1;
+  }catch(_){}
+  if(trustedMominParent){
+    root.classList.remove("momin-auth-pending");
+    return;
+  }
   var client=window.mominSupabase||window.supabase.createClient(
     "https://qzwqpiquvhpjwqgaxorp.supabase.co",
     "sb_publishable_SAHjdts8xtuQSXE_lPa1cw_V6J3PjQt",
