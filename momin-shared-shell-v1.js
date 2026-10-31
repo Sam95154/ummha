@@ -317,13 +317,15 @@ body.momin-app-shell-active .momin-mosque-design-v2 .title-row h1{display:none!i
 body.momin-app-shell-active .momin-support-card{background:var(--momin-card)!important;color:var(--momin-text)!important;border-color:var(--momin-gold-border)!important}
 /* Preserve functional page actions while replacing only duplicated global chrome. */
 body.momin-app-shell-active.dua-app-mode .dua-topbar{
- position:relative!important;top:auto!important;display:flex!important;justify-content:flex-end!important;align-items:center!important;
- min-height:42px!important;margin:0 0 12px!important;padding:0!important;
+ position:relative!important;top:auto!important;display:grid!important;
+ grid-template-columns:minmax(76px,auto) minmax(0,1fr) 44px!important;
+ justify-content:stretch!important;align-items:center!important;gap:8px!important;
+ min-height:54px!important;margin:0 0 12px!important;padding:4px 0!important;
  border:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
 }
-body.momin-app-shell-active.dua-app-mode .dua-topbar .dua-back,
+body.momin-app-shell-active.dua-app-mode .dua-topbar .dua-back{display:inline-flex!important;grid-column:1!important;justify-self:start!important}
 body.momin-app-shell-active.dua-app-mode .dua-topbar h1{display:none!important}
-body.momin-app-shell-active.dua-app-mode .dua-topbar .dua-top-actions{display:flex!important;justify-content:flex-end!important;min-width:0!important}
+body.momin-app-shell-active.dua-app-mode .dua-topbar .dua-top-actions{display:flex!important;grid-column:3!important;justify-self:end!important;justify-content:flex-end!important;min-width:44px!important}
 body.momin-app-shell-active.dua-app-mode .dua-bottom-nav{display:none!important}
 body.momin-app-shell-active .quran-library.qv-shell .qv-top{
  position:relative!important;top:auto!important;margin:0!important;padding:0!important;
