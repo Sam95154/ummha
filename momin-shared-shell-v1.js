@@ -528,7 +528,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
   function navigate(target,fromBack){
     if(!target||typeof originalGo!=="function")return;
     var before=routeNow();
-    if(before===target&&!(target==="quran"&&document.querySelector(".quran-reader")))return;
+    if(before===target&&!(target==="quran"&&document.querySelector(".quran-reader"))&&target!=="journey")return;
     if(before!==target){
       scrollPositions[before]=window.scrollY||document.documentElement.scrollTop||0;
       if(!fromBack)routeStack.push(before);
@@ -536,7 +536,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     if(!fromBack&&before!==target&&window.history&&window.history.pushState){
       try{window.history.pushState({mominShellRoute:target},"",location.href)}catch(_){}
     }
-    var result=originalGo.call(window,target);scheduleSync();
+    var result;if(target==="journey"&&typeof window.journeyPageV1==="function"){try{page="journey";}catch(_){}var journeyView=document.getElementById("view");if(journeyView){journeyView.innerHTML=window.journeyPageV1();result=true;}else result=originalGo.call(window,target);}else{result=originalGo.call(window,target);}scheduleSync();
     var restore=scrollPositions[target]||0;
     window.setTimeout(function(){window.scrollTo({top:restore,behavior:"auto"});scheduleSync()},70);
     return result;
