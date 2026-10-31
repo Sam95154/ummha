@@ -4,7 +4,7 @@
   if (window.MominJourneyPageV1 && window.MominJourneyPageV1.initialized) return;
 
   var FRAME_ID = "momin-journey-page-v1-frame";
-  var PAGE_URL = "./journey-page-v1.html?embed=1&v=20261101-journey-v1";
+  var PAGE_URL = "./journey-page-v1.html?embed=1&v=20261101-journey-v2";
 
   function localDayKey() {
     var d = new Date();
