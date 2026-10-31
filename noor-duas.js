@@ -91,7 +91,7 @@ var entries = [
     saveJsonV1("noor-dua-prototype-text", duaStateV1.visible);
     saveJsonV1("noor-dua-prototype-text-size", duaStateV1.arabicSize);
     saveJsonV1("duas-saved", duaStateV1.bookmarks.filter(function(k){return k.indexOf("d:")===0;}).map(function(k){return k.slice(2);}));
-    saveJsonV1("duas-seen", duaStateV1.recents.slice());
+    saveJsonV1("duas-seen", duaStateV1.recents.slice().reverse());
   }
 
   var duaEntriesV1 = entries.map(function (x) {
@@ -435,12 +435,12 @@ var entries = [
         duaStateV1.bookmarks=savedIds.map(function(id){return "d:"+String(id||"")}).filter(function(k){return itemDuaV1(k.slice(2))}).filter(function(k,i,a){return a.indexOf(k)===i;});
       }
       if(Array.isArray(seenIds)){
-        duaStateV1.recents=seenIds.map(function(id){return String(id||"")}).filter(function(id){return !!itemDuaV1(id)}).filter(function(id,i,a){return a.indexOf(id)===i;}).slice(0,30);
+        duaStateV1.recents=seenIds.map(function(id){return String(id||"")}).filter(function(id){return !!itemDuaV1(id)}).filter(function(id,i,a){return a.indexOf(id)===i;}).slice(-30).reverse();
       }
       persistDuaV1();
       return {
         saved:duaStateV1.bookmarks.filter(function(k){return k.indexOf("d:")===0;}).map(function(k){return k.slice(2);}),
-        seen:duaStateV1.recents.slice()
+        seen:duaStateV1.recents.slice().reverse()
       };
     },
     getState:function(){
