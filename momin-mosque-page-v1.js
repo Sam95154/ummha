@@ -82,7 +82,7 @@
     if (!frame || event.source !== frame.contentWindow) return;
     var data = event.data || {};
     if (data.type === "momin-mosques-height-v1" && Number.isFinite(Number(data.height))) {
-      frame.style.height = Math.max(650, Math.min(10000, Math.ceil(Number(data.height))) + "px");
+      frame.style.height = Math.max(650, Math.min(10000, Math.ceil(Number(data.height)))) + "px";
     }
   });
 
