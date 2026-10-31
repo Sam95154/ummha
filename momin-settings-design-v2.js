@@ -160,7 +160,7 @@ function buildSections(){
   note("Prayer timings can vary by calculation method and local mosque. Confirm important timings locally.")+
   saveButton("Save prayer settings","location2")});
  sections.push({id:"notif",ic:"bell",title:"Notifications & Adhan",sub:"Prayer-by-prayer preferences",body:
-  note("Prayer reminders can be checked while MOMIN is open. Background browser delivery is not guaranteed on every device.")+
+  note("MOMIN uses server-scheduled push alerts after this device is enabled. Alerts can arrive while the app is closed, subject to browser permission, network and phone power settings.")+
   switchRow("notif","Enable notifications","Master notification preference","","settingsPrayerNotificationsV1")+
   [["Fajr","nFajr","fajr"],["Dhuhr","nDhuhr","dhuhr"],["Asr","nAsr","asr"],["Maghrib","nMaghrib","maghrib"],["Isha","nIsha","isha"]].map(function(p){return switchRow(p[1],p[0],"Reminder preference","notif","settingsNotify-"+p[2]);}).join("")+
   selectRow("lead","Advance reminder","Preferred lead time before prayer",[["0","At prayer time"],["5","5 minutes before"],["10","10 minutes before"],["15","15 minutes before"],["30","30 minutes before"]],"settingsReminderMinutesV1")+
