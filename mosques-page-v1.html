@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="dark">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mosques near me</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#0c0a07;--surface:#17140f;--ink:#f4ecd8;--muted:#a39a85;--line:#2e2819;--accent:#d4a63f;--accent-ink:#1a1204;--gold:#e3b95a;--glow:rgba(212,166,63,.2);--cell:#221d12;--nav:rgba(23,20,15,.94);--err:#ff8a80;--field:rgba(0,0,0,.3);color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.55 Manrope,system-ui,sans-serif;padding-bottom:96px;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:700;letter-spacing:-.01em}
+.wrap{max-width:520px;margin:0 auto;padding:0 20px}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
+.date{font-size:13px;color:var(--muted)}
+.title-row{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:4px}
+h1{font-size:34px;line-height:1.1}
+.sub{color:var(--muted);font-size:14px;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:500;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--accent);animation:ping 2s infinite}
+.locating .dot{animation-duration:.7s}
+@keyframes ping{70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+.hero{position:relative;margin-top:22px;border-radius:32px;padding:28px 22px 26px;text-align:center;overflow:hidden;background:radial-gradient(120% 80% at 50% 0%,var(--glow),transparent 70%),var(--surface);border:1px solid var(--line)}
+.hero::before{content:"";position:absolute;inset:0;opacity:.5;background:conic-gradient(from 45deg at 50% 50%,transparent 0 25%,var(--line) 0 26%,transparent 0 50%,var(--line) 0 51%,transparent 0 75%,var(--line) 0 76%,transparent 0);background-size:44px 44px;-webkit-mask-image:linear-gradient(#000,transparent 70%);mask-image:linear-gradient(#000,transparent 70%)}
+.stage{position:relative;width:220px;height:220px;margin:0 auto}
+.ring{position:absolute;inset:50%;width:0;height:0;border-radius:50%;border:1.5px solid var(--accent);opacity:0;transform:translate(-50%,-50%);animation:radar 3.6s cubic-bezier(.2,.6,.3,1) infinite}
+.ring:nth-child(2){animation-delay:1.2s}.ring:nth-child(3){animation-delay:2.4s}
+.locating .ring{animation-duration:1.6s}
+@keyframes radar{0%{width:70px;height:70px;opacity:.7}100%{width:260px;height:260px;opacity:0}}
+.brand{display:flex;align-items:center;gap:10px}
+.badge{width:40px;height:40px;border-radius:12px;background:#f6f1e3;display:grid;place-items:center;padding:5px;box-shadow:0 4px 14px var(--glow)}
+.badge svg,.seal svg{width:100%;height:auto;overflow:visible}
+.seal{position:absolute;inset:0;margin:auto;width:150px;height:150px;border-radius:50%;background:#f6f1e3;display:grid;place-items:center;padding:16px;box-shadow:0 0 0 6px var(--glow),0 18px 40px rgba(0,0,0,.22)}
+.lg-teal{opacity:0;animation:fade .9s .2s forwards}
+.lg-fade{opacity:0;animation:fade .9s 1s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}@keyframes fade{to{opacity:1}}
+.hero h2{position:relative;font-size:27px;line-height:1.2;margin-top:6px}
+.hero p{position:relative;color:var(--muted);font-size:15px;margin:10px auto 0;max-width:34ch}
+.radius{position:relative;display:flex;justify-content:center;gap:8px;margin:20px 0 4px}
+.radius button{font:inherit;font-size:13px;font-weight:500;padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.radius button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;font:inherit;font-weight:700;font-size:16px;padding:16px;border-radius:99px;border:0;cursor:pointer;text-decoration:none;margin-top:14px;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.primary{background:var(--accent);color:var(--accent-ink);box-shadow:0 12px 28px var(--glow);overflow:hidden}
+.primary::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);animation:sheen 4.5s 2.5s infinite}
+@keyframes sheen{40%,100%{transform:translateX(120%)}}
+.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+
+.card{margin-top:16px;border-radius:26px;background:var(--surface);border:1px solid var(--line);padding:20px}
+.card h3{font-size:20px}
+.coords{display:flex;gap:10px;margin-top:14px}
+.coords div{flex:1;padding:12px;border-radius:16px;background:var(--bg);font-size:13px;color:var(--muted)}
+.coords b{display:block;color:var(--ink);font-size:16px;font-variant-numeric:tabular-nums}
+.steps{list-style:none;padding:0;margin-top:14px}
+.steps li{border-top:1px solid var(--line)}
+.steps li:first-child{border-top:0}
+.steps button{all:unset;box-sizing:border-box;display:flex;gap:14px;align-items:center;width:100%;padding:14px 0;cursor:pointer}
+.n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--bg);border:1px solid var(--line)}
+.steps .t{font-weight:700;flex:1}
+.chev{transition:transform .3s;color:var(--muted)}
+.steps li.open .chev{transform:rotate(180deg)}
+.steps li.open .n{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.more{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s ease}
+.more>div{overflow:hidden;color:var(--muted);font-size:14px;padding-left:44px}
+.open .more{grid-template-rows:1fr}
+.open .more>div{padding-bottom:14px}
+
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-around;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--nav);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+nav a{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--muted);text-decoration:none;padding:4px 14px;border-radius:14px}
+nav a[aria-current]{color:var(--ink);font-weight:700}
+nav a[aria-current] svg{color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:104px;transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:20;max-width:90%}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.reveal{animation:rise .8s .1s both cubic-bezier(.2,.7,.2,1)}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.lg-teal,.lg-fade{opacity:1}}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:env(safe-area-inset-top,0px);z-index:6;margin:0 -20px;padding:12px 20px;background:rgba(12,10,7,.88);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}
+.badge{width:46px;height:46px;border-radius:14px;box-shadow:0 4px 16px rgba(212,166,63,.18)}
+.wm{display:block;font:700 22px/1 Fraunces,Georgia,serif;letter-spacing:.14em;color:var(--ink)}
+.hjd{display:block;font-size:12.5px;color:var(--muted);margin-top:4px}
+.avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#2a2212;border:1px solid #4a3a16;color:var(--gold);font:700 20px Fraunces,Georgia,serif}
+nav{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));padding:8px;border:1px solid var(--line);border-radius:30px;box-shadow:0 18px 40px -12px rgba(0,0,0,.8)}
+nav a{border-radius:22px}
+nav a[aria-current]{background:var(--glow);color:var(--gold)}nav a[aria-current] svg{color:var(--gold)}
+body{padding-bottom:116px}
+
+/* Embedded MOMIN view: the shared app shell owns global navigation. */
+body.momin-mosque-embedded{padding-bottom:12px!important}
+body.momin-mosque-embedded::before{display:none!important}
+body.momin-mosque-embedded header,
+body.momin-mosque-embedded nav{display:none!important}
+body.momin-mosque-embedded .wrap{padding-top:6px;padding-bottom:18px}
+body.momin-mosque-embedded .title-row{margin-top:14px}
+body.momin-mosque-embedded .toast{bottom:18px}
+
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header>
+    <div class="brand"><span class="badge" aria-hidden="true"><svg viewBox="600 520 800 685"><path fill="#21675f" fill-rule="evenodd" d="M610 1061L612 1062L624 1059L661 1055L711 1055L735 1057L782 1064L804 1069L862 1087L898 1103L916 1113L936 1127L947 1137L956 1149L960 1162L972 1182L982 1191L989 1195L997 1197L1003 1197L1014 1193L1028 1181L1035 1171L1042 1152L1047 1143L1063 1127L1096 1106L1116 1096L1146 1084L1195 1069L1204 1068L1217 1064L1264 1057L1288 1055L1338 1055L1368 1058L1389 1062L1382 1058L1352 1047L1340 1040L1327 1038L1264 1038L1240 1040L1193 1047L1167 1053L1166 1052L1169 1050L1176 1049L1185 1045L1234 1035L1281 1030L1325 1029L1308 1024L1302 1024L1279 1019L1276 1017L1276 1015L1281 1011L1264 1011L1245 1014L1235 1014L1195 1021L1162 1030L1134 1040L1100 1056L1081 1067L1060 1082L1035 1104L1015 1127L1002 1147L999 1148L985 1128L965 1105L943 1085L926 1072L924 1072L901 1057L877 1045L831 1028L804 1021L765 1014L735 1011L718 1011L724 1016L723 1018L674 1029L718 1030L766 1035L817 1046L822 1048L824 1050L823 1051L801 1046L759 1040L746 1040L734 1038L672 1038L659 1040L645 1048ZM774 995L799 995L834 998L863 1004L897 1015L926 1028L952 1043L982 1064L998 1078L1003 1077L1025 1058L1052 1040L1073 1028L1102 1015L1136 1004L1159 999L1201 995L1225 996L1223 993L1189 977L1173 972L1144 967L1099 968L1066 976L1029 992L1001 1010L996 1009L970 992L944 980L911 970L891 967L855 967L826 972L802 980ZM718 926L718 973L765 974L766 923L769 911L776 897L787 886L801 878L817 874L845 873L855 841L867 817L884 792L902 774L917 764L928 759L947 755L973 745L990 735L998 728L1001 728L1009 735L1033 748L1052 755L1076 761L1086 766L1102 778L1120 798L1135 822L1147 848L1153 871L1155 873L1171 873L1192 876L1208 883L1220 893L1225 900L1232 916L1233 971L1235 974L1281 973L1281 923L1279 910L1272 888L1266 876L1255 861L1241 848L1225 838L1210 832L1191 828L1188 825L1175 796L1164 778L1147 756L1133 742L1118 730L1103 721L1086 714L1058 707L1041 699L1032 692L1012 670L1002 650L1001 645L998 645L994 657L982 677L964 695L944 706L913 714L899 720L877 733L865 743L847 762L833 781L822 800L811 825L808 828L796 830L781 835L764 844L749 856L734 875L726 891L721 906Z"/><path fill="#b98a2e" fill-rule="evenodd" d="M999 545L994 561L991 565L972 565L971 566L973 569L982 575L987 580L987 583L985 586L984 592L981 599L983 600L992 594L993 592L998 589L1001 589L1017 600L1018 598L1012 580L1025 569L1027 569L1028 566L1027 565L1008 565L1006 563L1003 552L1001 549L1001 546ZM969 530L953 545L947 556L944 566L944 575L943 576L944 591L947 600L953 611L961 620L970 627L988 634L994 634L995 635L1011 634L1031 626L1043 615L1046 611L1047 607L1044 608L1038 613L1027 618L1019 620L1003 620L992 617L981 611L970 601L969 598L963 591L962 586L959 581L959 576L958 575L958 558L962 545L972 530Z"/></svg></span><div><b class="wm">MOMIN</b><span class="hjd" id="hjd">19 Jumādá al-ūlá 1448 AH</span></div></div>
+    <span class="avatar" aria-label="Account">S</span>
+  </header>
+
+  <div class="title-row reveal">
+    <div>
+      <h1>Mosques near me</h1>
+      <p class="sub">Find nearby prayer spaces with Google Maps</p>
+    </div>
+    <span class="chip" id="status"><span class="dot"></span><span id="statusText">Device location</span></span>
+  </div>
+
+  <section class="hero reveal" aria-labelledby="place">
+    <div class="stage" aria-hidden="true">
+      <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+      <div class="seal"><svg viewBox="600 520 800 685" role="img" aria-label="Mosque dome over an open book"><g id="lg"><path class="lg-teal" fill="#21675f" fill-rule="evenodd" d="M610 1061L612 1062L624 1059L661 1055L711 1055L735 1057L782 1064L804 1069L862 1087L898 1103L916 1113L936 1127L947 1137L956 1149L960 1162L972 1182L982 1191L989 1195L997 1197L1003 1197L1014 1193L1028 1181L1035 1171L1042 1152L1047 1143L1063 1127L1096 1106L1116 1096L1146 1084L1195 1069L1204 1068L1217 1064L1264 1057L1288 1055L1338 1055L1368 1058L1389 1062L1382 1058L1352 1047L1340 1040L1327 1038L1264 1038L1240 1040L1193 1047L1167 1053L1166 1052L1169 1050L1176 1049L1185 1045L1234 1035L1281 1030L1325 1029L1308 1024L1302 1024L1279 1019L1276 1017L1276 1015L1281 1011L1264 1011L1245 1014L1235 1014L1195 1021L1162 1030L1134 1040L1100 1056L1081 1067L1060 1082L1035 1104L1015 1127L1002 1147L999 1148L985 1128L965 1105L943 1085L926 1072L924 1072L901 1057L877 1045L831 1028L804 1021L765 1014L735 1011L718 1011L724 1016L723 1018L674 1029L718 1030L766 1035L817 1046L822 1048L824 1050L823 1051L801 1046L759 1040L746 1040L734 1038L672 1038L659 1040L645 1048ZM774 995L799 995L834 998L863 1004L897 1015L926 1028L952 1043L982 1064L998 1078L1003 1077L1025 1058L1052 1040L1073 1028L1102 1015L1136 1004L1159 999L1201 995L1225 996L1223 993L1189 977L1173 972L1144 967L1099 968L1066 976L1029 992L1001 1010L996 1009L970 992L944 980L911 970L891 967L855 967L826 972L802 980ZM718 926L718 973L765 974L766 923L769 911L776 897L787 886L801 878L817 874L845 873L855 841L867 817L884 792L902 774L917 764L928 759L947 755L973 745L990 735L998 728L1001 728L1009 735L1033 748L1052 755L1076 761L1086 766L1102 778L1120 798L1135 822L1147 848L1153 871L1155 873L1171 873L1192 876L1208 883L1220 893L1225 900L1232 916L1233 971L1235 974L1281 973L1281 923L1279 910L1272 888L1266 876L1255 861L1241 848L1225 838L1210 832L1191 828L1188 825L1175 796L1164 778L1147 756L1133 742L1118 730L1103 721L1086 714L1058 707L1041 699L1032 692L1012 670L1002 650L1001 645L998 645L994 657L982 677L964 695L944 706L913 714L899 720L877 733L865 743L847 762L833 781L822 800L811 825L808 828L796 830L781 835L764 844L749 856L734 875L726 891L721 906Z"/><path class="lg-fade" fill="#b98a2e" fill-rule="evenodd" d="M999 545L994 561L991 565L972 565L971 566L973 569L982 575L987 580L987 583L985 586L984 592L981 599L983 600L992 594L993 592L998 589L1001 589L1017 600L1018 598L1012 580L1025 569L1027 569L1028 566L1027 565L1008 565L1006 563L1003 552L1001 549L1001 546ZM969 530L953 545L947 556L944 566L944 575L943 576L944 591L947 600L953 611L961 620L970 627L988 634L994 634L995 635L1011 634L1031 626L1043 615L1046 611L1047 607L1044 608L1038 613L1027 618L1019 620L1003 620L992 617L981 611L970 601L969 598L963 591L962 586L959 581L959 576L958 575L958 558L962 545L972 530Z"/></g></svg></div>
+    </div>
+    <h2 id="place">Mosques around Galivedu, India</h2>
+    <p id="lead">Google Maps shows mosque locations, opening hours and directions for this area.</p>
+
+    <div class="radius" role="group" aria-label="Search distance">
+      <button aria-pressed="false" data-z="15">1 km</button>
+      <button aria-pressed="true" data-z="14">3 km</button>
+      <button aria-pressed="false" data-z="13">5 km</button>
+    </div>
+
+    <a class="btn primary" id="open" href="#" target="_blank" rel="noopener">Open nearby mosques in Google Maps
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+    </a>
+    <button class="btn ghost" id="locate">Use current location</button>
+  </section>
+
+  <section class="card reveal" aria-labelledby="loc">
+    <h3 id="loc">Using your location</h3>
+    <p class="sub" id="locNote">Using the default area for Maps search and prayer calculations.</p>
+    <div class="coords">
+      <div>Latitude<b id="lat">15.8281</b></div>
+      <div>Longitude<b id="lng">78.0373</b></div>
+    </div>
+    <button class="btn ghost" id="prayerSettings" type="button">Prayer location settings</button>
+  </section>
+
+  <section class="card reveal" aria-labelledby="dir">
+    <h3 id="dir">Directions</h3>
+    <ul class="steps" id="steps">
+      <li class="open"><button aria-expanded="true"><span class="n">1</span><span class="t">Open the map</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button><div class="more"><div>Tap the green button. Google Maps opens with mosques near your chosen distance.</div></div></li>
+      <li><button aria-expanded="false"><span class="n">2</span><span class="t">Pick a mosque</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button><div class="more"><div>Check opening hours, photos and reviews before you go.</div></div></li>
+      <li><button aria-expanded="false"><span class="n">3</span><span class="t">Start navigation</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button><div class="more"><div>Tap Directions, then choose walking, bike or car.</div></div></li>
+    </ul>
+  </section>
+</div>
+
+<nav aria-label="Main">
+  <a href="#home"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11 12 4l8 7v9H4z"/></svg>Home</a>
+  <a href="#prayers"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Prayers</a>
+  <a href="#quran"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h6a2 2 0 0 1 1 .3A2 2 0 0 1 13 5h6v14h-6a2 2 0 0 0-1 .3 2 2 0 0 0-1-.3H5z"/></svg>Quran</a>
+  <a href="#mosques" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Mosques</a>
+</nav>
+<div class="toast" id="toast" role="status"></div>
+
+
+<script>
+var lat=null,lng=null,zoom=14,area="";
+var $=function(id){return document.getElementById(id)};
+var bridge=null;
+try{if(window.parent!==window)bridge=window.parent.MominMosqueBridgeV1||null}catch(_){}
+function toast(message){
+ var node=$("toast");if(!node)return;
+ node.textContent=message;node.classList.add("show");
+ clearTimeout(toast.timer);toast.timer=setTimeout(function(){node.classList.remove("show")},2600);
+}
+function validCoords(a,b){
+ a=Number(a);b=Number(b);
+ return Number.isFinite(a)&&Number.isFinite(b)&&a>=-90&&a<=90&&b>=-180&&b<=180;
+}
+function hasCoords(){return validCoords(lat,lng)}
+function link(){
+ var href=hasCoords()
+  ?"https://www.google.com/maps/search/mosques/@"+Number(lat)+","+Number(lng)+","+zoom+"z"
+  :"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("mosques near "+(area||"me"));
+ $("open").href=href;
+}
+function postHeight(){
+ if(window.parent===window)return;
+ var height=Math.max(document.documentElement.scrollHeight,document.body.scrollHeight);
+ try{window.parent.postMessage({type:"momin-mosques-height-v1",height:height},location.origin)}catch(_){}
+}
+function displayLocation(){
+ $("lat").textContent=hasCoords()?Number(lat).toFixed(4):"Not set";
+ $("lng").textContent=hasCoords()?Number(lng).toFixed(4):"Not set";
+ $("place").textContent="Mosques around "+(area||"your location");
+ $("statusText").textContent=hasCoords()?"App location":(area?"Saved city":"Location not set");
+ $("locNote").textContent=hasCoords()
+  ?"Using the location saved in MOMIN for nearby mosque search and prayer calculations."
+  :(area?"Using the city saved in MOMIN. Use current location for a more precise map search."
+  :"Set a location in Prayer Times or use your current location.");
+ $("lead").textContent=area
+  ?"Google Maps shows mosque locations, opening hours and directions around "+area+"."
+  :"Set your location to search for nearby mosques in Google Maps.";
+ link();postHeight();
+}
+function applyAppState(state){
+ if(!state)return;
+ lat=state.latitude==null?null:Number(state.latitude);
+ lng=state.longitude==null?null:Number(state.longitude);
+ if(!validCoords(lat,lng)){lat=null;lng=null}
+ area=String(state.label||[state.city,state.country].filter(Boolean).join(", ")||"").trim();
+ displayLocation();
+}
+document.querySelectorAll(".radius button").forEach(function(button){
+ button.onclick=function(){
+  document.querySelectorAll(".radius button").forEach(function(item){item.setAttribute("aria-pressed","false")});
+  button.setAttribute("aria-pressed","true");zoom=Number(button.dataset.z)||14;link();
+  toast("Map view adjusted to "+button.textContent);
+ };
+});
+document.querySelectorAll("#steps button").forEach(function(button){
+ button.onclick=function(){
+  var item=button.parentNode,opened=item.classList.toggle("open");
+  button.setAttribute("aria-expanded",String(opened));postHeight();
+ };
+});
+$("prayerSettings").onclick=function(){
+ try{if(bridge&&typeof bridge.openPrayerSettings==="function"){bridge.openPrayerSettings();return}}catch(_){}
+ toast("Open Prayer Times to update your saved location.");
+};
+$("locate").onclick=function(){
+ var app=$("app"),button=$("locate");
+ if(!navigator.geolocation){toast("Location isn’t available on this device");return}
+ if(!window.isSecureContext&&location.hostname!=="localhost"){toast("Current location requires a secure HTTPS connection.");return}
+ app.classList.add("locating");$("statusText").textContent="Locating…";button.textContent="Finding you…";button.disabled=true;
+ navigator.geolocation.getCurrentPosition(async function(position){
+  lat=Number(position.coords.latitude);lng=Number(position.coords.longitude);
+  if(!validCoords(lat,lng)){finish();toast("Your device returned invalid coordinates.");return}
+  area="Current location";
+  try{
+   if(bridge&&typeof bridge.updateCurrentLocation==="function"){
+    var result=await bridge.updateCurrentLocation(lat,lng,Number(position.coords.accuracy)||null);
+    if(result&&result.label)area=result.label;
+   }
+  }catch(error){toast(error&&error.message?error.message:"Location could not be saved to MOMIN.")}
+  displayLocation();toast("Location updated");finish();
+ },function(error){
+  finish();
+  if(error&&error.code===1)toast("Allow location access to use your current location.");
+  else if(error&&error.code===3)toast("Location request timed out. Please try again.");
+  else toast("Could not get your location. Check device location settings.");
+ },{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+ function finish(){app.classList.remove("locating");button.textContent="Use current location";button.disabled=false}
+};
+(function init(){
+ document.body.classList.add("momin-mosque-embedded");
+ try{if(bridge&&typeof bridge.getState==="function")applyAppState(bridge.getState());else displayLocation()}catch(_){displayLocation()}
+ try{
+  var parts={},months=["Muḥarram","Ṣafar","Rabīʿ al-awwal","Rabīʿ al-thānī","Jumādá al-ūlá","Jumādá al-ākhirah","Rajab","Shaʿbān","Ramaḍān","Shawwāl","Dhū al-Qaʿdah","Dhū al-Ḥijjah"];
+  new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn",{day:"numeric",month:"numeric",year:"numeric"}).formatToParts(new Date()).forEach(function(part){parts[part.type]=part.value});
+  $("hjd").textContent=parts.day+" "+months[Number(parts.month)-1]+" "+parseInt(parts.year,10)+" AH";
+ }catch(_){}
+ if(typeof ResizeObserver!=="undefined")new ResizeObserver(postHeight).observe(document.body);
+ window.addEventListener("resize",postHeight);
+ setTimeout(postHeight,60);setTimeout(postHeight,350);
+})();
+</script>
+</body>
+</html>
