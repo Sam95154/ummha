@@ -98,7 +98,7 @@
       listDevices:async function(){
         var {data,error}=await supabase.from("momin_devices")
           .select("id,device_key,device_name,first_seen_at,last_seen_at,is_current,revoked_at")
-          .eq("revoked_at",null)
+          .is("revoked_at",null)
           .order("last_seen_at",{ascending:false});
         if(error)throw error;
         return (data||[]).map(function(row){
@@ -147,7 +147,6 @@
     try{
       await syncProfile(user);
       await inspectCurrentDevice(user,session);
-      if(profileApi.getUser())profileApi.configure({listDevices:profileApi.getDevices});
       var devices=await profileApi.getDevices();
       var result=await supabase.from("momin_devices").select("id,device_key,device_name,last_seen_at,is_current,revoked_at")
         .eq("user_id",user.id).is("revoked_at",null).order("last_seen_at",{ascending:false});
