@@ -271,3 +271,64 @@ html[data-theme="dark"] #readerSettings.momin-reader-settings-v8 .momin-quran-fi
 #readerSettings.momin-reader-settings-v8.momin-settings-night-v8 .momin-quran-save-button{
  background:linear-gradient(135deg,#f0d38f,#c08c2f)!important;border-color:#c08c2f!important;color:#21180c!important;
 }
+
+
+/* Quran Text > Translation: responsive, full-width alignment for Surah and Juz. */
+#readerSettings .momin-quran-subhead{
+ display:block;width:100%;margin:22px 0 12px;text-align:left;
+}
+#readerSettings .momin-quran-selected-translation{
+ display:grid!important;grid-template-columns:minmax(0,1fr) 26px!important;
+ align-items:center!important;gap:12px!important;width:100%!important;max-width:100%!important;
+ min-width:0!important;box-sizing:border-box!important;margin:12px 0 0!important;
+ text-align:left!important;overflow:hidden;
+}
+#readerSettings .momin-quran-selected-translation>span:first-child{
+ display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+ justify-content:center!important;gap:6px!important;width:100%!important;min-width:0!important;
+}
+#readerSettings .momin-quran-selected-translation strong,
+#readerSettings .momin-quran-selected-translation small{
+ display:block!important;width:100%!important;min-width:0!important;text-align:left!important;
+ overflow-wrap:anywhere!important;word-break:normal!important;
+}
+#readerSettings .momin-quran-selected-translation small{white-space:normal!important}
+#readerSettings .momin-quran-translation-picker{
+ display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ box-sizing:border-box!important;padding:12px!important;overflow:hidden;
+}
+#readerSettings .momin-quran-translation-picker[hidden]{display:none!important}
+#readerSettings .momin-quran-translation-picker input[type=search],
+#readerSettings .momin-quran-translation-picker select{
+ display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;
+ box-sizing:border-box!important;margin:0!important;
+}
+#readerSettings .momin-quran-translation-picker select{
+ min-height:190px!important;max-height:270px!important;height:auto!important;
+ padding:8px!important;overflow-y:auto!important;white-space:normal!important;
+}
+#readerSettings .momin-quran-translation-picker option{
+ padding:7px 8px!important;white-space:normal!important;overflow-wrap:anywhere!important;
+}
+#readerSettings .momin-quran-translation-picker optgroup{font-weight:750!important}
+#readerSettings .momin-quran-translation-picker option:disabled{color:#929b91!important}
+#readerSettings.momin-juz-settings-v1 .momin-quran-selected-translation,
+#readerSettings.momin-juz-settings-v1 .momin-quran-translation-picker{
+ margin-left:0!important;margin-right:0!important;
+}
+@media(max-width:520px){
+ #readerSettings .momin-quran-selected-translation{
+  min-height:78px!important;padding:14px!important;border-radius:16px!important;
+ }
+ #readerSettings .momin-quran-selected-translation strong{font-size:14px!important}
+ #readerSettings .momin-quran-selected-translation small{font-size:12px!important;line-height:1.4!important}
+ #readerSettings .momin-quran-translation-picker{padding:10px!important;border-radius:15px!important}
+ #readerSettings .momin-quran-translation-picker select{min-height:180px!important;max-height:240px!important}
+}
+html[data-theme="dark"] #readerSettings.momin-reader-settings-v8 .momin-quran-selected-translation{
+ color:#18261f!important;
+}
+html[data-theme="dark"] #readerSettings.momin-reader-settings-v8 .momin-quran-translation-picker{
+ background:#f7f8f2!important;border-color:#dbe4db!important;
+}
