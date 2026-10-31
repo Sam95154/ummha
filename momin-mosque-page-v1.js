@@ -4,7 +4,7 @@
   if (window.MominMosquePageV1 && window.MominMosquePageV1.initialized) return;
 
   var FRAME_ID = "momin-mosques-page-v1-frame";
-  var PAGE_URL = "./mosques-page-v1.html?embed=1&v=20261031-mosques-v1";
+  var PAGE_URL = "./mosques-page-v1.html?embed=1&v=20261031-mosques-v2";
 
   function appState() {
     var latitude = null, longitude = null, city = "", country = "", label = "";
