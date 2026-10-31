@@ -17,7 +17,7 @@
   var originalGo=typeof window.go==="function"?window.go:null;
   var originalRender=typeof window.render==="function"?window.render:null;
 
-  var TOKENS=\`
+  var TOKENS=`
 :root{
  --momin-bg:#0f0d0a;--momin-card:#181510;--momin-card-2:#201b13;
  --momin-border:#2f2819;--momin-gold-border:#5a4720;
@@ -275,8 +275,8 @@ body.momin-app-shell-active.momin-shell-enter #view :is(.card,.card2,.acc):nth-c
  }
  body.momin-app-shell-active.momin-shell-enter #view *{animation:none!important;transition:none!important}
 }
-\`;
-  var css=TOKENS+String.raw\`
+`;
+  var css=TOKENS+String.raw`
 body.momin-app-shell-active .momin-home-v3-active .app>.top,
 body.momin-app-shell-active.momin-home-v3-active .app>.top{display:none!important}
 body.momin-app-shell-active .momin-settings-v2-active .app>.top,
@@ -291,7 +291,7 @@ body.momin-app-shell-active .page-title{margin-top:8px}
 body.momin-app-shell-active .page-title h1{font-size:24px}
 body.momin-app-shell-active .momin-support-card{background:var(--momin-card)!important;color:var(--momin-text)!important;border-color:var(--momin-gold-border)!important}
 body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)!important}
-\`;
+`;
   function esc(value){
     return String(value==null?"":value).replace(/[&<>"']/g,function(ch){
       return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];
