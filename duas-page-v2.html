@@ -780,7 +780,7 @@ body.momin-duas-embedded .toast{bottom:18px}
   function open(id){
     if(seen.indexOf(id)<0){seen.push(id);persist()}
     var b=bridge();
-    if(b&&b.openDua){b.openDua(id);return}
+    if(b&&b.openDua){b.openDua(id,current);return}
     toast("Opening “"+BY[id].t+"”");
   }
   function toggle(id,btn){
