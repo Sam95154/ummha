@@ -98,7 +98,7 @@ body.momin-app-shell-active .layout>main{
 body.momin-app-shell-active #view.content{
  display:block!important;width:100%!important;max-width:480px!important;
  min-width:0!important;min-height:0!important;height:auto!important;
- margin:0 auto!important;padding:0 0 calc(148px + env(safe-area-inset-bottom,0px))!important;
+ margin:0 auto!important;padding:0!important;
  overflow:visible!important;background:transparent!important;
  color:var(--momin-text)!important;
 }
@@ -141,7 +141,7 @@ body.momin-app-shell-active :is(button,input,select,textarea):focus-visible{
  outline-offset:3px!important;
 }
 body.momin-app-shell-active .momin-shell-bottom-space{
- display:block!important;width:100%!important;height:calc(148px + env(safe-area-inset-bottom,0px))!important;
+ display:block!important;width:100%!important;height:calc(140px + env(safe-area-inset-bottom,0px))!important;
  pointer-events:none!important;
 }
 .momin-shell-header{
@@ -288,7 +288,8 @@ body.momin-app-shell-active .mq-header{display:none!important}
 body.momin-app-shell-active .quran-library.qv-shell .qv-head{display:none!important}
 body.momin-app-shell-active .momin-mosque-design-v2 .wrap>header{display:none!important}
 body.momin-app-shell-active .page-title{margin-top:8px}
-body.momin-app-shell-active .page-title h1{font-size:24px}
+body.momin-app-shell-active .page-title h1{display:none!important}
+body.momin-app-shell-active .momin-mosque-design-v2 .title-row h1{display:none!important}
 body.momin-app-shell-active .momin-support-card{background:var(--momin-card)!important;color:var(--momin-text)!important;border-color:var(--momin-gold-border)!important}
 /* Preserve functional page actions while replacing only duplicated global chrome. */
 body.momin-app-shell-active.dua-app-mode .dua-topbar{
@@ -413,6 +414,10 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
   }
   function headerMarkup(route){
     var tab=isTabRoute(route),title=routeTitle(route),u=userData();
+    if(route==="duas"){
+      var duaTitle=document.querySelector(".dua-topbar h1");
+      if(duaTitle&&duaTitle.textContent.trim())title=duaTitle.textContent.trim();
+    }
     if(tab){
       var actions=route==="home"?
         '<div class="momin-shell-actions">'+
@@ -511,6 +516,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     if(action==="notifications"){navigate("notifications");return;}
     if(action==="profile"){navigate("profile");return;}
     if(action==="back"){
+      if(routeNow()==="duas"&&location.hash&&location.hash!=="#/duas"&&window.history&&window.history.length>1){window.history.back();return;}
       if(routeNow()==="quran"&&document.querySelector(".quran-reader")&&typeof window.returnToQuranLibrary==="function"){
         window.returnToQuranLibrary();scheduleSync();return;
       }
