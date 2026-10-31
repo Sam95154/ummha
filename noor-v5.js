@@ -628,20 +628,23 @@ quranTranslationOptionsV5=function(){
  mominIndianLanguagesV6.forEach(function(l){indianSet[l.code]=true});
  var indian=quranTranslationsV5.filter(function(x){return x.language&&indianSet[x.language]});
  var other=quranTranslationsV5.filter(function(x){return !x.language||!indianSet[x.language]});
- var out='<optgroup label="Other Quran translations">';
- out+=other.map(function(x){return '<option value="'+mominEscapeV6(x.id)+'" '+(x.id===active?'selected':'')+'>'+mominEscapeV6(x.label)+'</option>'}).join('');
- out+='</optgroup><optgroup label="Available Indian-language translations">';
+ var out='<optgroup label="Indian languages — available Quran translations">';
  out+=indian.map(function(x){return '<option value="'+mominEscapeV6(x.id)+'" '+(x.id===active?'selected':'')+'>'+mominEscapeV6(x.label)+'</option>'}).join('');
  out+='</optgroup>';
  var present={};indian.forEach(function(x){present[x.language]=true});
  var missing=mominIndianLanguagesV6.filter(function(l){return !present[l.code]});
  if(missing.length){
-  out+='<optgroup label="Indian languages — translation unavailable in connected sources">';
-  out+=missing.map(function(l){return '<option value="unavailable:'+l.code+'" disabled>'+mominEscapeV6(l.name)+' — not available yet</option>'}).join('');
+  out+='<optgroup label="Indian languages — not yet available">';
+  out+=missing.map(function(l){return '<option value="unavailable:'+l.code+'" disabled>'+mominEscapeV6(l.name)+' — translation not connected yet</option>'}).join('');
   out+='</optgroup>';
  }
+ out+='<optgroup label="Other Quran translations">';
+ out+=other.map(function(x){return '<option value="'+mominEscapeV6(x.id)+'" '+(x.id===active?'selected':'')+'>'+mominEscapeV6(x.label)+'</option>'}).join('');
+ out+='</optgroup>';
  return out;
 };
+window.loadIndianQuranTranslationsV6=loadIndianQuranTranslationsV6;
+window.quranTranslationOptionsV5=quranTranslationOptionsV5;
 translationDirectionV5=function(){
  var x=quranTranslationsV5.find(function(y){return y.id===quranTranslationEditionV5()});
  return x?x.dir||"ltr":((localStorage.getItem("noor-quran-edition-language")||"")==="ur"?"rtl":"ltr");
