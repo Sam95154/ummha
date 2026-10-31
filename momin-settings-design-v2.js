@@ -38,48 +38,64 @@ function toast(message){
  t.textContent=message;t.classList.add("on");clearTimeout(toastTimer);
  toastTimer=setTimeout(function(){t.classList.remove("on")},2300);
 }
-function readTheme(){var t=get("noor-theme","Dark").toLowerCase();return t==="light"?"light":t==="sepia"?"sepia":t==="dark"?"dark":"system"}
-function qTheme(){var t=get("noor-quran-theme","night");return t==="white"?"light":t==="paper"?"app":"dark"}
-function qLayout(){return get("noor-quran-reading-mode-v8","list")==="page"?"page":"verse"}
-function qSize(){var n=Number(get("noor-quran-arabic-size","48"));return n<=38?"small":n<=44?"medium":n<=50?"large":"xl"}
-function dSize(){var n=Number(get("noor-dua-prototype-text-size","30"));return n<=25?"small":n<=30?"medium":n<=36?"large":"xl"}
-function currentCity(){try{return API_STORE.city||""}catch(_){return get("noor-city","")}}
-function currentCountry(){try{return API_STORE.country||""}catch(_){return get("noor-country","")}}
-function currentMethod(){try{return API_STORE.methodMode==="manual"?String(API_STORE.method||"3"):"auto"}catch(_){return "auto"}}
+function readTheme(){
+ var t=get("noor-theme-preference",get("noor-theme","Dark"));
+ return ["System","Light","Dark","Sepia"].indexOf(t)>=0?t:"Dark";
+}
+function qTheme(){var t=get("noor-quran-theme","night");return ["night","paper","white"].indexOf(t)>=0?t:"night";}
+function qLayout(){return get("noor-quran-reading-mode-v8","list")==="page"?"page":"list";}
+function qSize(){return String(get("noor-quran-arabic-size","48"));}
+function dSize(){return String(get("noor-dua-prototype-text-size","30"));}
+function currentCity(){try{return API_STORE.city||"";}catch(_){return get("noor-city","");}}
+function currentCountry(){try{return API_STORE.country||"";}catch(_){return get("noor-country","");}}
+function currentMethod(){try{return API_STORE.methodMode==="manual"?String(API_STORE.method||"3"):"auto";}catch(_){return "auto";}}
 function choicesTranslations(){
- try{if(typeof quranTranslationsV5!=="undefined"&&Array.isArray(quranTranslationsV5)&&quranTranslationsV5.length)return quranTranslationsV5.map(function(x){return [String(x.id),String(x.label)]})}catch(_){}
+ try{if(typeof quranTranslationsV5!=="undefined"&&Array.isArray(quranTranslationsV5)&&quranTranslationsV5.length)return quranTranslationsV5.map(function(x){return [String(x.id),String(x.label)];});}catch(_){}
  return [["en.sahih","English — Sahih International"]];
 }
-function choicesMethods(){
- var out=[["auto","Auto-detect for location"]];
- try{Object.keys(PRAYER_METHODS).forEach(function(n){out.push([String(PRAYER_METHODS[n]),n])})}catch(_){}
- return out;
+function prayerMethodOptions(){
+ var list=[["auto","Auto-detect for location"]];
+ try{Object.keys(PRAYER_METHODS).forEach(function(name){list.push([String(PRAYER_METHODS[name]),name]);});}catch(_){}
+ return list;
 }
 function initState(){
+ var tasbihState=json("noor-tsb-v2",{});
+ var scale=get("noor-interface-scale","normal");
  defaults={
-  theme:readTheme(),reduceMotion:document.documentElement.classList.contains("momin-reduce-motion"),
-  contrast:document.documentElement.classList.contains("momin-high-contrast"),
-  textSize:document.documentElement.classList.contains("momin-scale-larger")?"xl":document.documentElement.classList.contains("momin-scale-large")?"large":"standard",
-  city:currentCity(),country:currentCountry(),calc:currentMethod(),asr:get("noor-asr-method","standard"),
-  sound:get("noor-adhan-sound","chime"),notif:get("noor-notifications","true")!=="false",
-  nFajr:true,nDhuhr:true,nAsr:true,nMaghrib:true,nIsha:true,lead:"0",
-  translation:get("noor-quran-edition","en.sahih"),arSize:qSize(),
+  theme:readTheme(),
+  reduceMotion:get("noor-reduce-motion","false")==="true",
+  contrast:get("noor-high-contrast","false")==="true",
+  textSize:scale==="larger"?"larger":scale==="large"?"large":"normal",
+  city:currentCity(),country:currentCountry(),calc:currentMethod(),
+  asr:get("noor-asr-method","standard"),sound:get("noor-adhan-sound","azan"),
+  notif:get("noor-notifications","true")!=="false",
+  nFajr:get("noor-notify-fajr",get("noor-notifications","true"))!=="false",
+  nDhuhr:get("noor-notify-dhuhr",get("noor-notifications","true"))!=="false",
+  nAsr:get("noor-notify-asr",get("noor-notifications","true"))!=="false",
+  nMaghrib:get("noor-notify-maghrib",get("noor-notifications","true"))!=="false",
+  nIsha:get("noor-notify-isha",get("noor-notifications","true"))!=="false",
+  lead:get("noor-prayer-reminder-minutes","0"),
+  translation:get("noor-quran-edition","en.sahih"),
+  arSize:qSize(),
   showTr:get("noor-quran-show-translation-v8","true")!=="false",
   showTl:get("noor-quran-show-transliteration-v8","false")==="true",
-  layout:qLayout(),reciter:get("noor-quran-reciter-v8","ar.alafasy"),speed:get("noor-quran-audio-speed-v8","1"),
-  repeat:get("noor-quran-repeat-v8","false")==="true",autoNext:get("noor-quran-auto-next-v8","false")==="true",
-  awake:get("noor-keep-awake-v8","false")==="true",qTheme:qTheme(),
-  duaSize:dSize(),tsSound:get("momin-tasbeeh-sound-enabled","true")!=="false",
-  tsVibe:get("momin-tasbeeh-vibration-enabled","false")==="true",
-  units:get("momin-distance-units","km"),hijriAdj:get("momin-hijri-adjustment","0"),
-  occasions:json("momin-islamic-occasion-reminders",false)===true,
-  lang:get("noor-language","en"),onlineTr:get("momin-online-interface-translation","true")!=="false"
+  layout:qLayout(),
+  reciter:get("noor-quran-reciter-v8","ar.alafasy"),
+  speed:get("noor-quran-audio-speed-v8","1"),
+  repeat:get("noor-quran-repeat-v8","false")==="true",
+  autoNext:get("noor-quran-auto-next-v8","false")==="true",
+  awake:get("noor-keep-awake-v8","false")==="true",
+  qTheme:qTheme(),
+  duaSize:dSize(),
+  tsSound:!!tasbihState.sound,
+  tsVibe:tasbihState.haptic!==false,
+  units:get("noor-distance-unit","km"),
+  hijriAdj:get("noor-hijri-adjustment","0"),
+  occasions:get("noor-islamic-event-reminders","false")==="true",
+  lang:get("noor-language","en"),
+  onlineTr:get("momin-privacy-online-translation","true")!=="false"
  };
  saved=Object.assign({},defaults);
- var old=json("momin-settings",{});
- ["nFajr","nDhuhr","nAsr","nMaghrib","nIsha","lead","occasions","onlineTr","tsSound","tsVibe","units","hijriAdj"].forEach(function(k){
-  if(old&&typeof old[k]===typeof defaults[k])saved[k]=old[k];
- });
  draft=Object.assign({},saved);
 }
 function optionHtml(items,value){
@@ -128,75 +144,78 @@ function buildSections(){
  var sections=[];
  sections.push({id:"profile",ic:"user",title:"Profile & Account",sub:"Profile, password and signed-in devices",body:profileMarkup()});
  sections.push({id:"appearance",ic:"contrast",title:"Appearance & Personalization",sub:"Theme, contrast and movement",body:
-  note('The selected appearance is shared across MOMIN pages.')+
-  selectRow("theme","Display mode","Choose how MOMIN looks",[["system","System default"],["light","Light"],["dark","Dark"],["sepia","Sepia"]],"settingsTheme")+
-  switchRow("reduceMotion","Reduce animations","Prefer less movement")+switchRow("contrast","High contrast","Increase text and border contrast")+
-  selectRow("textSize","Interface text size","Change app text size",[["standard","Standard"],["large","Large"],["xl","Extra large"]])+
+  note("These settings use MOMIN's shared appearance and accessibility preferences.")+
+  selectRow("theme","Display mode","Choose how MOMIN looks",[["System","System default"],["Light","Light"],["Dark","Dark"],["Sepia","Sepia"]],"settingsTheme")+
+  switchRow("reduceMotion","Reduce animations","Prefer less movement","","settingsReduceMotionV1")+
+  switchRow("contrast","High contrast","Increase text and border contrast","","settingsHighContrastV1")+
   saveButton("Save appearance","appearance")});
  sections.push({id:"location",ic:"target",title:"Location & Prayer Times",sub:"",body:
-  kv("Current location",esc([draft.city,draft.country].filter(Boolean).join(", ")||"Not set"),"curLoc")+
-  textRow("city","City","City used for prayer calculations","Enter a city","cityInput")+
-  textRow("country","Country","Country for the selected city","Enter a country","countryInput")+
-  actions(button("Save location","ghost","save-location")+button("Use current GPS","ghost","gps"))+
+  kv("Current location",esc([draft.city,draft.country].filter(Boolean).join(", ")||"Not set"),"settingsLocationSummaryV1")+
+  textRow("city","City","City used for prayer calculations","Enter a city","settingsCityV1")+
+  textRow("country","Country","Country for the selected city","Enter a country","settingsCountryV1")+
+  actions(saveButton("Save location","location")+button("Use current GPS","ghost","gps"))+
   selectRow("calc","Calculation method","Automatic by location or select a method",methodItems(),"settingsMethodInput")+
   selectRow("asr","Asr calculation","Choose your juristic method",[["standard","Standard (Shafi'i / Maliki / Hanbali)"],["hanafi","Hanafi"]],"settingsAsrMethod")+
-  selectRow("sound","Prayer-time sound","Makkah Azan preview is available while this page is open.",[["makkah","Makkah Azan"],["chime","Gentle chime"],["silent","Silent"]],"settingsAdhanSound")+
+  selectRow("sound","Prayer-time sound","Sound used by MOMIN's prayer reminder service.",[["azan","Makkah Azan ringtone"],["chime","Gentle chime while app is open"],["system","System notification sound"],["silent","No extra sound"]],"settingsAdhanSound")+
   note("Prayer timings can vary by calculation method and local mosque. Confirm important timings locally.")+
   saveButton("Save prayer settings","location2")});
  sections.push({id:"notif",ic:"bell",title:"Notifications & Adhan",sub:"Prayer-by-prayer preferences",body:
-  note("Prayer reminders are stored as preferences. Browser background delivery is not guaranteed on every device.")+
-  switchRow("notif","Enable notifications","Master notification preference","", "settingsPrayerNotifications")+
-  ["Fajr","Dhuhr","Asr","Maghrib","Isha"].map(function(p){return switchRow("n"+p,p,"Reminder preference","notif")}).join("")+
-  selectRow("lead","Advance reminder","Preferred lead time before prayer",[["0","At prayer time"],["5","5 minutes before"],["10","10 minutes before"],["15","15 minutes before"],["30","30 minutes before"]])+
+  note("Prayer reminders can be checked while MOMIN is open. Background browser delivery is not guaranteed on every device.")+
+  switchRow("notif","Enable notifications","Master notification preference","","settingsPrayerNotificationsV1")+
+  [["Fajr","nFajr","fajr"],["Dhuhr","nDhuhr","dhuhr"],["Asr","nAsr","asr"],["Maghrib","nMaghrib","maghrib"],["Isha","nIsha","isha"]].map(function(p){return switchRow(p[1],p[0],"Reminder preference","notif","settingsNotify-"+p[2]);}).join("")+
+  selectRow("lead","Advance reminder","Preferred lead time before prayer",[["0","At prayer time"],["5","5 minutes before"],["10","10 minutes before"],["15","15 minutes before"],["30","30 minutes before"]],"settingsReminderMinutesV1")+
   saveButton("Save notifications","notif")+
   actions(button("Send test notification","ghost","testnote")+button("Preview Makkah Azan","ghost","azan"))});
  sections.push({id:"quran",ic:"book",title:"Quran Reading & Audio",sub:"Translation, text size, reciter and playback",body:
-  note("These set defaults for Quran reading. The Quran reader also has quick controls for the same options.")+
+  note("These controls save directly to the Quran reader's existing settings.")+
   selectRow("translation","Default translation","Used when opening a Surah",translationItems(),"settingsQuranTranslation")+
-  selectRow("arSize","Arabic text size","Default Arabic verse size",[["small","Small"],["medium","Medium"],["large","Large"],["xl","Extra large"]])+
-  switchRow("showTr","Show translation","Display translated meaning")+switchRow("showTl","Show transliteration","Display Roman pronunciation")+
-  selectRow("layout","Reading layout","Verse list or page-like view",[["verse","Verse list"],["page","Page view"]])+
-  selectRow("reciter","Reciter","Default Quran recitation voice",RECITERS)+selectRow("speed","Playback speed","Default Quran audio speed",[["0.75","0.75×"],["1","1×"],["1.25","1.25×"],["1.5","1.5×"]])+
-  switchRow("repeat","Repeat current Surah","Repeat recitation preference")+switchRow("autoNext","Auto-play next Surah","Continue to the next Surah")+
-  switchRow("awake","Keep screen awake","When supported while reading")+
-  selectRow("qTheme","Quran reader theme","Separate from app-wide theme",[["dark","Dark reading page"],["light","Light reading page"],["app","Follow app theme"]])+
+  selectRow("arSize","Arabic text size","Default verse text size",[["34","Small"],["40","Medium"],["48","Large"],["54","Extra large"],["58","Maximum"]],"settingsQuranArabicSizeV1")+
+  switchRow("showTr","Show translation","Display translated meaning","","settingsQuranMeaningV1")+
+  switchRow("showTl","Show transliteration","Display Roman pronunciation","","settingsQuranTranslitV1")+
+  selectRow("layout","Reading layout","Verse list or page-like view",[["list","Verse list"],["page","Page view"]],"settingsQuranModeV1")+
+  selectRow("reciter","Reciter","Default Quran recitation voice",RECITERS,"settingsReciterV1")+
+  selectRow("speed","Playback speed","Default Quran audio speed",[["0.75","0.75×"],["1","1×"],["1.25","1.25×"],["1.5","1.5×"]],"settingsQuranSpeedV1")+
+  switchRow("repeat","Repeat current Surah","Repeat recitation preference","","settingsQuranRepeatV1")+
+  switchRow("autoNext","Auto-play next Surah","Continue to the next Surah","","settingsQuranNextV1")+
+  switchRow("awake","Keep screen awake","When supported while reading","","settingsKeepAwake")+
+  selectRow("qTheme","Quran reader theme","Separate from app-wide theme",[["night","Dark reading page"],["paper","Warm paper"],["white","White page"]],"settingsQuranReaderThemeV1")+
   saveButton("Save Quran defaults","quran")+actions(button("Open Quran","ghost","open-quran"))});
  sections.push({id:"duas",ic:"heart",title:"Duas & Tasbeeh",sub:"Arabic size, sound and vibration",body:
-  note("Dua Arabic size is connected to the Dua reader. Tasbeeh sound and vibration are saved as local preferences.")+
-  selectRow("duaSize","Dua Arabic text size","Text size in supplication details",[["small","Small"],["medium","Medium"],["large","Large"],["xl","Extra large"]])+
-  switchRow("tsSound","Tasbeeh click sound","Saved as a Tasbeeh preference")+switchRow("tsVibe","Tasbeeh vibration","Uses device vibration when supported")+
+  note("Dua Arabic size and Tasbeeh sound/haptics use the existing Dua and Digital Tasbih settings.")+
+  selectRow("duaSize","Dua Arabic text size","Text size in supplication details",[["24","Small"],["28","Medium"],["30","Large"],["34","Extra large"],["40","Maximum"]],"settingsDuaArabicSizeV1")+
+  switchRow("tsSound","Tasbeeh click sound","Sound feedback on each bead","","settingsTasbihSoundV1")+
+  switchRow("tsVibe","Tasbeeh vibration","Uses device vibration when supported","","settingsTasbihHapticV1")+
   saveButton("Save Duas & Tasbeeh","duas")+actions(button("Open Duas","ghost","open-duas")+button("Open Tasbeeh","ghost","open-tasbeeh"))});
  sections.push({id:"qibla",ic:"compass",title:"Qibla & Nearby Mosques",sub:"Location-based tools and distance units",body:
   note("Qibla and nearby mosque features use the location selected in Location & Prayer Times.")+
-  selectRow("units","Distance units","Preferred display for distance",[["km","Kilometres"],["mi","Miles"]])+
+  selectRow("units","Distance units","Preferred display for distance",[["km","Kilometres"],["mi","Miles"]],"settingsDistanceUnitV1")+
   saveButton("Save distance units","qibla")+actions(button("Open Qibla Finder","ghost","open-qibla")+button("Nearby Mosques","ghost","open-mosques"))});
  sections.push({id:"calendar",ic:"cal",title:"Islamic Calendar & Events",sub:"Hijri dates and occasion preferences",body:
-  note("Hijri adjustment and occasion reminders are saved as preferences. Important dates should still be confirmed locally.")+
-  selectRow("hijriAdj","Hijri date adjustment","Preference for one day earlier/later",[["-1","One day earlier"],["0","No adjustment"],["1","One day later"]])+
-  switchRow("occasions","Islamic occasion reminders","Preference only; not scheduled in the background yet")+
+  note("Hijri dates can vary by local moon sighting. Occasion reminders are a saved preference only and are not scheduled in the background.")+
+  selectRow("hijriAdj","Hijri date adjustment","Shift displayed Hijri dates by one day if needed",[["-1","One day earlier"],["0","No adjustment"],["1","One day later"]],"settingsHijriAdjustmentV1")+
+  switchRow("occasions","Islamic occasion reminders","Preference only; not scheduled in the background yet","","settingsIslamicEventsV1")+
   saveButton("Save calendar preferences","calendar")+actions(button("Open Calendar","ghost","open-calendar"))});
- sections.push({id:"language",ic:"lang",title:"Language & Accessibility",sub:"Language, text size and motion",body:
-  note("The language selector uses MOMIN's app-wide language service. Some text may remain in English where translation coverage is not yet available.")+
+ sections.push({id:"language",ic:"lang",title:"Language & Accessibility",sub:"Language and interface text",body:
+  note("The language selector uses MOMIN's app-wide language service. Some screens may remain in English where translation coverage is not yet available.")+
   selectRow("lang","App language","India's scheduled languages, English and Arabic",LANGS,"settingsAppLanguage")+
-  selectRow("textSize","Larger interface text","Improve readability",[["standard","Standard"],["large","Large"],["xl","Extra large"]])+
-  switchRow("reduceMotion","Reduce motion","Use fewer animations")+switchRow("contrast","High contrast","Increase text and border contrast")+
+  selectRow("textSize","Interface text size","Improve readability",[["normal","Standard"],["large","Large"],["larger","Extra large"]],"settingsInterfaceScaleV1")+
   saveButton("Save language & accessibility","language")});
  sections.push({id:"privacy",ic:"shield",title:"Privacy & Data",sub:"Export and reset preferences",body:
-  note("Preferences and supported activity records are stored in this browser. Signed-in profile and device management use MOMIN account services.")+
+  note("MOMIN stores preferences and feature records in this browser. The account profile and device controls use the real sign-in service.")+
   kv("MOMIN data stored in this browser","","stor1")+
-  switchRow("onlineTr","Online interface translation","Saved as a preference; translation availability depends on the app language service.")+
+  switchRow("onlineTr","Online interface translation","When disabled, the app language service will not request new online translations.","","settingsOnlineTranslationV1")+
   saveButton("Save privacy preferences","privacy")+
-  rowAction("Export a backup","Save your MOMIN settings as a JSON file.",button("Export backup","ghost sm","export"))+
-  rowAction("Import a backup","Import matching settings from a MOMIN JSON backup.",button("Choose backup","ghost sm","import"))+
-  rowAction("Reset settings only","Restore preferences while keeping bookmarks and worship records.",button("Reset settings","danger sm","reset"))+
-  rowAction("Delete MOMIN local data","Remove local app preferences. Your sign-in session is kept.",button("Delete local data","danger sm","delete"))+
+  rowAction("Export a backup","Export the MOMIN local data format used by the app.",button("Export backup","ghost sm","export"))+
+  rowAction("Import a backup","Restore a MOMIN backup after confirming its contents.",button("Choose backup","ghost sm","import"))+
+  rowAction("Reset settings only","Restore settings while keeping Quran/Dua bookmarks, Tasbeeh counts and reading history.",button("Reset settings","danger sm","reset"))+
+  rowAction("Delete MOMIN local data","Permanently remove MOMIN data stored by this browser profile.",button("Delete local data","danger sm","delete"))+
   rowAction("Privacy details","Review what stays on this device and what online features send.",button("View details","ghost sm","privacy"))});
  sections.push({id:"storage",ic:"store",title:"Storage & Offline",sub:"Local storage use and availability",body:
   kv("Estimated MOMIN browser storage in use","","stor2")+
   note("Estimate includes MOMIN- and Noor-namespaced localStorage text data only, not audio downloads, browser cache or files.")+
   rowAction("Offline content","Download manager is not available in this web build.",'<p class="val">Not available yet</p>')});
  sections.push({id:"help",ic:"help",title:"Help & About",sub:"Application information",body:
-  '<div class="night brand"><div class="stars" aria-hidden="true" style="position:absolute;inset:0"></div><span class="lt" aria-hidden="true">'+ICONS.replace(/<svg[\s\S]*?<\/svg>/,"")+'</span><div style="position:relative;z-index:1;min-width:0"><span class="eyebrow">Your Islamic daily companion</span><h3>MOMIN</h3><p>Where Faith Meets Devotion</p><span class="ver">Version 1.1 · Web Companion</span></div></div>'+
+  '<div class="night brand"><div class="stars" aria-hidden="true" style="position:absolute;inset:0"></div><span class="lt" aria-hidden="true"><img src="./momin-mark.svg?v=islamic-logo-v3" alt="MOMIN logo"></span><div style="position:relative;z-index:1;min-width:0"><span class="eyebrow">Your Islamic daily companion</span><h3>MOMIN</h3><p>Where Faith Meets Devotion</p><span class="ver">Version 1.1 · Web Companion</span></div></div>'+
   '<div class="card2"><h4>Our purpose</h4><p>MOMIN brings useful Islamic worship tools together in one place, supporting daily prayers, Quran reading, supplications and remembrance of Allah.</p></div>'+
   '<p class="sub">Explore MOMIN</p><div class="list">'+[
     ["Prayer Times & Adhan","Prayer schedule and calculation preferences","prayers","clock"],
@@ -204,26 +223,30 @@ function buildSections(){
     ["Duas & Tasbeeh","Supplications and remembrance","duas","heart"],
     ["Qibla & Nearby Mosques","Qibla direction and mosque search","qibla","compass"],
     ["Islamic Calendar","Hijri dates and calendar features","calendar","cal"],
-    ["Language & Accessibility","App language and reading preferences","language","lang"]
-   ].map(function(e){return '<button type="button" class="exp" data-act="route" data-route="'+e[2]+'"><span class="ico">'+icon(e[3])+'</span><span><b>'+e[0]+'</b><span>'+e[1]+'</span></span>'+icon("arrow")+'</button>'}).join("")+'</div>'+
+    ["Language & Accessibility","App language and reading preferences","settings-language","lang"]
+   ].map(function(e){return '<button type="button" class="exp" data-act="route" data-route="'+e[2]+'"><span class="ico">'+icon(e[3])+'</span><span><b>'+e[0]+'</b><span>'+e[1]+'</span></span>'+icon("arrow")+'</button>';}).join("")+'</div>'+
   '<div class="card2"><h4>Privacy &amp; transparency</h4><p>Signed-in account details are supplied by your sign-in provider. App preferences remain stored in this browser. Some features use external online services, and background notifications are not guaranteed.</p><p>Prayer timings and Hijri dates can vary by location, calculation method and moon-sighting practice.</p></div>'+
   '<p class="tag">Made to support your daily journey of faith.</p>'+
-  rowAction("About the Founder","Learn about the person behind MOMIN.",button("Meet the Founder","pri","founder"))+
   rowAction("Share MOMIN","Share the app link.",button("Share MOMIN","ghost sm","share"))+
   rowAction("Privacy & Data","Learn what is stored and what online features may share.",button("View privacy details","ghost sm","privacy"))});
  var target=document.getElementById("secs");
- target.innerHTML=sections.map(function(s,i){
-  var open=s.id==="profile";
-  return '<section class="acc'+(open?" open":"")+'" id="sec-'+s.id+'" data-sec="'+s.id+'" style="--d:'+Math.min(i,6)+'">'+
-   '<button type="button" class="acc-h" aria-expanded="'+open+'" aria-controls="b-'+s.id+'"><span class="ico">'+icon(s.ic)+'</span>'+
-   '<span class="t"><b>'+s.title+'</b><span>'+s.sub+'</span></span><span class="dot">Unsaved</span>'+icon("chev")+'</button>'+
-   '<div class="acc-b" id="b-'+s.id+'"><div'+(open?'':' inert')+'><div class="acc-in">'+s.body+'</div></div></div></section>';
+ target.innerHTML=sections.map(function(sec,i){
+  var open=sec.id==="profile";
+  return '<section class="acc'+(open?" open":"")+'" id="sec-'+sec.id+'" data-sec="'+sec.id+'" style="--d:'+Math.min(i,6)+'">'+
+   '<button type="button" class="acc-h" aria-expanded="'+open+'" aria-controls="b-'+sec.id+'"><span class="ico">'+icon(sec.ic)+'</span>'+
+   '<span class="t"><b>'+sec.title+'</b><span>'+sec.sub+'</span></span><span class="dot">Unsaved</span>'+icon("chev")+'</button>'+
+   '<div class="acc-b" id="b-'+sec.id+'"><div'+(open?'':' inert')+'><div class="acc-in">'+sec.body+'</div></div></div></section>';
  }).join("");
- target.querySelectorAll(".acc").forEach(function(a){a.dataset.kw=a.textContent.toLowerCase()});
- target.querySelectorAll(".night .stars").forEach(function(el){var html="";for(var i=0;i<14;i++)html+='<i style="left:'+(Math.random()*100).toFixed(1)+'%;top:'+(Math.random()*100).toFixed(1)+'%;--t:'+(Math.random()*4).toFixed(2)+'s"></i>';el.innerHTML=html});
+ target.querySelectorAll(".acc").forEach(function(a){a.dataset.kw=a.textContent.toLowerCase();});
+ target.querySelectorAll(".night .stars").forEach(function(el){
+  var html="";for(var i=0;i<14;i++){html+='<i style="left:'+(Math.random()*100).toFixed(1)+'%;top:'+(Math.random()*100).toFixed(1)+'%;--t:'+(Math.random()*4).toFixed(2)+'s"></i>';}el.innerHTML=html;
+ });
  refresh();
 }
-function sectionKeys(section){var out={};section.querySelectorAll("[data-k]").forEach(function(el){out[el.dataset.k]=true});return Object.keys(out)}
+function sectionKeys(section,saveId){
+ if(section.dataset.sec==="location")return saveId==="location"?["city","country"]:["calc","asr","sound"];
+ var out={};section.querySelectorAll("[data-k]").forEach(function(el){out[el.dataset.k]=true;});return Object.keys(out);
+}
 function dirtyUpdate(){
  var any=false;
  document.querySelectorAll("#secs .acc").forEach(function(a){var dirty=sectionKeys(a).some(function(k){return draft[k]!==saved[k]});a.classList.toggle("dirty",dirty);if(dirty)any=true});
@@ -247,71 +270,99 @@ function refresh(){
  dirtyUpdate();
 }
 function applyTheme(){
- if(draft.theme==="system"){localStorage.removeItem("noor-theme");document.documentElement.removeAttribute("data-theme");document.body.classList.remove("app-light","app-sepia")}
- else if(typeof window.setTheme==="function")window.setTheme(draft.theme==="light"?"Light":draft.theme==="sepia"?"Sepia":"Dark");
- var root=document.documentElement;
- root.setAttribute("data-motion",draft.reduceMotion?"reduce":"full");root.setAttribute("data-contrast",draft.contrast?"high":"normal");root.setAttribute("data-text",draft.textSize);
- root.classList.toggle("momin-reduce-motion",!!draft.reduceMotion);root.classList.toggle("momin-high-contrast",!!draft.contrast);root.classList.toggle("momin-scale-large",draft.textSize==="large");root.classList.toggle("momin-scale-larger",draft.textSize==="xl");
-}
-function applyLocation(){
- var city=String(draft.city||"").trim(),country=String(draft.country||"").trim();
- if(!city||!country){toast("Enter both a city and country, or choose Use current GPS.");return false}
- try{API_STORE.latitude=null;API_STORE.longitude=null;API_STORE.city=city;API_STORE.country=country}catch(_){}
- localStorage.removeItem("noor-latitude");localStorage.removeItem("noor-longitude");put("noor-city",city);put("noor-country",country);put("noor-location-source","city");
- if(typeof persistLocationV5==="function")persistLocationV5();if(typeof syncLocationLabels==="function")syncLocationLabels();if(typeof loadPrayerData==="function")loadPrayerData();
- toast("Location saved. Updating prayer times…");return true;
-}
-function applyPrayer(){
- put("momin-prayer-reminders-v1",JSON.stringify({enabled:!!draft.notif,lead:String(draft.lead),prayers:{Fajr:!!draft.nFajr,Dhuhr:!!draft.nDhuhr,Asr:!!draft.nAsr,Maghrib:!!draft.nMaghrib,Isha:!!draft.nIsha}}));
- window.settingsMethodModeDraftV6=draft.calc==="auto"?"auto":"manual";
- var method=document.getElementById("settingsMethodInput");if(method)method.value=draft.calc;
- var asr=document.getElementById("settingsAsrMethod");if(asr)asr.value=draft.asr;
- var notif=document.getElementById("settingsPrayerNotifications");if(notif)notif.checked=!!draft.notif;
- var sound=document.getElementById("settingsAdhanSound");if(sound)sound.value=draft.sound;
- if(typeof window.savePrayerSettingsV6==="function")window.savePrayerSettingsV6();
- else{put("noor-asr-method",draft.asr);put("noor-notifications",draft.notif?"true":"false");put("noor-adhan-sound",draft.sound);if(draft.calc==="auto")put("noor-method-mode","auto");else{put("noor-method-mode","manual");put("noor-method",draft.calc)}}
-}
-function applyQuran(){
- var edition=String(draft.translation||"en.sahih");
- try{if(typeof quranTranslationsV5!=="undefined"&&!quranTranslationsV5.some(function(x){return x.id===edition})){toast("That Quran translation is not currently connected.");return false}}catch(_){}
- put("noor-quran-edition",edition);
- try{var tr=quranTranslationsV5.find(function(x){return x.id===edition});if(tr&&tr.language)put("noor-quran-edition-language",tr.language)}catch(_){}
- var size=({small:36,medium:42,large:48,xl:56})[draft.arSize]||48;
- put("noor-quran-arabic-size",size);put("noor-quran-show-translation-v8",!!draft.showTr);put("noor-quran-show-transliteration-v8",!!draft.showTl);
- put("noor-quran-reading-mode-v8",draft.layout==="page"?"page":"list");put("noor-quran-reciter-v8",draft.reciter);put("noor-quran-audio-speed-v8",draft.speed);
- put("noor-quran-repeat-v8",!!draft.repeat);put("noor-quran-auto-next-v8",!!draft.autoNext);put("noor-keep-awake-v8",!!draft.awake);
- put("noor-quran-theme",draft.qTheme==="dark"?"night":draft.qTheme==="light"?"white":"paper");
- var api=window.MominQuranSettingsV8;if(api){try{api.theme(draft.qTheme==="dark"?"night":draft.qTheme==="light"?"white":"paper")}catch(_){}try{api.mode(draft.layout==="page"?"page":"list")}catch(_){}try{api.speed(Number(draft.speed))}catch(_){}try{api.reciter(draft.reciter)}catch(_){}try{api.repeat(!!draft.repeat)}catch(_){}try{api.next(!!draft.autoNext)}catch(_){}}
- try{if(typeof setQuranArabicSize==="function")setQuranArabicSize(size)}catch(_){}
+ var theme=document.getElementById("settingsTheme"),reduce=document.getElementById("settingsReduceMotionV1"),contrast=document.getElementById("settingsHighContrastV1");
+ if(theme)theme.value=draft.theme;if(reduce)reduce.checked=!!draft.reduceMotion;if(contrast)contrast.checked=!!draft.contrast;
+ if(typeof window.saveAppearancePrefsV1==="function"){window.saveAppearancePrefsV1();return true;}
+ if(typeof window.setTheme==="function")window.setTheme(draft.theme);
+ localStorage.setItem("noor-reduce-motion",draft.reduceMotion?"true":"false");localStorage.setItem("noor-high-contrast",draft.contrast?"true":"false");
  return true;
 }
+function applyLocation(){
+ var city=document.getElementById("settingsCityV1"),country=document.getElementById("settingsCountryV1");
+ if(city)city.value=draft.city;if(country)country.value=draft.country;
+ if(typeof window.saveSettingsLocationV1==="function"){window.saveSettingsLocationV1();return true;}
+ toast("Location settings are not available in this app version.");return false;
+}
+function applyPrayer(){
+ var method=document.getElementById("settingsMethodInput"),asr=document.getElementById("settingsAsrMethod"),sound=document.getElementById("settingsAdhanSound");
+ if(method)method.value=draft.calc;if(asr)asr.value=draft.asr;if(sound)sound.value=draft.sound;
+ window.settingsMethodModeDraftV6=draft.calc==="auto"?"auto":"manual";
+ if(typeof window.savePrayerBasicsV1==="function"){window.savePrayerBasicsV1();return true;}
+ if(typeof window.savePrayerSettingsV6==="function"){window.savePrayerSettingsV6();return true;}
+ toast("Prayer settings service is not available.");return false;
+}
+function applyNotifications(){
+ var master=document.getElementById("settingsPrayerNotificationsV1");if(master)master.checked=!!draft.notif;
+ [["fajr","nFajr"],["dhuhr","nDhuhr"],["asr","nAsr"],["maghrib","nMaghrib"],["isha","nIsha"]].forEach(function(p){
+  var el=document.getElementById("settingsNotify-"+p[0]);if(el)el.checked=!!draft[p[1]];
+ });
+ var lead=document.getElementById("settingsReminderMinutesV1");if(lead)lead.value=String(draft.lead);
+ if(typeof window.saveNotificationPrefsV1==="function"){window.saveNotificationPrefsV1();return true;}
+ toast("Notification settings service is not available.");return false;
+}
+function applyQuran(){
+ var edition=document.getElementById("settingsQuranTranslation");if(edition)edition.value=draft.translation;
+ var size=document.getElementById("settingsQuranArabicSizeV1");if(size)size.value=draft.arSize;
+ var meaning=document.getElementById("settingsQuranMeaningV1");if(meaning)meaning.checked=!!draft.showTr;
+ var translit=document.getElementById("settingsQuranTranslitV1");if(translit)translit.checked=!!draft.showTl;
+ var mode=document.getElementById("settingsQuranModeV1");if(mode)mode.value=draft.layout;
+ var reciter=document.getElementById("settingsReciterV1");if(reciter)reciter.value=draft.reciter;
+ var speed=document.getElementById("settingsQuranSpeedV1");if(speed)speed.value=draft.speed;
+ var repeat=document.getElementById("settingsQuranRepeatV1");if(repeat)repeat.checked=!!draft.repeat;
+ var next=document.getElementById("settingsQuranNextV1");if(next)next.checked=!!draft.autoNext;
+ var awake=document.getElementById("settingsKeepAwake");if(awake)awake.checked=!!draft.awake;
+ var theme=document.getElementById("settingsQuranReaderThemeV1");if(theme)theme.value=draft.qTheme;
+ if(typeof window.saveQuranDefaultsV1==="function"){window.saveQuranDefaultsV1();return true;}
+ toast("Quran settings service is not available.");return false;
+}
 function applyDuas(){
- var size=({small:24,medium:28,large:34,xl:40})[draft.duaSize]||30;put("noor-dua-prototype-text-size",size);
- try{if(window.MominDuasSettingsV1&&window.MominDuasSettingsV1.setArabicSize)window.MominDuasSettingsV1.setArabicSize(size)}catch(_){}
- put("momin-tasbeeh-sound-enabled",!!draft.tsSound);put("momin-tasbeeh-vibration-enabled",!!draft.tsVibe);
+ var size=document.getElementById("settingsDuaArabicSizeV1");if(size)size.value=String(draft.duaSize);
+ var sound=document.getElementById("settingsTasbihSoundV1");if(sound)sound.checked=!!draft.tsSound;
+ var haptic=document.getElementById("settingsTasbihHapticV1");if(haptic)haptic.checked=!!draft.tsVibe;
+ if(typeof window.saveDuaTasbihPrefsV1==="function"){window.saveDuaTasbihPrefsV1();return true;}
+ toast("Dua and Tasbeeh settings service is not available.");return false;
 }
 function applyLanguage(){
- put("noor-language",draft.lang);if(typeof window.setMominLanguageV1==="function")window.setMominLanguageV1(draft.lang);else document.documentElement.lang=draft.lang;
+ var language=document.getElementById("settingsAppLanguage");if(language)language.value=draft.lang;
+ var scale=document.getElementById("settingsInterfaceScaleV1");if(scale)scale.value=draft.textSize;
+ if(typeof window.saveLanguageAccessibilityV1==="function"){window.saveLanguageAccessibilityV1();return true;}
+ localStorage.setItem("noor-language",draft.lang);if(typeof window.setMominLanguageV1==="function")window.setMominLanguageV1(draft.lang);
+ return true;
+}
+function applyCalendar(){
+ var events=document.getElementById("settingsIslamicEventsV1");if(events)events.checked=!!draft.occasions;
+ var adj=document.getElementById("settingsHijriAdjustmentV1");if(adj)adj.value=draft.hijriAdj;
+ if(typeof window.saveCalendarPrefsV1==="function"){window.saveCalendarPrefsV1();return true;}
+ localStorage.setItem("noor-hijri-adjustment",draft.hijriAdj);localStorage.setItem("noor-islamic-event-reminders",draft.occasions?"true":"false");return true;
+}
+function applyDistance(){
+ var units=document.getElementById("settingsDistanceUnitV1");if(units)units.value=draft.units;
+ if(typeof window.saveDistanceUnitV1==="function"){window.saveDistanceUnitV1();return true;}
+ localStorage.setItem("noor-distance-unit",draft.units);return true;
+}
+function applyPrivacy(){
+ var toggle=document.getElementById("settingsOnlineTranslationV1");if(toggle)toggle.checked=!!draft.onlineTr;
+ if(typeof window.savePrivacyPrefsV1==="function"){window.savePrivacyPrefsV1();return true;}
+ localStorage.setItem("momin-privacy-online-translation",draft.onlineTr?"true":"false");return true;
 }
 function applySection(id,saveId){
- if(id==="appearance")applyTheme();
- else if(id==="location"){if(saveId==="location")return applyLocation();applyPrayer()}
- else if(id==="notif")applyPrayer();
- else if(id==="quran")return applyQuran();
- else if(id==="duas")applyDuas();
- else if(id==="qibla")put("momin-distance-units",draft.units);
- else if(id==="calendar"){put("momin-hijri-adjustment",draft.hijriAdj);put("momin-islamic-occasion-reminders",!!draft.occasions)}
- else if(id==="language"){applyLanguage();applyTheme()}
- else if(id==="privacy")put("momin-online-interface-translation",!!draft.onlineTr);
+ if(id==="appearance")return applyTheme();
+ if(id==="location"){if(saveId==="location")return applyLocation();return applyPrayer();}
+ if(id==="notif")return applyNotifications();
+ if(id==="quran")return applyQuran();
+ if(id==="duas")return applyDuas();
+ if(id==="qibla")return applyDistance();
+ if(id==="calendar")return applyCalendar();
+ if(id==="language")return applyLanguage();
+ if(id==="privacy")return applyPrivacy();
  return true;
 }
 function saveSection(section,saveId){
- var keys={};section.querySelectorAll("[data-k]").forEach(function(x){keys[x.dataset.k]=true});
- var changed=Object.keys(keys).some(function(k){return draft[k]!==saved[k]});
- if(!changed){toast("Nothing new to save");return}
+ var keys=sectionKeys(section,saveId),changed=keys.some(function(k){return draft[k]!==saved[k];});
+ if(!changed){toast("Nothing new to save");return;}
  if(applySection(section.dataset.sec,saveId)===false)return;
- Object.keys(keys).forEach(function(k){saved[k]=draft[k]});
- try{localStorage.setItem("momin-settings",JSON.stringify(saved))}catch(_){}
+ keys.forEach(function(k){saved[k]=draft[k];});
+ try{localStorage.setItem("momin-settings",JSON.stringify(saved));}catch(_){}
  refresh();toast(section.querySelector(".t b").textContent+" saved");
 }
 function updateDraft(k,v){
@@ -327,53 +378,78 @@ function openSheet(title,body,ok,action,danger){
  scrim.onclick=closeSheet;
 }
 function closeSheet(){var sheet=document.getElementById("sheet"),scrim=document.getElementById("scrim");if(sheet){sheet.classList.remove("on");sheet.setAttribute("aria-hidden","true")}if(scrim)scrim.classList.remove("on")}
+function openSettingsSection(sectionId){
+ if(typeof go==="function")go("settings");
+ window.setTimeout(function(){
+  var target=document.getElementById("sec-"+sectionId);
+  if(target){toggleAcc(target,true);target.scrollIntoView({behavior:"smooth",block:"start"});}
+ },120);
+}
 function act(action,button){
- var route={
-  "open-quran":"quran","open-duas":"duas","open-tasbeeh":"tasbeeh","open-qibla":"qibla",
-  "open-mosques":"mosques","open-calendar":"calendar"
- };
- if(route[action]){if(typeof go==="function")go(route[action]);return}
- if(action==="save-location"){applyLocation();return}
- if(action==="save-prayer-settings"){applyPrayer();return}
- if(action==="route"){if(typeof go==="function")go(button.dataset.route||"home");return}
- if(action==="gps"){if(typeof setLocation==="function")setLocation();else toast("Location access is not available here.");return}
- if(action==="founder"){if(typeof window.openMominFounderRouteV1==="function")window.openMominFounderRouteV1();else if(typeof go==="function")go("founder");return}
- if(action==="privacy"){openSheet("Privacy details","<p>App preferences and many reading records are stored in this browser. Signed-in profile and device records are managed by MOMIN account services.</p><p style='margin-top:12px'>Prayer calculations use the city or GPS location you select. Quran, mosque search and interface translation can contact external providers. Background browser notifications are not guaranteed.</p>","Close",function(){});return}
- if(action==="testnote"){if(!("Notification" in window)){toast("Notifications are not supported here");return}Notification.requestPermission().then(function(p){if(p==="granted"){new Notification("MOMIN",{body:"This is a test notification."});toast("Test notification sent")}else toast("Notifications are blocked in site settings")});return}
- if(action==="azan"){try{var audio=new Audio("./makkah-azan-notification.mp3");audio.play().then(function(){toast("Makkah Azan preview playing")}).catch(function(){toast("Audio playback was blocked")})}catch(_){toast("Azan preview unavailable here")}return}
- if(action==="share"){var data={title:"MOMIN",text:"MOMIN, your Islamic daily companion.",url:location.href};if(navigator.share)navigator.share(data).catch(function(e){if(!e||e.name!=="AbortError")toast("Sharing was not available")});else if(navigator.clipboard)navigator.clipboard.writeText(location.href).then(function(){toast("Link copied")});else toast("Sharing is not available here");return}
- if(action==="export"){var blob=new Blob([JSON.stringify({app:"MOMIN",version:"1.1",exported:new Date().toISOString(),settings:saved},null,2)],{type:"application/json"});var u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="momin-backup.json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},3000);toast("Backup created");return}
- if(action==="import"){var input=document.getElementById("imp");input.value="";input.click();return}
- if(action==="reset"){openSheet("Reset settings?","<p>Preferences will return to the current app defaults. Worship records and reading history are kept.</p>","Reset",function(){draft=Object.assign({},defaults);saved=Object.assign({},defaults);localStorage.setItem("momin-settings",JSON.stringify(saved));applyTheme();applyQuran();applyDuas();applyLanguage();refresh();toast("Settings reset")},true);return}
- if(action==="delete"){openSheet("Delete local preferences?","<p>This removes MOMIN preference data stored by this browser. Your MOMIN sign-in session is kept. Worship records outside the settings store are not deleted.</p>","Delete",function(){["momin-settings","momin-distance-units","momin-hijri-adjustment","momin-islamic-occasion-reminders","momin-online-interface-translation","momin-tasbeeh-sound-enabled","momin-tasbeeh-vibration-enabled"].forEach(function(k){localStorage.removeItem(k)});toast("Local preferences deleted. Sign-in session kept.")},true);return}
- if(action==="explore"){if(typeof go==="function")go(button.dataset.to||"home");return}
+ var route={"open-quran":"quran","open-duas":"duas","open-tasbeeh":"tasbeeh","open-qibla":"qibla","open-mosques":"mosques","open-calendar":"calendar"};
+ if(route[action]){if(typeof go==="function")go(route[action]);return;}
+ if(action==="route"){
+  var dest=button.dataset.route||"home";
+  if(dest.indexOf("settings-")===0){openSettingsSection(dest.slice(9));return;}
+  if(typeof go==="function")go(dest);return;
+ }
+ if(action==="gps"){if(typeof window.useSettingsGpsV1==="function")window.useSettingsGpsV1();else if(typeof setLocation==="function")setLocation();else toast("Location access is not available here.");return;}
+ if(action==="founder"){
+  if(typeof window.openMominFounderPageV1==="function")window.openMominFounderPageV1();
+  else if(typeof window.openMominFounderRouteV1==="function")window.openMominFounderRouteV1();
+  else toast("The Founder page is not available. Refresh MOMIN and try again.");
+  return;
+ }
+ if(action==="privacy"){if(typeof window.showMominPrivacySummaryV1==="function")window.showMominPrivacySummaryV1();else toast("Privacy details are not available.");return;}
+ if(action==="testnote"){if(typeof window.testMominNotificationV1==="function")window.testMominNotificationV1();else toast("Notification test is not available.");return;}
+ if(action==="azan"){if(typeof window.previewMominAzanV1==="function")window.previewMominAzanV1();else toast("Makkah Azan preview is not available.");return;}
+ if(action==="share"){if(typeof window.shareMominV1==="function")window.shareMominV1();else toast("Sharing is not available here.");return;}
+ if(action==="export"){if(typeof window.exportMominDataV1==="function")window.exportMominDataV1();else toast("MOMIN export is not available.");return;}
+ if(action==="import"){var input=document.getElementById("imp");if(input){input.value="";input.click();}return;}
+ if(action==="reset"){if(typeof window.resetMominSettingsV1==="function")window.resetMominSettingsV1();else toast("Settings reset is not available.");return;}
+ if(action==="delete"){if(typeof window.deleteMominLocalDataV1==="function")window.deleteMominLocalDataV1();else toast("Local data deletion is not available.");return;}
+ if(action==="explore"){if(typeof go==="function")go(button.dataset.to||"home");return;}
 }
 function initializePage(){
  initState();buildSections();
+ if(typeof loadIndianQuranTranslationsV6==="function"){
+  var currentEdition=draft.translation;
+  try{
+   Promise.resolve(loadIndianQuranTranslationsV6()).then(function(){
+    var select=document.getElementById("settingsQuranTranslation");
+    if(!select||typeof quranTranslationOptionsV5!=="function")return;
+    select.innerHTML=quranTranslationOptionsV5();
+    if(Array.prototype.some.call(select.options,function(option){return option.value===currentEdition;}))select.value=currentEdition;
+   }).catch(function(){});
+  }catch(_){}
+ }
  var q=document.getElementById("q"),search=document.getElementById("searchBox"),none=document.getElementById("none"),extras=document.getElementById("extras"),hero=document.getElementById("hero");
- q.addEventListener("input",function(){var v=q.value.trim().toLowerCase(),any=false;search.classList.toggle("has",!!q.value);
-  document.querySelectorAll("#secs .acc").forEach(function(a){var hit=!v||a.dataset.kw.indexOf(v)>=0;a.hidden=!hit;if(hit)any=true;if(v&&hit)toggleAcc(a,true)});
+ q.addEventListener("input",function(){
+  var v=q.value.trim().toLowerCase(),any=false;search.classList.toggle("has",!!q.value);
+  document.querySelectorAll("#secs .acc").forEach(function(a){var hit=!v||a.dataset.kw.indexOf(v)>=0;a.hidden=!hit;if(hit)any=true;if(v&&hit)toggleAcc(a,true);});
   none.hidden=any;extras.hidden=!!v;hero.hidden=!!v;
  });
- document.getElementById("qx").onclick=function(){q.value="";q.dispatchEvent(new Event("input"));q.focus()};
+ document.getElementById("qx").onclick=function(){q.value="";q.dispatchEvent(new Event("input"));q.focus();};
  document.getElementById("secs").addEventListener("click",function(e){
-  var header=e.target.closest(".acc-h");if(header){toggleAcc(header.parentNode);return}
-  var sw=e.target.closest(".swt");if(sw&&!sw.disabled){updateDraft(sw.dataset.k,sw.getAttribute("aria-checked")!=="true");return}
-  var save=e.target.closest("[data-save]");if(save){saveSection(save.closest(".acc"),save.dataset.save);return}
+  var header=e.target.closest(".acc-h");if(header){toggleAcc(header.parentNode);return;}
+  var sw=e.target.closest(".swt");if(sw&&!sw.disabled){updateDraft(sw.dataset.k,sw.getAttribute("aria-checked")!=="true");return;}
+  var save=e.target.closest("[data-save]");if(save){saveSection(save.closest(".acc"),save.dataset.save);return;}
   var action=e.target.closest("[data-act]");if(action)act(action.dataset.act,action);
  });
- document.getElementById("secs").addEventListener("input",function(e){var el=e.target;if(el.dataset&&el.dataset.k&&el.tagName==="INPUT")updateDraft(el.dataset.k,el.value)});
- document.getElementById("secs").addEventListener("change",function(e){var el=e.target;if(el.dataset&&el.dataset.k&&el.tagName==="SELECT")updateDraft(el.dataset.k,el.value)});
- document.getElementById("extras").addEventListener("click",function(e){var action=e.target.closest("[data-act]");if(action)act(action.dataset.act,action)});
- document.getElementById("imp").addEventListener("change",function(e){var file=e.target.files&&e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(){try{var obj=JSON.parse(reader.result),source=obj.settings||obj,allowed={},keys=Object.keys(defaults);keys.forEach(function(k){if(source&&typeof source[k]===typeof defaults[k])allowed[k]=source[k]});if(!Object.keys(allowed).length){toast("No compatible MOMIN settings found");return}openSheet("Import backup?",Object.keys(allowed).length+" settings will replace matching preferences in this browser.","Import",function(){Object.assign(draft,allowed);Object.assign(saved,allowed);localStorage.setItem("momin-settings",JSON.stringify(saved));applyTheme();applyQuran();applyDuas();applyLanguage();refresh();toast("Backup imported")})}catch(_){toast("That file is not a valid JSON backup")}};reader.readAsText(file)});
- document.querySelectorAll(".tab").forEach(function(t){t.onclick=function(){var routes={Home:"home",Prayers:"prayers",Quran:"quran",Journey:"profile"};if(typeof go==="function")go(routes[t.dataset.t]||"home")}});
- var avatar=document.getElementById("avBtn");if(avatar)avatar.onclick=function(){var section=document.getElementById("sec-profile");if(section){toggleAcc(section,true);section.scrollIntoView({behavior:"smooth",block:"start"})}};
- var bar=document.getElementById("bar");var scrollHandler=function(){if(bar)bar.classList.toggle("scrolled",window.scrollY>6)};
+ document.getElementById("secs").addEventListener("input",function(e){var el=e.target;if(el.dataset&&el.dataset.k&&el.tagName==="INPUT")updateDraft(el.dataset.k,el.value);});
+ document.getElementById("secs").addEventListener("change",function(e){var el=e.target;if(el.dataset&&el.dataset.k&&el.tagName==="SELECT")updateDraft(el.dataset.k,el.value);});
+ document.getElementById("extras").addEventListener("click",function(e){var action=e.target.closest("[data-act]");if(action)act(action.dataset.act,action);});
+ document.getElementById("imp").addEventListener("change",function(e){
+  var input=e.target,file=input.files&&input.files[0];if(!file)return;
+  if(typeof window.importMominDataV1==="function")window.importMominDataV1(file,input);else toast("MOMIN backup import is not available.");
+ });
+ document.querySelectorAll(".tab").forEach(function(t){
+  t.onclick=function(){var routes={Home:"home",Prayers:"prayers",Quran:"quran",Journey:"journey"};if(typeof go==="function")go(routes[t.dataset.t]||"home");};
+ });
+ var avatar=document.getElementById("avBtn");if(avatar)avatar.onclick=function(){var section=document.getElementById("sec-profile");if(section){toggleAcc(section,true);section.scrollIntoView({behavior:"smooth",block:"start"});}};
+ var bar=document.getElementById("bar"),scrollHandler=function(){if(bar)bar.classList.toggle("scrolled",window.scrollY>6);};
  if(window.__mominSettingsBarScroll)window.removeEventListener("scroll",window.__mominSettingsBarScroll);
  window.__mominSettingsBarScroll=scrollHandler;window.addEventListener("scroll",scrollHandler,{passive:true});scrollHandler();
- var escapeHandler=function(e){if(e.key==="Escape")closeSheet()};
- if(window.__mominSettingsEscape)document.removeEventListener("keydown",window.__mominSettingsEscape);
- window.__mominSettingsEscape=escapeHandler;document.addEventListener("keydown",escapeHandler);
 }
 function toggleAcc(section,force){var open=force==null?!section.classList.contains("open"):force;section.classList.toggle("open",open);section.querySelector(".acc-h").setAttribute("aria-expanded",String(open));var body=section.querySelector(".acc-b>div");if(open)body.removeAttribute("inert");else body.setAttribute("inert","")}
 function initialize(){initializePage()}
