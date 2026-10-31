@@ -87,6 +87,27 @@
     return wrap.outerHTML;
   }
 
+  try {
+    var prayerBridge = window.MominPrayerBridgeV1;
+    if (prayerBridge && typeof prayerBridge.setCompletions === "function" &&
+        !prayerBridge.setCompletions.__mominJourneyWrapped) {
+      var baseSetCompletions = prayerBridge.setCompletions;
+      var wrappedSetCompletions = function () {
+        var result = baseSetCompletions.apply(this, arguments);
+        savePrayerHistorySnapshot();
+        return result;
+      };
+      wrappedSetCompletions.__mominJourneyWrapped = true;
+      prayerBridge.setCompletions = wrappedSetCompletions;
+    }
+  } catch (_) {}
+
+  window.addEventListener("storage", function (event) {
+    if (event.key === "noor-prayers" || event.key === "noor-prayer-date") {
+      savePrayerHistorySnapshot();
+    }
+  });
+
   var oldTogglePrayer = window.togglePrayer;
   if (typeof oldTogglePrayer === "function") {
     window.togglePrayer = function () {
