@@ -269,7 +269,7 @@ function hero(){
   var st=$("st"),acts=$("acts");st.className="st"+(p==="denied"||p==="unsupported"?" bad":on?"":" off");
   var txt={unsupported:["Unavailable","Notifications aren’t supported here","This browser can’t receive background push notifications. Install MOMIN as an app or use a supported browser."],denied:["Blocked","Notifications are blocked","Allow notifications for MOMIN in your browser or phone settings, then enable them again."],default:["Off","Reminders are off","Allow notifications to enable server-scheduled alerts, including while MOMIN is closed."],granted:on?["On","Background reminders are on","MOMIN will send reminders "+(prefs.lead?prefs.lead+" minutes before":"at the time of")+" each selected prayer, even when the app is closed."]:["Not connected","Finish enabling background reminders","Tap Turn on reminders to register this device for closed-app push delivery."]}[p];
   st.textContent=txt[0];$("hh").textContent=txt[1];$("hp").textContent=txt[2];
-  acts.innerHTML=p==="default"?'<button class="btn main" id="ask" type="button">Turn on reminders</button>':p==="granted"?'<button class="btn main" id="test" type="button">Send a test</button><button class="btn" id="pause" type="button">'+(prefs.on?"Pause":"Resume")+"</button>":"";
+  acts.innerHTML=p==="default"||(p==="granted"&&!pushReady)?'<button class="btn main" id="ask" type="button">'+(p==="granted"?"Enable background reminders":"Turn on reminders")+'</button>':p==="granted"&&pushReady?'<button class="btn main" id="test" type="button">Send a test</button><button class="btn" id="pause" type="button">'+(prefs.on?"Pause":"Resume")+"</button>":"";
   if($("ask"))$("ask").onclick=ask;if($("test"))$("test").onclick=test;if($("pause"))$("pause").onclick=function(){prefs.on=!prefs.on;save();hero();tick()};
 }
 function ask(){
@@ -397,6 +397,9 @@ if(initialBridge&&initialBridge.refreshInbox){
 }
 setInterval(tick,1000);
 setInterval(refreshPageFromBridge,10000);
+setInterval(function(){
+  var b=bridge();if(b&&b.refreshInbox)b.refreshInbox().then(function(){syncFromBridge();recent()}).catch(function(){});
+},60000);
 window.addEventListener("storage",refreshPageFromBridge);
 window.addEventListener("focus",refreshPageFromBridge);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshPageFromBridge()});
