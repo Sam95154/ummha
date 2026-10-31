@@ -133,7 +133,7 @@ var entries = [
   function savedDuaV1(id) { return duaStateV1.bookmarks.indexOf("d:" + id) >= 0; }
   function markDuaV1(id) { return duaStateV1.read.indexOf(id) >= 0; }
   function topDuaV1(title, back, right) {
-    return '<div class="dua-topbar"><a class="dua-back" href="' + escapeDuaV1(back || "#/duas") + '" aria-label="Back">‹</a><h1>' + escapeDuaV1(title) + '</h1><div class="dua-top-actions">' + (right || '<a href="#/dua-special/bookmarks" aria-label="Saved duas">☆</a>') + '</div></div>';
+    return '<div class="dua-topbar"><a class="dua-back" href="' + escapeDuaV1(back || "#/duas") + '" aria-label="Back"><span class="dua-back-arrow" aria-hidden="true">←</span><span class="dua-back-text">Back</span></a><h1>' + escapeDuaV1(title) + '</h1><div class="dua-top-actions">' + (right || '<a href="#/dua-special/bookmarks" aria-label="Saved duas">☆</a>') + '</div></div>';
   }
   function artDuaV1(art, icon, extra) {
     return '<div class="dua-art art-' + escapeDuaV1(art || "dawn") + (extra ? " " + extra : "") + '" aria-hidden="true"><span>' + escapeDuaV1(icon || "☾") + '</span><i class="art-star s1"></i><i class="art-star s2"></i><i class="art-hill h1"></i><i class="art-hill h2"></i></div>';
