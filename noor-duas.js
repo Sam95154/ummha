@@ -446,7 +446,7 @@ var entries = [
     getState:function(){
       return {
         saved:duaStateV1.bookmarks.filter(function(k){return k.indexOf("d:")===0;}).map(function(k){return k.slice(2);}),
-        seen:duaStateV1.recents.slice()
+        seen:duaStateV1.recents.slice().reverse()
       };
     },
     getDua:function(id){
