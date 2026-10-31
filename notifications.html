@@ -195,7 +195,7 @@ nav a[aria-current]{color:var(--gold2);font-weight:700;background:var(--soft);bo
   <div class="sec rise" style="--d:5"><h3>Recent</h3><button id="clr" type="button">Clear all</button></div>
   <div id="recent"></div>
 
-  <section class="card note rise" style="--d:6"><h2>Prayer reminders</h2><p>Manage browser notifications in Settings. Delivery depends on browser support and permission.</p>
+  <section class="card note rise" style="--d:6"><h2>Prayer reminders</h2><p>MOMIN can send server-scheduled push alerts while this app is closed after this device is enabled. Delivery can still vary with network and phone power settings.</p>
     <div class="acts"><button class="btn main" id="set" type="button">Notification settings</button></div></section>
 </div>
 <nav aria-label="Main">
@@ -219,12 +219,13 @@ var LEADS=[0,5,10,15,30];
 function fmt(m){m=((m%1440)+1440)%1440;var h=Math.floor(m/60),mm=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+(mm<10?"0":"")+mm+" "+ap}
 function bridge(){try{return window.parent!==window&&window.parent.MominNotificationsBridgeV1||null}catch(e){return null}}
 var prefs={on:true,lead:0,pr:[1,1,1,1,1],jumuah:1,adhkar:0,dates:1};
-var inbox=[],tt;
+var inbox=[],tt,pushReady=false;
 function ls(key,fallback){try{var v=localStorage.getItem(key);return v===null?fallback:v}catch(e){return fallback}}
 function parseMinute(value){var m=String(value||"").match(/(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):null}
 function syncFromBridge(){
   var b=bridge(),snap=null;
   try{if(b&&b.snapshot)snap=b.snapshot()}catch(e){}
+  pushReady=!!(snap&&snap.pushEnabled);
   var x=snap&&snap.prefs?snap.prefs:null;
   if(x){
     prefs.on=!!x.on;prefs.lead=Number(x.lead)||0;
@@ -260,40 +261,37 @@ function save(){
 }
 function toast(m,a){var t=$("toast");t.innerHTML="<span>"+esc(m)+"</span>"+(a?'<button type="button">'+esc(a.l)+"</button>":"");if(a)t.querySelector("button").onclick=function(){a.f();t.classList.remove("on")};t.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){t.classList.remove("on")},a?4200:2200)}
 function perm(){return typeof Notification==="undefined"?"unsupported":Notification.permission}
-function live(){return perm()==="granted"&&prefs.on}
+function live(){return perm()==="granted"&&prefs.on&&pushReady}
 
 /* hero */
 function hero(){
   var p=perm(),on=live(),h=$("hero");h.classList.toggle("on",on);
   var st=$("st"),acts=$("acts");st.className="st"+(p==="denied"||p==="unsupported"?" bad":on?"":" off");
-  var txt={unsupported:["Unavailable","Notifications aren’t supported here","This browser can’t show notifications. You can still use the in-app reminders."],denied:["Blocked","Notifications are blocked","Allow notifications for this site in your browser settings, then come back."],default:["Off","Reminders are off","Allow notifications to get a gentle reminder before each prayer."],granted:on?["On","Reminders are on","You’ll be reminded "+(prefs.lead?prefs.lead+" minutes before":"at the time of")+" each prayer you’ve switched on."]:["Paused","Reminders are paused","Turn reminders back on whenever you like."]}[p];
+  var txt={unsupported:["Unavailable","Notifications aren’t supported here","This browser can’t receive background push notifications. Install MOMIN as an app or use a supported browser."],denied:["Blocked","Notifications are blocked","Allow notifications for MOMIN in your browser or phone settings, then enable them again."],default:["Off","Reminders are off","Allow notifications to enable server-scheduled alerts, including while MOMIN is closed."],granted:on?["On","Background reminders are on","MOMIN will send reminders "+(prefs.lead?prefs.lead+" minutes before":"at the time of")+" each selected prayer, even when the app is closed."]:["Not connected","Finish enabling background reminders","Tap Turn on reminders to register this device for closed-app push delivery."]}[p];
   st.textContent=txt[0];$("hh").textContent=txt[1];$("hp").textContent=txt[2];
   acts.innerHTML=p==="default"?'<button class="btn main" id="ask" type="button">Turn on reminders</button>':p==="granted"?'<button class="btn main" id="test" type="button">Send a test</button><button class="btn" id="pause" type="button">'+(prefs.on?"Pause":"Resume")+"</button>":"";
   if($("ask"))$("ask").onclick=ask;if($("test"))$("test").onclick=test;if($("pause"))$("pause").onclick=function(){prefs.on=!prefs.on;save();hero();tick()};
 }
 function ask(){
-  var b=bridge(),request;
-  try{request=b&&b.requestPermission?b.requestPermission():Notification.requestPermission()}
-  catch(e){toast("Notifications aren’t available here");return}
-  Promise.resolve(request).then(function(result){
+  var b=bridge();
+  if(!b||!b.enableBackgroundPush){toast("MOMIN background notification service is not available. Refresh the app.");return}
+  b.enableBackgroundPush(prefs).then(function(result){
     prefs.on=true;save();syncFromBridge();hero();tick();
-    toast((result||perm())==="granted"?"Reminders turned on":"Notifications weren’t allowed");
-  }).catch(function(){toast("Notifications aren’t available here")});
+    if(result&&result.location_ready)toast("Background reminders are enabled on this device.");
+    else toast("This device is subscribed. Set your location in Prayer Times for accurate prayer reminders.");
+  }).catch(function(error){
+    toast(error&&error.message?error.message:"Notifications could not be enabled.");
+    syncFromBridge();hero();tick();
+  });
 }
 function test(){
   var bell=$("bell");bell.classList.remove("shake");void bell.offsetWidth;bell.classList.add("shake");
-  var b=bridge(),task;
-  try{
-    task=b&&b.sendTest?b.sendTest():Promise.resolve((function(){
-      if(typeof Notification==="undefined"||Notification.permission!=="granted")return false;
-      new Notification("MOMIN notification test",{body:"This is a test reminder from MOMIN."});
-      return true;
-    })());
-  }catch(e){task=Promise.resolve(false)}
-  Promise.resolve(task).then(function(ok){
-    if(ok){syncFromBridge();recent();toast("Test reminder sent")}
-    else toast("Allow notifications in your browser, then try again");
-    hero();tick();
+  var b=bridge();
+  if(!b||!b.sendPushTest){toast("MOMIN push service is not available.");return}
+  b.sendPushTest().then(function(){
+    syncFromBridge();recent();hero();tick();toast("Background push test sent to this device.");
+  }).catch(function(error){
+    toast(error&&error.message?error.message:"Could not send a push test.");
   });
 }
 
@@ -386,13 +384,17 @@ function bindParentNavigation(){
   });
 }
 function refreshPageFromBridge(){
-  var before=JSON.stringify({P:P,prefs:prefs,inbox:inbox});
+  var before=JSON.stringify({P:P,prefs:prefs,inbox:inbox,pushReady:pushReady});
   syncFromBridge();
-  var after=JSON.stringify({P:P,prefs:prefs,inbox:inbox});
+  var after=JSON.stringify({P:P,prefs:prefs,inbox:inbox,pushReady:pushReady});
   if(before!==after){segHTML();rowsHTML();upsHTML();hero();recent()}
   tick();
 }
 syncFromBridge();segHTML();rowsHTML();upsHTML();hero();recent();tick();bindParentNavigation();
+var initialBridge=bridge();
+if(initialBridge&&initialBridge.refreshInbox){
+  initialBridge.refreshInbox().then(function(){syncFromBridge();recent()}).catch(function(){});
+}
 setInterval(tick,1000);
 setInterval(refreshPageFromBridge,10000);
 window.addEventListener("storage",refreshPageFromBridge);
