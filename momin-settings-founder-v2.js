@@ -125,15 +125,8 @@
   }
   window.settingsPage=detailsPage;
   window.mominFounderPageV1=function(){
-    ensureMominAboutStylesV1();
-    return '<main class="momin-founder-page" aria-labelledby="momin-founder-page-title">'+
-      '<button type="button" class="momin-founder-back" onclick="go(&quot;settings&quot;)"><span aria-hidden="true">←</span> Back to Settings</button>'+
-      '<section class="momin-founder-page-card">'+
-      '<div class="momin-founder-page-ornament" aria-hidden="true"><img src="./momin-mark.svg?v=islamic-logo-v4" alt="MOMIN app logo"></div>'+
-      '<div class="momin-founder-page-heading"><p class="momin-about-kicker">THE PERSON BEHIND MOMIN</p><h2 id="momin-founder-page-title">About the Founder</h2><p>Faith, thoughtful design, and technology brought together in one Islamic companion.</p></div>'+
-      '<div class="momin-founder-page-photo-wrap"><img class="momin-founder-page-photo" src="./momin-founder-original.png.png?v=20261031-founder-photo-original-v1" alt="Shaik Sameer Basha, founder of MOMIN" fetchpriority="high" decoding="async"></div>'+
-      '<div class="momin-founder-page-bio"><h3>Shaik Sameer Basha</h3><p class="momin-founder-page-role"><span aria-hidden="true">✦</span> Artificial Intelligence and Data Science Engineer</p><p>I’m Shaik Sameer Basha, the creator of MOMIN. I built MOMIN with the aim of bringing everyday Islamic tools together in one accessible place, combining my interest in technology with a commitment to making faith-supporting features easier to use.</p><p>My vision for MOMIN is to provide a calm, approachable experience where Muslims can reach useful worship tools, Quran reading, supplications and Islamic information without unnecessary complexity.</p><div class="momin-founder-signature">Where Faith Meets Devotion</div></div>'+
-      '</section></main>';
+    document.body.classList.add("momin-founder-route-v3");
+    return '<iframe id="momin-founder-frame-v3" title="About the Founder" src="./founder.html?v=20261031-new-founder-page-v1" loading="eager" referrerpolicy="same-origin"></iframe>';
   };
   window.openMominFounderPageV1=function(){
     try{
