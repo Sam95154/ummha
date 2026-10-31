@@ -333,6 +333,8 @@ function act(action,button){
   "open-mosques":"mosques","open-calendar":"calendar"
  };
  if(route[action]){if(typeof go==="function")go(route[action]);return}
+ if(action==="save-location"){applyLocation();return}
+ if(action==="save-prayer-settings"){applyPrayer();return}
  if(action==="route"){if(typeof go==="function")go(button.dataset.route||"home");return}
  if(action==="gps"){if(typeof setLocation==="function")setLocation();else toast("Location access is not available here.");return}
  if(action==="founder"){if(typeof window.openMominFounderRouteV1==="function")window.openMominFounderRouteV1();else if(typeof go==="function")go("founder");return}
