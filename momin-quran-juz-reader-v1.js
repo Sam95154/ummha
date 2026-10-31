@@ -65,37 +65,72 @@
   function translationClass() { return typeof window.readerTranslationClass==='function'?window.readerTranslationClass():''; }
   function arabicSize() { return typeof window.readerArabicSize==='function'?window.readerArabicSize():48; }
   function direction() { return typeof window.translationDirectionV5==='function'?window.translationDirectionV5():'ltr'; }
-  function language() { return edition().split('.')[0]||'en'; }
+  function language() {
+    var id=edition(),catalog=Array.isArray(window.quranTranslationsV5)?window.quranTranslationsV5:[];
+    var item=catalog.find(function(entry){return entry.id===id;});
+    if(item&&item.language)return item.language;
+    return id.indexOf("qcom:")===0?"en":(id.split('.')[0]||'en');
+  }
   function translationOptions() {
     return typeof window.quranTranslationOptionsV5==='function'
       ? window.quranTranslationOptionsV5()
       : '<option value="en.sahih" selected>English — Saheeh International</option>';
   }
 
+  function cleanQuranComTranslationV1(value) {
+    var holder=document.createElement('div');
+    holder.innerHTML=String(value==null?'':value);
+    return String(holder.textContent||holder.innerText||'').replace(/\s+/g,' ').trim();
+  }
   async function loadJuz(number,request) {
     await ensureFullCatalog();
     var meta=juzMeta(number),base='https://api.alquran.cloud/v1/juz/'+number+'/',selectedEdition=edition();
+    var isQuranCom=selectedEdition.indexOf('qcom:')===0;
+    var translationUrl=isQuranCom
+      ? 'https://api.quran.com/api/v4/quran/translations/'+encodeURIComponent(selectedEdition.slice(5))+'?juz_number='+number+'&fields=verse_key,chapter_id,verse_number,juz_number'
+      : base+selectedEdition;
     var result=await Promise.all([
       window.getJSON(base+'quran-uthmani'),
-      window.getJSON(base+selectedEdition),
+      window.getJSON(translationUrl),
       window.getJSON(base+'en.transliteration').catch(function(){return null;})
     ]);
     if(request!==state.request)return null;
-    var ar=result[0]&&result[0].data,tr=result[1]&&result[1].data,roman=result[2]&&result[2].data;
-    if(!ar||!tr||!Array.isArray(ar.ayahs)||!Array.isArray(tr.ayahs))
-      throw new Error('Arabic Quran text or the selected translation could not be loaded.');
+    var ar=result[0]&&result[0].data,translationResponse=result[1],roman=result[2]&&result[2].data;
+    if(!ar||!Array.isArray(ar.ayahs))throw new Error('Arabic Quran text could not be loaded.');
     var expectedCount=meta.globalEnd-meta.globalStart+1;
-    if(ar.ayahs.length!==expectedCount||tr.ayahs.length!==expectedCount)
-      throw new Error('Incomplete Juz response. Expected '+expectedCount+' Ayahs, received '+ar.ayahs.length+' Arabic and '+tr.ayahs.length+' translation records.');
+    var translationByKey=null,trRows=[];
+    if(isQuranCom){
+      trRows=translationResponse&&Array.isArray(translationResponse.translations)?translationResponse.translations:[];
+      translationByKey=new Map();
+      trRows.forEach(function(row){
+        var key=String(row.verse_key||((row.chapter_id||'')+':'+(row.verse_number||'')));
+        var value=cleanQuranComTranslationV1(row.text);
+        if(key.indexOf(':')>0&&value)translationByKey.set(key,value);
+      });
+      if(translationByKey.size!==expectedCount)
+        throw new Error('The selected Indian-language translation is incomplete for Juz '+number+'. Expected '+expectedCount+' Ayahs, received '+translationByKey.size+'.');
+    }else{
+      var tr=translationResponse&&translationResponse.data;
+      trRows=tr&&Array.isArray(tr.ayahs)?tr.ayahs:[];
+      if(trRows.length!==expectedCount)
+        throw new Error('Incomplete Juz response. Expected '+expectedCount+' Ayahs, received '+trRows.length+' translation records.');
+    }
+    if(ar.ayahs.length!==expectedCount)
+      throw new Error('Incomplete Arabic Juz response. Expected '+expectedCount+' Ayahs, received '+ar.ayahs.length+'.');
     var romanRows=roman&&Array.isArray(roman.ayahs)?roman.ayahs:[];
     var romanByNumber=new Map(romanRows.map(function(row){return[Number(row.number),String(row.text||'')]}));
     var verses=ar.ayahs.map(function(a,i){
-      var t=tr.ayahs[i],expectedNumber=meta.globalStart+i,surahNo=Number(a.surah&&a.surah.number);
-      if(!t||Number(a.number)!==expectedNumber||Number(t.number)!==expectedNumber||
-        Number(a.numberInSurah)!==Number(t.numberInSurah)||
-        surahNo!==Number(t.surah&&t.surah.number)||
+      var expectedNumber=meta.globalStart+i,surahNo=Number(a.surah&&a.surah.number);
+      var verseKey=surahNo+':'+Number(a.numberInSurah);
+      var t=isQuranCom
+        ? (translationByKey.has(verseKey)?{text:translationByKey.get(verseKey)}:null)
+        : trRows[i];
+      if(!t||Number(a.number)!==expectedNumber||
+        (!isQuranCom&&(Number(t.number)!==expectedNumber||
+          Number(a.numberInSurah)!==Number(t.numberInSurah)||
+          surahNo!==Number(t.surah&&t.surah.number)))||
         !String(a.text||'').trim()||!String(t.text||'').trim())
-        throw new Error('Juz '+number+' Arabic/translation alignment failed at Ayah '+(i+1)+'.');
+        throw new Error('Juz '+number+' Arabic/translation alignment failed at '+verseKey+'.');
       var arabicText=String(a.text);
       if(Number(a.numberInSurah)===1&&surahNo!==1&&surahNo!==9&&typeof window.stripOpeningBismillahV5==='function')
         arabicText=window.stripOpeningBismillahV5(arabicText);
@@ -109,7 +144,7 @@
     if(verses[0].surahNo!==meta.start.surah||verses[0].numberInSurah!==meta.start.ayah||
        verses[verses.length-1].surahNo!==meta.end.surah||
        verses[verses.length-1].numberInSurah!==meta.end.ayah)
-      throw new Error('Juz '+number+' start/end references did not match the Quran index.');
+      throw new Error('Juz '+number+' start/end references did not match the verified index.');
     return {number:number,meta:meta,edition:selectedEdition,ayahs:verses};
   }
 
