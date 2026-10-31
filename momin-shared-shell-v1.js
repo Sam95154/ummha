@@ -157,11 +157,15 @@ body.momin-app-shell-active .momin-shell-bottom-space{
  box-shadow:0 8px 24px -20px rgba(0,0,0,.55);
 }
 .momin-shell-header__inner{
- width:100%;max-width:480px;min-height:70px;margin:0 auto;
+ width:100%;max-width:480px;min-height:76px;margin:0 auto;
  display:grid;grid-template-columns:44px minmax(0,1fr) 88px;
  gap:10px;align-items:center;
 }
-.momin-shell-header__title{min-width:0;text-align:left}
+.momin-shell-header__title{min-width:0;max-width:100%;text-align:left;align-self:center}
+.momin-shell-header__title h1{overflow:hidden;text-overflow:ellipsis}
+.momin-shell-header__title p{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.momin-shell-actions{width:88px;min-width:88px;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.momin-shell-actions .momin-shell-action{flex:0 0 40px}
 .momin-shell-header__title h1{
  margin:0;color:var(--momin-text);font:600 27px/1.12 'Playfair Display',Georgia,serif;
  letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -414,7 +418,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     return "Hijri date";
   }
   function headerMarkup(route){
-    var tab=isTabHeaderRoute(route),title=routeTitle(route),u=userData();
+    var tab=isTabHeaderRoute(route),title=routeTitle(route);
     if(route==="duas"){
       var duaTitle=document.querySelector(".dua-topbar h1");
       if(duaTitle&&duaTitle.textContent.trim())title=duaTitle.textContent.trim();
@@ -424,9 +428,6 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
         '<div class="momin-shell-actions">'+
           '<button class="momin-shell-action" type="button" data-shell-action="notifications" aria-label="Notifications" title="Notifications">'+icon("bell")+'</button>'+
           '<button class="momin-shell-action" type="button" data-shell-action="settings" aria-label="Settings" title="Settings">'+icon("settings")+'</button>'+
-          '<button class="momin-shell-avatar" type="button" data-shell-action="profile" aria-label="Open profile settings" title="Profile">'+
-            (u.avatar?'<img src="'+esc(u.avatar)+'" alt="">':esc((u.name||"M").trim().charAt(0).toUpperCase()||"M"))+
-          '</button>'+
         '</div>':'<span></span>';
       return '<div class="momin-shell-header__inner">'+
         '<span aria-hidden="true"></span><div class="momin-shell-header__title"><h1>'+esc(title)+'</h1><p>'+esc(hijriDate())+'</p></div>'+actions+
