@@ -382,6 +382,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     return names[route]||"Home";
   }
   function isTabRoute(route){return ["home","prayers","quran","journey"].indexOf(route)>=0}
+  function isTabHeaderRoute(route){return isTabRoute(route)&&!(route==="quran"&&document.querySelector(".quran-reader"))}
   function icon(name){
     var paths={
       back:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
@@ -413,7 +414,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     return "Hijri date";
   }
   function headerMarkup(route){
-    var tab=isTabRoute(route),title=routeTitle(route),u=userData();
+    var tab=isTabHeaderRoute(route),title=routeTitle(route),u=userData();
     if(route==="duas"){
       var duaTitle=document.querySelector(".dua-topbar h1");
       if(duaTitle&&duaTitle.textContent.trim())title=duaTitle.textContent.trim();
@@ -491,7 +492,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     document.body.classList.add("momin-app-shell-active");
     var route=routeNow(),header=document.getElementById(HEADER_ID),nav=document.getElementById(NAV_ID);
     if(!header||!nav)return;
-    header.classList.toggle("is-sub",!isTabRoute(route));
+    header.classList.toggle("is-sub",!isTabHeaderRoute(route));
     header.innerHTML=headerMarkup(route);
     nav.innerHTML=navMarkup(route);
     nav.querySelectorAll("[data-shell-route]").forEach(function(button){
