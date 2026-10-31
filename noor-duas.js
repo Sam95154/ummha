@@ -132,8 +132,10 @@ var entries = [
   function itemDuaV1(id) { return duaByIdV1[id] || null; }
   function savedDuaV1(id) { return duaStateV1.bookmarks.indexOf("d:" + id) >= 0; }
   function markDuaV1(id) { return duaStateV1.read.indexOf(id) >= 0; }
-  function topDuaV1(title, back, right) {
-    return '<div class="dua-topbar"><a class="dua-back" href="' + escapeDuaV1(back || "#/duas") + '" aria-label="Back"><span class="dua-back-arrow" aria-hidden="true">←</span><span class="dua-back-text">Back</span></a><h1>' + escapeDuaV1(title) + '</h1><div class="dua-top-actions">' + (right || '<a href="#/dua-special/bookmarks" aria-label="Saved duas">☆</a>') + '</div></div>';
+  function topDuaV1(title, back, right, action) {
+    return '<div class="dua-topbar"><a class="dua-back" href="' + escapeDuaV1(back || "#/duas") + '"' +
+      (action ? ' data-act="' + escapeDuaV1(action) + '"' : '') +
+      ' aria-label="Back"><span class="dua-back-arrow" aria-hidden="true">←</span><span class="dua-back-text">Back</span></a><h1>' + escapeDuaV1(title) + '</h1><div class="dua-top-actions">' + (right || '<a href="#/dua-special/bookmarks" aria-label="Saved duas">☆</a>') + '</div></div>';
   }
   function artDuaV1(art, icon, extra) {
     return '<div class="dua-art art-' + escapeDuaV1(art || "dawn") + (extra ? " " + extra : "") + '" aria-hidden="true"><span>' + escapeDuaV1(icon || "☾") + '</span><i class="art-star s1"></i><i class="art-star s2"></i><i class="art-hill h1"></i><i class="art-hill h2"></i></div>';
@@ -235,7 +237,7 @@ var entries = [
     var next = idx < ids.length-1 ? '<a class="dua-page-arrow" href="#/dua-detail/' + ids[idx+1] + '/' + ch.slug + '" aria-label="Next supplication">›</a>' : '<span class="dua-page-arrow is-disabled">›</span>';
     var saved = savedDuaV1(e.id), read = markDuaV1(e.id), show = duaStateV1.visible;
     return '<section class="dua-page dua-detail-page">' +
-      '<div class="dua-detail-top">' + topDuaV1(e.title,"#/dua-chapter/" + (ch ? ch.slug : e.chapter),'<button class="dua-icon-btn" data-act="dua-settings" aria-label="Reading settings">⚙</button>') +
+      '<div class="dua-detail-top">' + topDuaV1(e.title,"#/duas",'<button class="dua-icon-btn" data-act="dua-settings" aria-label="Reading settings">⚙</button>',"dua-catalogue-back") +
       '<div class="dua-detail-pager">' + previous + '<span>' + (idx+1) + ' <small>of</small> ' + ids.length + '</span>' + next + '</div></div>' +
       '<article class="dua-reading-card"><div class="dua-card-actions"><button class="dua-icon-btn" data-act="bm" data-k="d:' + e.id + '" aria-label="Bookmark supplication">' + (saved ? "★" : "☆") + '</button><button class="dua-icon-btn" data-act="dua-more" aria-label="More options">•••</button></div>' +
       '<div class="dua-more-menu" id="dua-more-menu" hidden><button data-act="dua-copy" data-id="' + e.id + '">Copy supplication</button><button data-act="dua-share" data-id="' + e.id + '">Share supplication</button><button data-act="dua-font" data-d="-2">Smaller Arabic text</button><button data-act="dua-font" data-d="2">Larger Arabic text</button></div>' +
@@ -354,7 +356,16 @@ var entries = [
     var button = event.target.closest("[data-act]");
     if (!button) return;
     var action = button.dataset.act;
-    if (action === "dua-clear-search") {
+    if (action === "dua-catalogue-back") {
+      event.preventDefault();
+      event.stopPropagation();
+      if (window.MominDuasPageV2 && typeof window.MominDuasPageV2.returnToCatalogue === "function") {
+        window.MominDuasPageV2.returnToCatalogue();
+      } else if (typeof window.go === "function") {
+        window.go("duas");
+      }
+      return;
+    } else if (action === "dua-clear-search") {
       var input = document.getElementById("dua-search"); if (input) { input.value = ""; updateDuaSearchV1(); input.focus(); }
     } else if (action === "bm") {
       var key = button.dataset.k || "";
