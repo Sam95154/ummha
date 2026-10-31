@@ -1,0 +1,497 @@
+<title>MOMIN Inspiration</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<style>
+/* Layout: sticky glass header, night-sky "Verse of the day" hero, a scrolling mood-chip row (Daily, Gratitude, Purpose,
+   Grief, Love, Anxiety, Patience, Motivation, Hope, Saved), a search field, animated verse cards with save / copy /
+   share / reflect, "Discover more" and "Surprise me" (online, any of 6,236 ayahs), a private reflection journal and
+   the shared floating tab bar. Colours follow the Home screen. */
+:root{
+  --bg:#f3efe5; --card:#fdfbf6; --card-2:#f8f3e6; --field:#f6f1e4; --line:#e6dfcc; --gold-line:#d9c28a;
+  --ink:#1b1710; --muted:#7a7466; --gold:#a97a22; --gold-bright:#d6a74a; --gold-soft:#efe2c2;
+  --gold-grad:linear-gradient(145deg,#e6c47c,#b8892f); --glass:rgba(253,251,246,.86); --shadow:rgba(60,40,10,.18); --err:#b3402f;
+  --sky-a:#0c0a06; --sky-b:#15110a; --sky-c:#3f2f17; --on-sky:#f6efdf; --on-sky-2:#cdbf9f;
+  --serif:"Playfair Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --ar:"Amiri","Noto Naskh Arabic","Traditional Arabic",serif; --ease:cubic-bezier(.22,1,.36,1);
+  --arsz:1.9rem;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f0d0a; --card:#181510; --card-2:#201b13; --field:#14110c; --line:#2f2819; --gold-line:#5a4720;
+  --ink:#f3ecda; --muted:#a79f8a; --gold:#d9aa52; --gold-bright:#e8c071; --gold-soft:#2b2312; --err:#e88a73;
+  --glass:rgba(24,21,16,.86); --shadow:rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f0d0a; --card:#181510; --card-2:#201b13; --field:#14110c; --line:#2f2819; --gold-line:#5a4720;
+  --ink:#f3ecda; --muted:#a79f8a; --gold:#d9aa52; --gold-bright:#e8c071; --gold-soft:#2b2312; --err:#e88a73;
+  --glass:rgba(24,21,16,.86); --shadow:rgba(0,0,0,.6); color-scheme:dark}
+:root[data-asz="1"]{--arsz:1.6rem}
+:root[data-asz="3"]{--arsz:2.3rem}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:.9375rem;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:0 130px}
+body.lock{overflow:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;margin:0}
+p{margin:0}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold-bright);outline-offset:3px;border-radius:12px}
+svg{display:block}
+.app{max-width:480px;margin:0 auto}
+.i{width:1.375rem;height:1.375rem;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;display:flex;align-items:center;gap:12px;margin-inline:-16px;padding:10px 16px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid transparent;transition:border-color .3s}
+.bar.scrolled{border-bottom-color:var(--line)}
+.ib{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;transition:transform .25s var(--ease),border-color .25s}
+.ib:hover{border-color:var(--gold-bright)}.ib:active{transform:scale(.9)}
+.bar h1{flex:1;font-size:1.4rem;text-align:center}
+.lt{flex:none;width:44px;height:44px;border-radius:14px;padding:6px;background:linear-gradient(#fbf7ea,#efe7d0);border:1px solid var(--gold-line);display:grid;place-items:center}
+.lt svg{width:100%;height:100%}
+main>*{animation:rise .8s var(--ease) both;animation-delay:calc(var(--d,0)*70ms)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.sub{margin:14px 2px 0;color:var(--muted)}
+.night{position:relative;overflow:hidden;color:var(--on-sky);border-radius:30px;border:1px solid rgba(214,167,74,.4);
+  background:radial-gradient(120% 90% at 100% 0%,var(--sky-c) 0%,transparent 60%),linear-gradient(160deg,var(--sky-a),var(--sky-b) 55%,#241a0c);box-shadow:0 28px 44px -30px rgba(30,18,0,.7)}
+.night::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 35%,rgba(255,236,190,.12) 50%,transparent 65%);transform:translateX(-120%);animation:sheen 8s var(--ease) 1.4s infinite}
+@keyframes sheen{40%,100%{transform:translateX(120%)}}
+.stars{position:absolute!important;inset:0;z-index:0!important;pointer-events:none}
+.stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#f7e7bd;opacity:.2;animation:tw 3.6s ease-in-out infinite;animation-delay:var(--t)}
+@keyframes tw{50%{opacity:.95;transform:scale(1.6)}}
+.eyebrow{display:block;color:var(--gold-bright);letter-spacing:.18em;font-weight:700;font-size:.72rem;text-transform:uppercase}
+.hero{margin-top:14px;padding:22px 20px 20px}
+.hero>*{position:relative;z-index:1}
+.hero .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hero .ar{margin:18px 0 6px}
+.ar{font-family:var(--ar);font-size:var(--arsz);line-height:1.9;text-align:right;direction:rtl;color:var(--gold-bright)}
+.hero .en{font-family:var(--serif);font-style:italic;font-size:1.25rem;line-height:1.5;color:#fff7e2}
+.hero .rf{margin-top:12px;color:var(--on-sky-2);font-size:.88rem}
+.acts{display:flex;gap:8px;margin-top:16px}
+.act{flex:1;height:44px;border-radius:14px;border:1px solid rgba(214,167,74,.4);background:rgba(214,167,74,.08);color:var(--on-sky);display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:.85rem;transition:transform .25s var(--ease),background .25s}
+.act:hover{background:rgba(214,167,74,.18)}.act:active{transform:scale(.95)}
+.act .i{width:1.1rem;height:1.1rem}
+.act.on{color:#1b1710;background:var(--gold-grad);border-color:transparent}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;background:var(--gold-soft);color:var(--gold);font-weight:700;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase}
+.night .pill{background:rgba(214,167,74,.16);color:var(--gold-bright)}
+.pill.on{background:#233a2d;color:#7fd8a6}
+.szb{border:1px solid rgba(214,167,74,.4);background:none;color:var(--on-sky-2);width:44px;height:36px;border-radius:12px;font-family:var(--serif);font-weight:700}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;margin:24px 2px 10px}
+.sec-h h3{font-size:1.45rem}
+.sec-h span{color:var(--muted);font-size:.85rem}
+.chips{position:relative;display:flex;gap:8px;overflow-x:auto;margin-inline:-16px;padding:2px 16px 10px;scrollbar-width:none;scroll-snap-type:x proximity}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;scroll-snap-align:start;display:flex;align-items:center;gap:8px;height:46px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:600;color:var(--muted);transition:background .3s,color .3s,border-color .3s,transform .3s var(--ease)}
+.chip .i{width:1.1rem;height:1.1rem}
+.chip:active{transform:scale(.95)}
+.chip[aria-selected="true"]{background:var(--gold-grad);color:#1b1710;border-color:transparent;box-shadow:0 12px 20px -12px #b8892f}
+.chip small{font-size:.72rem;opacity:.7;font-weight:700}
+.about{margin-top:6px;padding:16px 18px;border-radius:24px;background:var(--gold-soft);border:1px solid var(--gold-line);animation:swap .5s var(--ease) both}
+.about h4{font-size:1.15rem;margin-bottom:4px}
+.about p{color:var(--muted)}
+.about .care{margin-top:8px;font-size:.85rem}
+@keyframes swap{from{opacity:0;transform:translateY(8px)}}
+.search{margin-top:14px;display:flex;align-items:center;gap:10px;height:50px;padding:0 6px 0 16px;border-radius:999px;background:var(--card);border:1px solid var(--line);transition:border-color .25s,box-shadow .25s}
+.search:focus-within{border-color:var(--gold-bright);box-shadow:0 0 0 4px var(--gold-soft)}
+.search .i{color:var(--muted);flex:none;width:1.2rem;height:1.2rem}
+.search input{flex:1;min-width:0;height:100%;background:none;border:0;outline:0}
+.search input::placeholder{color:var(--muted)}
+.tools{display:flex;gap:8px;margin-top:12px}
+.tl{flex:1;height:46px;border-radius:16px;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:.88rem;transition:border-color .25s,transform .25s var(--ease)}
+.tl:hover{border-color:var(--gold-bright)}.tl:active{transform:scale(.96)}
+.tl .i{width:1.1rem;height:1.1rem;color:var(--gold)}
+.tl[disabled]{opacity:.5;pointer-events:none}
+.list{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+.vc{padding:18px;border-radius:26px;background:var(--card);border:1px solid var(--line);animation:rise .6s var(--ease) both;animation-delay:calc(var(--n)*55ms);transition:border-color .3s,box-shadow .3s}
+.vc:hover{border-color:var(--gold-line);box-shadow:0 20px 32px -26px var(--shadow)}
+.vc .hd{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.vc .ar{margin:14px 0 8px}
+.vc .en{font-family:var(--serif);font-style:italic;font-size:1.12rem;line-height:1.5}
+.vc .nm{margin-top:10px;color:var(--muted);font-size:.85rem}
+.vc .ft{display:flex;gap:4px;margin:12px -6px -6px}
+.ic{flex:1;height:44px;border:0;background:none;border-radius:14px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px;font-size:.8rem;font-weight:600;transition:background .25s,color .25s,transform .25s var(--ease)}
+.ic:hover{background:var(--gold-soft);color:var(--gold)}.ic:active{transform:scale(.92)}
+.ic .i{width:1.2rem;height:1.2rem}
+.ic.saved{color:var(--gold)}
+.ic.saved svg{fill:var(--gold-bright);stroke:var(--gold);animation:pop .5s var(--ease)}
+@keyframes pop{40%{transform:scale(1.35)}}
+.empty{margin-top:14px;padding:30px 20px;text-align:center;border:1px dashed var(--line);border-radius:26px;color:var(--muted)}
+.empty b{display:block;font-family:var(--serif);color:var(--ink);font-size:1.25rem;margin-bottom:4px}
+.more{width:100%;margin-top:12px;height:52px;border-radius:18px;border:1px solid var(--gold-line);background:none;font-weight:700;color:var(--gold);transition:background .25s}
+.more:hover{background:var(--gold-soft)}
+.more[disabled]{opacity:.6}
+.sk{height:150px;border-radius:26px;background:linear-gradient(100deg,var(--card) 30%,var(--card-2) 50%,var(--card) 70%);background-size:200% 100%;animation:shim 1.2s linear infinite}
+@keyframes shim{to{background-position:-200% 0}}
+.refl{padding:18px;border-radius:26px;background:var(--card);border:1px solid var(--line)}
+.refl label{display:block;font-weight:600;margin-bottom:10px}
+.refl textarea{width:100%;min-height:104px;padding:14px;border-radius:18px;border:1px solid var(--line);background:var(--field);outline:0;resize:vertical;line-height:1.5;transition:border-color .25s,box-shadow .25s}
+.refl textarea:focus{border-color:var(--gold-bright);box-shadow:0 0 0 4px var(--gold-soft)}
+.refl textarea::placeholder{color:var(--muted)}
+.btn{width:100%;height:52px;margin-top:12px;border-radius:18px;border:0;background:var(--gold-grad);color:#1b1710;font-weight:700;box-shadow:0 14px 24px -14px #b8892f;transition:transform .25s var(--ease),filter .2s}
+.btn:active{transform:scale(.98)}.btn:hover{filter:brightness(1.06)}
+.btn[disabled]{background:var(--line);color:var(--muted);box-shadow:none;cursor:not-allowed}
+.past{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.pe{padding:14px 16px;border-radius:20px;background:var(--card);border:1px solid var(--line);animation:rise .5s var(--ease) both}
+.pe small{display:flex;justify-content:space-between;color:var(--muted);font-size:.78rem;margin-bottom:4px}
+.pe button{border:0;background:none;color:var(--err);font-size:.78rem;font-weight:600;padding:0}
+.pe p{white-space:pre-wrap;overflow-wrap:anywhere}
+.note{margin:20px 4px 0;color:var(--muted);font-size:.8rem;line-height:1.55}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:45;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none}
+.tabbar nav{pointer-events:auto;max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);padding:6px;border-radius:26px;background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:0 22px 40px -18px var(--shadow)}
+.tab{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 9px;font-size:.78rem;font-weight:600;color:var(--muted);border-radius:20px;transition:color .3s,background .3s}
+.tab.on{color:var(--gold);background:var(--gold-soft)}
+.tab:hover{color:var(--gold)}
+.toast{position:fixed;left:50%;bottom:calc(98px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;z-index:80;padding:12px 18px;border-radius:14px;background:var(--ink);color:var(--bg);font-size:.875rem;max-width:calc(100vw - 40px);text-align:center;pointer-events:none;transition:opacity .3s,transform .4s var(--ease)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.scrim{position:fixed;inset:0;z-index:70;background:rgba(10,8,4,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .35s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:71;max-width:480px;margin:0 auto;max-height:86vh;overflow:auto;padding:10px 20px calc(24px + env(safe-area-inset-bottom,0px));border-radius:32px 32px 0 0;background:var(--card);border:1px solid var(--line);border-bottom:0;transform:translateY(105%);transition:transform .55s var(--ease)}
+.sheet.on{transform:none}
+.grab{width:44px;height:5px;border-radius:5px;background:var(--line);margin:4px auto 16px}
+.sheet h3{font-size:1.4rem;margin-bottom:4px}
+.sheet .q{color:var(--muted);font-style:italic;margin-bottom:6px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* MOMIN embed mode: the parent app supplies its one shared header and bottom navigation. */
+body.momin-inspiration-embedded{
+  padding:0 16px 24px!important;
+  overflow-x:hidden!important;
+  background:var(--bg)!important;
+}
+body.momin-inspiration-embedded::before{display:none!important}
+body.momin-inspiration-embedded .bar,
+body.momin-inspiration-embedded .tabbar{display:none!important}
+body.momin-inspiration-embedded .app{
+  width:100%!important;
+  max-width:480px!important;
+  margin:0 auto!important;
+}
+body.momin-inspiration-embedded main{padding-top:0!important}
+body.momin-inspiration-embedded .sub{margin-top:14px}
+body.momin-inspiration-embedded .toast{z-index:90}
+body.momin-inspiration-embedded .scrim{z-index:95}
+body.momin-inspiration-embedded .sheet{z-index:96}
+body.momin-inspiration-embedded .note{padding-bottom:12px}
+
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="logo" viewBox="600 520 800 685"><g><path fill="#21675f" fill-rule="evenodd" d="M610 1061L612 1062L624 1059L661 1055L711 1055L735 1057L782 1064L804 1069L862 1087L898 1103L916 1113L936 1127L947 1137L956 1149L960 1162L972 1182L982 1191L989 1195L997 1197L1003 1197L1014 1193L1028 1181L1035 1171L1042 1152L1047 1143L1063 1127L1096 1106L1116 1096L1146 1084L1195 1069L1204 1068L1217 1064L1264 1057L1288 1055L1338 1055L1368 1058L1389 1062L1382 1058L1352 1047L1340 1040L1327 1038L1264 1038L1240 1040L1193 1047L1167 1053L1166 1052L1169 1050L1176 1049L1185 1045L1234 1035L1281 1030L1325 1029L1308 1024L1302 1024L1279 1019L1276 1017L1276 1015L1281 1011L1264 1011L1245 1014L1235 1014L1195 1021L1162 1030L1134 1040L1100 1056L1081 1067L1060 1082L1035 1104L1015 1127L1002 1147L999 1148L985 1128L965 1105L943 1085L926 1072L924 1072L901 1057L877 1045L831 1028L804 1021L765 1014L735 1011L718 1011L724 1016L723 1018L674 1029L718 1030L766 1035L817 1046L822 1048L824 1050L823 1051L801 1046L759 1040L746 1040L734 1038L672 1038L659 1040L645 1048ZM774 995L799 995L834 998L863 1004L897 1015L926 1028L952 1043L982 1064L998 1078L1003 1077L1025 1058L1052 1040L1073 1028L1102 1015L1136 1004L1159 999L1201 995L1225 996L1223 993L1189 977L1173 972L1144 967L1099 968L1066 976L1029 992L1001 1010L996 1009L970 992L944 980L911 970L891 967L855 967L826 972L802 980ZM718 926L718 973L765 974L766 923L769 911L776 897L787 886L801 878L817 874L845 873L855 841L867 817L884 792L902 774L917 764L928 759L947 755L973 745L990 735L998 728L1001 728L1009 735L1033 748L1052 755L1076 761L1086 766L1102 778L1120 798L1135 822L1147 848L1153 871L1155 873L1171 873L1192 876L1208 883L1220 893L1225 900L1232 916L1233 971L1235 974L1281 973L1281 923L1279 910L1272 888L1266 876L1255 861L1241 848L1225 838L1210 832L1191 828L1188 825L1175 796L1164 778L1147 756L1133 742L1118 730L1103 721L1086 714L1058 707L1041 699L1032 692L1012 670L1002 650L1001 645L998 645L994 657L982 677L964 695L944 706L913 714L899 720L877 733L865 743L847 762L833 781L822 800L811 825L808 828L796 830L781 835L764 844L749 856L734 875L726 891L721 906Z"/></g><g><path fill="#b98a2e" fill-rule="evenodd" d="M999 545L994 561L991 565L972 565L971 566L973 569L982 575L987 580L987 583L985 586L984 592L981 599L983 600L992 594L993 592L998 589L1001 589L1017 600L1018 598L1012 580L1025 569L1027 569L1028 566L1027 565L1008 565L1006 563L1003 552L1001 549L1001 546ZM969 530L953 545L947 556L944 566L944 575L943 576L944 591L947 600L953 611L961 620L970 627L988 634L994 634L995 635L1011 634L1031 626L1043 615L1046 611L1047 607L1044 608L1038 613L1027 618L1019 620L1003 620L992 617L981 611L970 601L969 598L963 591L962 586L959 581L959 576L958 575L958 558L962 545L972 530Z"/></g></symbol>
+  <symbol id="ic-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="ic-heart" viewBox="0 0 24 24"><path d="M12 20.500S3 15 3 8.800A4.800 4.800 0 0 1 12 6.600a4.800 4.800 0 0 1 9 2.200C21 15 12 20.500 12 20.500Z"/></symbol>
+  <symbol id="ic-copy" viewBox="0 0 24 24"><rect x="8.500" y="8.500" width="11" height="11" rx="2.500"/><path d="M15.500 8.500V6.500a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="ic-share" viewBox="0 0 24 24"><path d="M12 15V4M8 8l4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></symbol>
+  <symbol id="ic-pen" viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16v4ZM13.500 6.500l4 4"/></symbol>
+  <symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.800"/><path d="m20 20-4.200-4.200"/></symbol>
+  <symbol id="ic-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.500v2.500M12 19v2.500M2.500 12H5M19 12h2.500M5.300 5.300l1.800 1.800M16.900 16.900l1.800 1.800M5.300 18.700l1.800-1.800M16.900 7.100l1.800-1.800"/></symbol>
+  <symbol id="ic-gift" viewBox="0 0 24 24"><rect x="3.500" y="8.500" width="17" height="4" rx="1"/><path d="M5 12.500V20h14v-7.500M12 8.500V20M12 8.500S9 8.500 8.500 6.500 10 4 12 8.500ZM12 8.500s3 0 3.500-2S14 4 12 8.500Z"/></symbol>
+  <symbol id="ic-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.500"/><path d="m15.500 8.500-2 5-5 2 2-5 5-2Z"/></symbol>
+  <symbol id="ic-drop" viewBox="0 0 24 24"><path d="M12 3.500S5.500 10 5.500 14.500a6.500 6.500 0 0 0 13 0C18.500 10 12 3.500 12 3.500Z"/></symbol>
+  <symbol id="ic-wind" viewBox="0 0 24 24"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"/></symbol>
+  <symbol id="ic-hourglass" viewBox="0 0 24 24"><path d="M6.500 3.500h11M6.500 20.500h11M7.500 3.500c0 5 4.500 6 4.500 8.500s-4.500 3.500-4.500 8.500M16.500 3.500c0 5-4.500 6-4.500 8.500s4.500 3.500 4.500 8.500"/></symbol>
+  <symbol id="ic-bolt" viewBox="0 0 24 24"><path d="M13 2.500 5 13.500h6l-1 8 8-11h-6l1-8Z"/></symbol>
+  <symbol id="ic-star" viewBox="0 0 24 24"><path d="m12 3.500 2.600 5.400 5.900.8-4.300 4.100 1 5.800L12 16.800 6.800 19.600l1-5.800L3.500 9.700l5.900-.8L12 3.500Z"/></symbol>
+  <symbol id="ic-shuffle" viewBox="0 0 24 24"><path d="M3.500 7h3c4 0 5 10 9 10h5M3.500 17h3c1.500 0 2.500-1.500 3.500-3M14 8c.8-.7 1.700-1 2.500-1h4M17.500 4l3 3-3 3M17.500 14l3 3-3 3"/></symbol>
+  <symbol id="ic-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.500"/><path d="M2.500 12h19M12 2.500c3 3 3 16.500 0 19M12 2.500c-3 3-3 16.500 0 19"/></symbol>
+  <symbol id="ic-home" viewBox="0 0 24 24"><path d="M3.500 11 12 3.500 20.500 11V20a1 1 0 0 1-1 1H15v-6H9v6H4.500a1 1 0 0 1-1-1V11Z"/></symbol>
+  <symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.500"/><path d="M12 6.500V12l3.500 2"/></symbol>
+  <symbol id="ic-book" viewBox="0 0 24 24"><path d="M12 6.500C10 5 7 4.500 3.500 5v13c3.500-.5 6.500 0 8.500 1.500 2-1.500 5-2 8.500-1.500V5C17 4.500 14 5 12 6.500ZM12 6.500v13"/></symbol>
+  <symbol id="ic-path" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2.200"/><circle cx="18" cy="6" r="2.200"/><path d="M8 18h6.500a3.500 3.500 0 0 0 0-7h-5a3.500 3.500 0 0 1 0-7H16"/></symbol>
+</defs></svg>
+
+<div class="app">
+  <header class="bar" id="bar">
+    <button class="ib" id="back" aria-label="Back"><svg class="i"><use href="#ic-back"/></svg></button>
+    <h1>Inspiration</h1>
+    <span class="lt" aria-hidden="true"><svg viewBox="600 520 800 685"><use href="#logo" x="600" y="520" width="800" height="685"/></svg></span>
+  </header>
+  <main>
+    <p class="sub" style="--d:0">A verse and a moment for reflection</p>
+
+    <section class="night hero" style="--d:1" id="hero"><div class="stars" id="st" aria-hidden="true"></div></section>
+
+    <div class="sec-h" style="--d:2"><h3>How are you feeling?</h3><span id="total"></span></div>
+    <div class="chips" id="chips" role="tablist" style="--d:2"></div>
+    <div id="about"></div>
+
+    <label class="search"><svg class="i"><use href="#ic-search"/></svg><input id="q" type="search" placeholder="Search verses or references" autocomplete="off" aria-label="Search verses"></label>
+    <div class="tools"><button class="tl" id="shuf"><svg class="i"><use href="#ic-shuffle"/></svg>Shuffle</button><button class="tl" id="sur"><svg class="i"><use href="#ic-globe"/></svg>Surprise me</button></div>
+
+    <div class="list" id="list"></div>
+    <button class="more" id="more" hidden>Discover more verses</button>
+
+    <div class="sec-h"><h3>Private reflection</h3><span id="rcount"></span></div>
+    <section class="refl"><label for="rt" id="rl">What are you grateful for today?</label><textarea id="rt" placeholder="Write here. Only you can see this." maxlength="1200"></textarea>
+      <button class="btn" id="rs" disabled>Save reflection</button></section>
+    <div class="past" id="past"></div>
+
+    <p class="note">Verses are selected portions of the ayah, with English meanings in the style of Sahih International. Please verify with a trusted printed Mushaf. If something feels too heavy to carry alone, please talk to someone you trust or a local helpline.</p>
+  </main>
+</div>
+
+<div class="tabbar"><nav aria-label="Primary">
+  <button class="tab on" data-t="Home"><svg class="i"><use href="#ic-home"/></svg>Home</button>
+  <button class="tab" data-t="Prayers"><svg class="i"><use href="#ic-clock"/></svg>Prayers</button>
+  <button class="tab" data-t="Quran"><svg class="i"><use href="#ic-book"/></svg>Quran</button>
+  <button class="tab" data-t="Journey"><svg class="i"><use href="#ic-path"/></svg>Journey</button>
+</nav></div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+  function ls(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+  function lw(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  document.body.classList.add("momin-inspiration-embedded");
+  var st=ls("momin-settings",{});
+  function syncParentTheme(){
+    try{
+      if(window.parent!==window){
+        var theme=window.parent.document.documentElement.getAttribute("data-theme");
+        if(theme==="light"||theme==="dark")document.documentElement.setAttribute("data-theme",theme);
+        else if(theme==="sepia")document.documentElement.setAttribute("data-theme","light");
+        else if(st&&(st.theme==="light"||st.theme==="dark"))document.documentElement.setAttribute("data-theme",st.theme);
+        else document.documentElement.setAttribute("data-theme","dark");
+      }else if(st&&(st.theme==="light"||st.theme==="dark"))document.documentElement.setAttribute("data-theme",st.theme);
+    }catch(e){if(st&&(st.theme==="light"||st.theme==="dark"))document.documentElement.setAttribute("data-theme",st.theme)}
+  }
+  function parentNavigate(target){
+    try{
+      if(window.parent!==window&&window.parent.MominInspirationBridgeV1){
+        window.parent.MominInspirationBridgeV1.navigate(target);return true;
+      }
+    }catch(e){}
+    return false;
+  }
+  syncParentTheme();
+  try{
+    if(window.parent!==window&&typeof MutationObserver!=="undefined"){
+      new MutationObserver(syncParentTheme).observe(window.parent.document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+    }
+  }catch(e){}
+
+
+  /* ---------- categories ---------- */
+  var CATS=[
+   {id:"daily",n:"Daily",ic:"sun",t:"This week, one verse a day",d:"A new verse each day. Read it slowly, then carry one line with you.",p:"What is one intention for today?"},
+   {id:"gratitude",n:"Gratitude",ic:"gift",t:"Remembering the gifts",d:"Gratitude turns what we have into enough. These verses invite us to notice the favours around us.",p:"What are you grateful for today?"},
+   {id:"purpose",n:"Purpose",ic:"compass",t:"Why we are here",d:"Verses about meaning, intention and the good that adds up quietly.",p:"What is one thing you can do today that matters?"},
+   {id:"grief",n:"Grief",ic:"drop",t:"For heavy hearts",d:"Loss and sorrow are real. These verses sit with you, and remind you that Allah is near.",p:"What would you like to say to Allah about what you are carrying?",care:"If grief feels unbearable, please reach out to someone you trust or a local helpline."},
+   {id:"love",n:"Love",ic:"heart",t:"Mercy, affection and kindness",d:"Love for Allah, for family and for people, in the words of the Quran.",p:"Who can you show kindness to today?"},
+   {id:"anxiety",n:"Anxiety",ic:"wind",t:"For restless minds",d:"When your thoughts race, these verses help you hand the weight over to the One who is close.",p:"What can you hand over to Allah right now?",care:"If anxiety is affecting your daily life, speaking with a professional can help too."},
+   {id:"patience",n:"Patience",ic:"hourglass",t:"Sabr, beautiful patience",d:"Patience is not waiting quietly. It is trusting while you keep going.",p:"Where do you need patience today?"},
+   {id:"motivation",n:"Motivation",ic:"bolt",t:"Strength to begin again",d:"Effort, trust and a fresh start. Small steps count.",p:"What is one small step you can take now?"},
+   {id:"hope",n:"Hope",ic:"star",t:"Never lose hope",d:"The mercy of Allah is wider than any mistake. Return, and begin again.",p:"What good do you hope for?"},
+   {id:"saved",n:"Saved",ic:"heart",t:"Your saved verses",d:"The verses you saved stay on this device.",p:"What did this verse stir in you?"}
+  ];
+  /* ref, arabic, english, tags (g gratitude, p purpose, r grief, l love, a anxiety, s patience, m motivation, h hope) */
+  var V=[
+   ["94:5","فَإِنَّ مَعَ الْعُسْرِ يُسْرًا","For indeed, with hardship comes ease.","rahsm"],
+   ["94:6","إِنَّ مَعَ الْعُسْرِ يُسْرًا","Indeed, with hardship comes ease.","rahs"],
+   ["94:7-8","فَإِذَا فَرَغْتَ فَانصَبْ وَإِلَىٰ رَبِّكَ فَارْغَب","So when you have finished [your duties], then stand up [for worship]. And to your Lord direct [your] longing.","mp"],
+   ["2:152","فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ","So remember Me; I will remember you. And be grateful to Me and do not deny Me.","gl"],
+   ["13:28","أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ","Unquestionably, by the remembrance of Allah hearts are assured.","ar"],
+   ["65:3","وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ","And whoever relies upon Allah - then He is sufficient for him.","amh"],
+   ["2:286","لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا","Allah does not charge a soul except [with that within] its capacity.","ash"],
+   ["93:3","مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَىٰ","Your Lord has not taken leave of you, [O Muhammad], nor has He detested [you].","rh"],
+   ["93:5","وَلَسَوْفَ يُعْطِيكَ رَبُّكَ فَتَرْضَىٰ","And your Lord is going to give you, and you will be satisfied.","hm"],
+   ["3:139","وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنتُمُ الْأَعْلَوْنَ إِن كُنتُم مُّؤْمِنِينَ","So do not weaken and do not grieve, and you will be superior if you are [true] believers.","rms"],
+   ["2:153","يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ ۚ إِنَّ اللَّهَ مَعَ الصَّابِرِينَ","O you who have believed, seek help through patience and prayer. Indeed, Allah is with the patient.","sra"],
+   ["14:7","لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ","If you are grateful, I will surely increase you [in favor].","g"],
+   ["55:13","فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ","So which of the favors of your Lord would you deny?","g"],
+   ["16:18","وَإِن تَعُدُّوا نِعْمَةَ اللَّهِ لَا تُحْصُوهَا","And if you should count the favors of Allah, you could not enumerate them.","g"],
+   ["31:12","وَمَن يَشْكُرْ فَإِنَّمَا يَشْكُرُ لِنَفْسِهِ","And whoever is grateful - he is grateful only for [the benefit of] himself.","g"],
+   ["34:13","وَقَلِيلٌ مِّنْ عِبَادِيَ الشَّكُورُ","And few of My servants are grateful.","g"],
+   ["51:56","وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا لِيَعْبُدُونِ","And I did not create the jinn and mankind except to worship Me.","p"],
+   ["6:162","قُلْ إِنَّ صَلَاتِي وَنُسُكِي وَمَحْيَايَ وَمَمَاتِي لِلَّهِ رَبِّ الْعَالَمِينَ","Say, \"Indeed, my prayer, my rites of sacrifice, my living and my dying are for Allah, Lord of the worlds.\"","p"],
+   ["67:2","الَّذِي خَلَقَ الْمَوْتَ وَالْحَيَاةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا","[He] who created death and life to test you [as to] which of you is best in deed.","pm"],
+   ["99:7","فَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ خَيْرًا يَرَهُ","So whoever does an atom's weight of good will see it.","pm"],
+   ["13:11","إِنَّ اللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا مَا بِأَنفُسِهِمْ","Indeed, Allah will not change the condition of a people until they change what is in themselves.","pm"],
+   ["29:69","وَالَّذِينَ جَاهَدُوا فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا","And those who strive for Us - We will surely guide them to Our ways.","pm"],
+   ["53:39","وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ","And that there is not for man except that [good] for which he strives.","pm"],
+   ["3:159","فَإِذَا عَزَمْتَ فَتَوَكَّلْ عَلَى اللَّهِ","And when you have decided, then rely upon Allah.","pm"],
+   ["2:156","الَّذِينَ إِذَا أَصَابَتْهُم مُّصِيبَةٌ قَالُوا إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ","Who, when disaster strikes them, say, \"Indeed we belong to Allah, and indeed to Him we will return.\"","rs"],
+   ["12:86","إِنَّمَا أَشْكُو بَثِّي وَحُزْنِي إِلَى اللَّهِ","He said, \"I only complain of my suffering and my grief to Allah.\"","ra"],
+   ["9:40","لَا تَحْزَنْ إِنَّ اللَّهَ مَعَنَا","Do not grieve; indeed Allah is with us.","ra"],
+   ["2:216","وَعَسَىٰ أَن تَكْرَهُوا شَيْئًا وَهُوَ خَيْرٌ لَّكُمْ","But perhaps you hate a thing and it is good for you.","rh"],
+   ["39:10","إِنَّمَا يُوَفَّى الصَّابِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ","Indeed, the patient will be given their reward without account.","rs"],
+   ["12:18","فَصَبْرٌ جَمِيلٌ","Then patience is most fitting.","rs"],
+   ["21:83","أَنِّي مَسَّنِيَ الضُّرُّ وَأَنتَ أَرْحَمُ الرَّاحِمِينَ","Indeed, adversity has touched me, and you are the Most Merciful of the merciful.","rh"],
+   ["30:21","وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً","And of His signs is that He created for you from yourselves mates that you may find tranquillity in them; and He placed between you affection and mercy.","l"],
+   ["19:96","إِنَّ الَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ سَيَجْعَلُ لَهُمُ الرَّحْمَٰنُ وُدًّا","Indeed, those who have believed and done righteous deeds - the Most Merciful will appoint for them affection.","l"],
+   ["3:31","قُلْ إِن كُنتُمْ تُحِبُّونَ اللَّهَ فَاتَّبِعُونِي يُحْبِبْكُمُ اللَّهُ","Say, [O Muhammad], \"If you should love Allah, then follow me, [so] Allah will love you.\"","l"],
+   ["2:165","وَالَّذِينَ آمَنُوا أَشَدُّ حُبًّا لِّلَّهِ","But those who believe are stronger in love for Allah.","l"],
+   ["49:10","إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ","The believers are but brothers.","l"],
+   ["85:14","وَهُوَ الْغَفُورُ الْوَدُودُ","And He is the Forgiving, the Affectionate.","lh"],
+   ["11:90","إِنَّ رَبِّي رَحِيمٌ وَدُودٌ","Indeed, my Lord is Merciful and Affectionate.","lh"],
+   ["2:187","هُنَّ لِبَاسٌ لَّكُمْ وَأَنتُمْ لِبَاسٌ لَّهُنَّ","They are clothing for you and you are clothing for them.","l"],
+   ["9:51","قُل لَّن يُصِيبَنَا إِلَّا مَا كَتَبَ اللَّهُ لَنَا هُوَ مَوْلَانَا","Say, \"Never will we be struck except by what Allah has decreed for us; He is our protector.\"","a"],
+   ["3:173","حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ","Sufficient for us is Allah, and [He is] the best Disposer of affairs.","am"],
+   ["20:46","قَالَ لَا تَخَافَا إِنَّنِي مَعَكُمَا أَسْمَعُ وَأَرَىٰ","[Allah] said, \"Fear not. Indeed, I am with you both; I hear and I see.\"","a"],
+   ["50:16","وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ","And We are closer to him than [his] jugular vein.","al"],
+   ["2:186","فَإِنِّي قَرِيبٌ ۖ أُجِيبُ دَعْوَةَ الدَّاعِ إِذَا دَعَانِ","Indeed I am near. I respond to the invocation of the supplicant when he calls upon Me.","arh"],
+   ["40:60","ادْعُونِي أَسْتَجِبْ لَكُمْ","Call upon Me; I will respond to you.","ah"],
+   ["3:200","يَا أَيُّهَا الَّذِينَ آمَنُوا اصْبِرُوا وَصَابِرُوا وَرَابِطُوا","O you who have believed, persevere and endure and remain stationed.","sm"],
+   ["103:3","وَتَوَاصَوْا بِالْحَقِّ وَتَوَاصَوْا بِالصَّبْرِ","And advised each other to truth and advised each other to patience.","s"],
+   ["16:127","وَاصْبِرْ وَمَا صَبْرُكَ إِلَّا بِاللَّهِ","And be patient, [O Muhammad], and your patience is not but through Allah.","s"],
+   ["8:46","وَاصْبِرُوا ۚ إِنَّ اللَّهَ مَعَ الصَّابِرِينَ","And be patient. Indeed, Allah is with the patient.","s"],
+   ["11:115","وَاصْبِرْ فَإِنَّ اللَّهَ لَا يُضِيعُ أَجْرَ الْمُحْسِنِينَ","And be patient, for indeed, Allah does not allow to be lost the reward of those who do good.","sm"],
+   ["70:5","فَاصْبِرْ صَبْرًا جَمِيلًا","So be patient with gracious patience.","s"],
+   ["65:2","وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا","And whoever fears Allah - He will make for him a way out.","mah"],
+   ["47:7","إِن تَنصُرُوا اللَّهَ يَنصُرْكُمْ وَيُثَبِّتْ أَقْدَامَكُمْ","If you support Allah, He will support you and plant firmly your feet.","m"],
+   ["9:105","وَقُلِ اعْمَلُوا فَسَيَرَى اللَّهُ عَمَلَكُمْ","And say, \"Do [as you will], for Allah will see your deeds.\"","pm"],
+   ["39:53","قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ","Say, \"O My servants who have transgressed against themselves [by sinning], do not despair of the mercy of Allah.\"","h"],
+   ["12:87","وَلَا تَيْأَسُوا مِن رَّوْحِ اللَّهِ","And do not despair of relief from Allah.","hr"],
+   ["7:156","وَرَحْمَتِي وَسِعَتْ كُلَّ شَيْءٍ","But My mercy encompasses all things.","hl"]
+  ].map(function(v){var s=v[0].split(":");return {ref:v[0],s:+s[0],a:v[1],e:v[2],t:v[3]}});
+  /* surah names used above */
+  var SURAH_NAMES={2:"Al-Baqarah",3:"Ali 'Imran",6:"Al-An'am",8:"Al-Anfal",9:"At-Tawbah",11:"Hud",12:"Yusuf",13:"Ar-Ra'd",14:"Ibrahim",16:"An-Nahl",19:"Maryam",20:"Ta-Ha",21:"Al-Anbiya",29:"Al-'Ankabut",30:"Ar-Rum",31:"Luqman",34:"Saba",39:"Az-Zumar",40:"Ghafir",47:"Muhammad",49:"Al-Hujurat",50:"Qaf",51:"Adh-Dhariyat",53:"An-Najm",55:"Ar-Rahman",65:"At-Talaq",67:"Al-Mulk",70:"Al-Ma'arij",85:"Al-Buruj",93:"Ad-Duha",94:"Ash-Sharh",99:"Az-Zalzalah",103:"Al-'Asr",7:"Al-A'raf"};
+  var TAGMAP={g:"gratitude",p:"purpose",r:"grief",l:"love",a:"anxiety",s:"patience",m:"motivation",h:"hope"};
+  /* extra references fetched online (text comes from the API, so it is always the real ayah) */
+  var EXTRA={
+   gratitude:["2:172","16:78","7:10","39:66","3:144","4:147","27:40","76:9"],
+   purpose:["2:30","23:115","75:36","18:7","76:2","11:7","3:191","17:70"],
+   grief:["2:214","3:146","28:7","10:62","2:38","41:30","35:34","6:34"],
+   love:["3:76","2:195","9:108","49:9","60:8","17:24","31:14","3:134"],
+   anxiety:["9:129","8:64","39:36","64:11","48:4","33:3","2:255","57:22"],
+   patience:["2:45","16:96","16:126","20:130","32:24","41:35","42:43","73:10"],
+   motivation:["2:148","3:133","5:2","16:97","18:30","20:25","41:33","62:10"],
+   hope:["2:218","4:110","15:49","15:56","24:22","25:70","42:25","53:32"]
+  };
+
+  /* ---------- state ---------- */
+  var cat=ls("momin-insp-cat","daily"),saved=ls("momin-insp-saved",{}),refl=ls("momin-reflections",[]),cache=ls("momin-insp-cache",{});
+  var order=null,eIdx={},online={},query="",surprise=[],replyRef=null;
+  if(!CATS.some(function(c){return c.id===cat}))cat="daily";
+  function catOf(id){return CATS.filter(function(c){return c.id===id})[0]}
+  function dayIndex(){var d=new Date();return Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()))/864e5)}
+  function pool(id){
+    if(id==="saved")return Object.keys(saved).map(function(k){return saved[k]});
+    if(id==="daily"){var n=dayIndex(),out=[];for(var i=0;i<7;i++){var v=V[(n+i)%V.length];out.push(Object.assign({},v,{day:i}))}return out}
+    var key=Object.keys(TAGMAP).filter(function(k){return TAGMAP[k]===id})[0];
+    var base=V.filter(function(v){return v.t.indexOf(key)>-1});
+    if(order&&order.cat===id){base=order.list}
+    return (surprise.length?surprise:[]).concat(base,online[id]||[]);
+  }
+  function surahName(n){return SURAH_NAMES[n]||("Surah "+n)}
+
+  /* ---------- rendering ---------- */
+  function countFor(id){if(id==="saved")return Object.keys(saved).length;if(id==="daily")return 7;var k=Object.keys(TAGMAP).filter(function(k){return TAGMAP[k]===id})[0];return V.filter(function(v){return v.t.indexOf(k)>-1}).length}
+  function renderChips(){
+    $("chips").innerHTML=CATS.map(function(c){return '<button class="chip" role="tab" data-c="'+c.id+'" aria-selected="'+(c.id===cat)+'"><svg class="i"><use href="#ic-'+c.ic+'"/></svg>'+c.n+' <small>'+countFor(c.id)+'</small></button>'}).join("");
+    var el=$("chips").querySelector('[aria-selected="true"]');if(el&&el.scrollIntoView)try{$("chips").scrollTo({left:el.offsetLeft-24,behavior:"smooth"})}catch(e){}
+    $("total").textContent=V.length+" verses + online";
+  }
+  function cardHTML(v,i,hero){
+    var sv=!!saved[v.ref+(v.on?"*":"")];
+    return '<article class="vc" style="--n:'+Math.min(i,10)+'" data-k="'+esc(v.ref+(v.on?"*":""))+'"><div class="hd"><span class="pill">Quran · '+esc(v.ref)+'</span>'+
+      (v.day!=null?'<span class="pill">'+(v.day===0?"Today":v.day===1?"Tomorrow":dayName(v.day))+'</span>':(v.on?'<span class="pill on">Online</span>':''))+'</div>'+
+      '<p class="ar" lang="ar">'+esc(v.a)+'</p><p class="en">“'+esc(v.e)+'”</p><p class="nm">Surah '+esc(surahName(v.s))+' · '+esc(v.ref.split(":")[1])+'</p>'+
+      '<div class="ft"><button class="ic'+(sv?' saved':'')+'" data-a="save" aria-pressed="'+sv+'" aria-label="Save verse"><svg class="i"><use href="#ic-heart"/></svg>Save</button>'+
+      '<button class="ic" data-a="copy" aria-label="Copy verse"><svg class="i"><use href="#ic-copy"/></svg>Copy</button>'+
+      '<button class="ic" data-a="share" aria-label="Share verse"><svg class="i"><use href="#ic-share"/></svg>Share</button>'+
+      '<button class="ic" data-a="reflect" aria-label="Reflect on this verse"><svg class="i"><use href="#ic-pen"/></svg>Reflect</button></div></article>';
+  }
+  function dayName(n){var d=new Date();d.setDate(d.getDate()+n);return d.toLocaleDateString(undefined,{weekday:"long"})}
+  function find(k){var all=V.concat(surprise).concat(Object.keys(online).reduce(function(a,c){return a.concat(online[c])},[])).concat(Object.keys(saved).map(function(x){return saved[x]}));return all.filter(function(v){return v.ref+(v.on?"*":"")===k})[0]}
+  function renderList(){
+    var c=catOf(cat),p=pool(cat),q=query.trim().toLowerCase();
+    if(q)p=p.filter(function(v){return (v.ref+" "+v.e+" "+surahName(v.s)).toLowerCase().indexOf(q)>-1});
+    $("list").innerHTML=p.length?p.map(function(v,i){return cardHTML(v,i)}).join(""):'<div class="empty"><b>'+(cat==="saved"&&!q?"Nothing saved yet":"No verses found")+'</b>'+(cat==="saved"&&!q?"Tap Save on any verse and it will appear here.":"Try another word or pick a different mood.")+'</div>';
+    var left=(EXTRA[cat]||[]).length-(eIdx[cat]||0);
+    $("more").hidden=!(EXTRA[cat]&&left>0&&!q);$("more").textContent="Discover more verses online ("+left+" more)";
+    $("rl").textContent=c.p;
+  }
+  function renderAbout(){
+    var c=catOf(cat);$("about").innerHTML='<div class="about"><h4>'+esc(c.t)+'</h4><p>'+esc(c.d)+'</p>'+(c.care?'<p class="care">'+esc(c.care)+'</p>':'')+'</div>';
+  }
+  function renderHero(){
+    var v=V[dayIndex()%V.length],sv=!!saved[v.ref];
+    var st=$("st");var keep=st.outerHTML;
+    $("hero").innerHTML=keep+'<div class="top"><span class="eyebrow">Verse of the day</span><button class="szb" id="sz" aria-label="Change Arabic text size">Aa</button></div>'+
+      '<p class="ar" lang="ar">'+esc(v.a)+'</p><p class="en">“'+esc(v.e)+'”</p><p class="rf">Surah '+esc(surahName(v.s))+' · '+esc(v.ref)+' · '+new Date().toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})+'</p>'+
+      '<div class="acts" data-k="'+esc(v.ref)+'"><button class="act'+(sv?' on':'')+'" data-a="save"><svg class="i"><use href="#ic-heart"/></svg>'+(sv?'Saved':'Save')+'</button><button class="act" data-a="copy"><svg class="i"><use href="#ic-copy"/></svg>Copy</button><button class="act" data-a="share"><svg class="i"><use href="#ic-share"/></svg>Share</button><button class="act" data-a="reflect"><svg class="i"><use href="#ic-pen"/></svg>Reflect</button></div>';
+    fillStars();
+  }
+  function renderPast(){
+    $("rcount").textContent=refl.length?refl.length+" saved":"";
+    $("past").innerHTML=refl.slice(0,4).map(function(r,i){return '<div class="pe" style="animation-delay:'+i*60+'ms"><small><span>'+new Date(r.t).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})+(r.ref?' · '+esc(r.ref):'')+'</span><button data-del="'+r.t+'">Delete</button></small><p>'+esc(r.x)+'</p></div>'}).join("");
+  }
+  function fillStars(){var s=$("st");if(!s)return;var h="";for(var i=0;i<16;i++)h+='<i style="left:'+(Math.random()*100).toFixed(1)+'%;top:'+(Math.random()*100).toFixed(1)+'%;--t:'+(Math.random()*4).toFixed(2)+'s"></i>';s.innerHTML=h}
+  function all(){renderChips();renderAbout();renderList();renderPast()}
+
+  /* ---------- toast ---------- */
+  var tt;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){t.classList.remove("on")},2000)}
+  var sheet=$("sheet"),scrim=$("scrim");
+  function openSheet(h){sheet.innerHTML='<div class="grab"></div>'+h;sheet.classList.add("on");scrim.classList.add("on");sheet.setAttribute("aria-hidden","false");document.body.classList.add("lock")}
+  function closeSheet(){sheet.classList.remove("on");scrim.classList.remove("on");sheet.setAttribute("aria-hidden","true");document.body.classList.remove("lock")}
+  scrim.onclick=closeSheet;document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet()});
+
+  /* ---------- actions ---------- */
+  function text(v){return v.a+"\n\n“"+v.e+"”\n\nQuran "+v.ref+" · MOMIN"}
+  function doAct(a,k,btn){
+    var v=find(k);if(!v)return;
+    if(a==="save"){
+      if(saved[k])delete saved[k];else saved[k]=v;lw("momin-insp-saved",saved);
+      if(btn.classList.contains("act")){btn.classList.toggle("on",!!saved[k]);btn.lastChild.textContent=saved[k]?"Saved":"Save"}else{btn.classList.toggle("saved",!!saved[k]);btn.setAttribute("aria-pressed",!!saved[k])}
+      document.querySelectorAll('[data-k="'+k.replace(/"/g,'\\"')+'"]').forEach(function(el){var b=el.querySelector('[data-a="save"]');if(b&&b!==btn){if(b.classList.contains("act")){b.classList.toggle("on",!!saved[k]);b.lastChild.textContent=saved[k]?"Saved":"Save"}else{b.classList.toggle("saved",!!saved[k])}}});
+      renderChips();toast(saved[k]?"Saved to your list":"Removed from saved");
+      if(cat==="saved")setTimeout(renderList,250);
+    }else if(a==="copy"){
+      try{navigator.clipboard.writeText(text(v)).then(function(){toast("Verse copied")},function(){toast("Could not copy here")})}catch(e){toast("Could not copy here")}
+    }else if(a==="share"){
+      var d={title:"MOMIN · Quran "+v.ref,text:text(v)};
+      var fb=function(){try{navigator.clipboard.writeText(text(v)).then(function(){toast("Copied, ready to paste")},function(){toast("Sharing is not available here")})}catch(e){toast("Sharing is not available here")}};
+      try{if(navigator.share){navigator.share(d).catch(function(er){if(!er||er.name!=="AbortError")fb()})}else fb()}catch(e){fb()}
+    }else if(a==="reflect"){
+      replyRef=v.ref;
+      openSheet('<h3>Reflect</h3><p class="q">“'+esc(v.e)+'” · '+esc(v.ref)+'</p><div class="refl" style="padding:0;border:0;background:none"><textarea id="rt2" placeholder="What does this verse say to you today?" maxlength="1200"></textarea><button class="btn" id="rs2" disabled>Save reflection</button></div>');
+      var t2=$("rt2"),b2=$("rs2");setTimeout(function(){t2.focus()},350);
+      t2.oninput=function(){b2.disabled=!t2.value.trim()};
+      b2.onclick=function(){addRefl(t2.value,v.ref);closeSheet()};
+    }
+  }
+  function addRefl(x,ref){x=(x||"").trim();if(!x)return;refl.unshift({t:Date.now(),x:x,ref:ref||null});refl=refl.slice(0,60);lw("momin-reflections",refl);renderPast();toast("Reflection saved")}
+  function onCard(e){
+    var b=e.target.closest("[data-a]");if(!b)return;var host=b.closest("[data-k]");if(!host)return;doAct(b.dataset.a,host.dataset.k,b);
+  }
+  $("list").addEventListener("click",onCard);$("hero").addEventListener("click",function(e){if(e.target.closest("#sz")){var n=((+document.documentElement.dataset.asz||2)%3)+1;document.documentElement.dataset.asz=n;lw("momin-insp-size",n);toast("Arabic text size "+n+" of 3");return}onCard(e)});
+  var sz=ls("momin-insp-size",2);document.documentElement.dataset.asz=sz;
+
+  $("chips").addEventListener("click",function(e){var b=e.target.closest("[data-c]");if(!b||b.dataset.c===cat)return;cat=b.dataset.c;lw("momin-insp-cat",cat);order=null;surprise=[];query="";$("q").value="";renderChips();renderAbout();renderList()});
+  $("q").addEventListener("input",function(){query=this.value;renderList()});
+  $("shuf").onclick=function(){if(cat==="daily"||cat==="saved"){toast("Pick a mood to shuffle");return}var key=Object.keys(TAGMAP).filter(function(k){return TAGMAP[k]===cat})[0],l=V.filter(function(v){return v.t.indexOf(key)>-1});for(var i=l.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=l[i];l[i]=l[j];l[j]=t}order={cat:cat,list:l};renderList()};
+  $("past").addEventListener("click",function(e){var b=e.target.closest("[data-del]");if(!b)return;refl=refl.filter(function(r){return String(r.t)!==b.dataset.del});lw("momin-reflections",refl);renderPast();toast("Reflection deleted")});
+  $("rt").addEventListener("input",function(){$("rs").disabled=!this.value.trim()});
+  $("rs").onclick=function(){addRefl($("rt").value,null);$("rt").value="";$("rs").disabled=true};
+
+  /* ---------- online: any ayah from the Quran ---------- */
+  var API="https://api.alquran.cloud/v1/ayah/";
+  function getAyah(id){
+    if(cache[id])return Promise.resolve(cache[id]);
+    return fetch(API+id+"/editions/quran-uthmani,en.sahih").then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+      var d=j.data,a=d[0],e=d[1];var v={ref:a.surah.number+":"+a.numberInSurah,s:a.surah.number,a:a.text,e:e.text,t:"",on:true,sn:a.surah.englishName};
+      SURAH_NAMES[v.s]=SURAH_NAMES[v.s]||a.surah.englishName;cache[id]=v;lw("momin-insp-cache",cache);return v});
+  }
+  function skeleton(n){var h="";for(var i=0;i<n;i++)h+='<div class="sk"></div>';return h}
+  $("more").onclick=function(){
+    var b=this,ids=(EXTRA[cat]||[]).slice(eIdx[cat]||0,(eIdx[cat]||0)+4);if(!ids.length)return;
+    b.disabled=true;b.textContent="Loading…";
+    Promise.all(ids.map(getAyah)).then(function(vs){online[cat]=(online[cat]||[]).concat(vs);eIdx[cat]=(eIdx[cat]||0)+ids.length;b.disabled=false;renderList();toast(vs.length+" verses added")}).catch(function(){b.disabled=false;renderList();toast("Needs an internet connection")});
+  };
+  $("sur").onclick=function(){
+    var n=1+Math.floor(Math.random()*6236),btn=this;btn.disabled=true;
+    getAyah(n).then(function(v){surprise=[v];if(cat==="saved"||cat==="daily"){cat="gratitude";renderChips();renderAbout()}renderList();btn.disabled=false;toast("A random ayah from the Quran")}).catch(function(){btn.disabled=false;toast("Needs an internet connection")});
+  };
+
+  $("back").onclick=function(){parentNavigate("home")};
+  document.querySelectorAll(".tab").forEach(function(t){
+    t.onclick=function(){
+      var routes={Home:"home",Prayers:"prayers",Quran:"quran",Journey:"journey"};
+      parentNavigate(routes[t.dataset.t]||"home");
+    };
+  });
+  window.addEventListener("scroll",function(){$("bar").classList.toggle("scrolled",window.scrollY>6)},{passive:true});
+  renderHero();all();
+})();
+</script>
