@@ -90,6 +90,8 @@ var entries = [
     saveJsonV1("noor-dua-prototype-read", duaStateV1.read);
     saveJsonV1("noor-dua-prototype-text", duaStateV1.visible);
     saveJsonV1("noor-dua-prototype-text-size", duaStateV1.arabicSize);
+    saveJsonV1("duas-saved", duaStateV1.bookmarks.filter(function(k){return k.indexOf("d:")===0;}).map(function(k){return k.slice(2);}));
+    saveJsonV1("duas-seen", duaStateV1.recents.slice());
   }
 
   var duaEntriesV1 = entries.map(function (x) {
@@ -417,6 +419,8 @@ var entries = [
     openDua:function(id){
       var entry=itemDuaV1(String(id||""));
       if(!entry)return false;
+      duaStateV1.recents=[entry.id].concat(duaStateV1.recents.filter(function(key){return key!==entry.id;})).slice(0,30);
+      persistDuaV1();
       page="duas";
       document.body.classList.add("dua-app-mode");
       var chapter=chapterDuaV1(entry.chapter);
@@ -434,7 +438,16 @@ var entries = [
         duaStateV1.recents=seenIds.map(function(id){return String(id||"")}).filter(function(id){return !!itemDuaV1(id)}).filter(function(id,i,a){return a.indexOf(id)===i;}).slice(0,30);
       }
       persistDuaV1();
-      return {bookmarks:duaStateV1.bookmarks.length,recents:duaStateV1.recents.length};
+      return {
+        saved:duaStateV1.bookmarks.filter(function(k){return k.indexOf("d:")===0;}).map(function(k){return k.slice(2);}),
+        seen:duaStateV1.recents.slice()
+      };
+    },
+    getState:function(){
+      return {
+        saved:duaStateV1.bookmarks.filter(function(k){return k.indexOf("d:")===0;}).map(function(k){return k.slice(2);}),
+        seen:duaStateV1.recents.slice()
+      };
     },
     getDua:function(id){
       var entry=itemDuaV1(String(id||""));
