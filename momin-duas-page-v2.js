@@ -4,7 +4,7 @@
   if (window.MominDuasPageV2 && window.MominDuasPageV2.initialized) return;
 
   var FRAME_ID = "momin-duas-page-v2-frame";
-  var PAGE_URL = "./duas-page-v2.html?embed=1&v=20261101-duas-redesign-v2";
+  var PAGE_URL = "./duas-page-v2.html?embed=1&v=20261101-duas-redesign-v3";
   var previousRender = window.render;
   var previousGo = window.go;
 
@@ -64,20 +64,47 @@
     return false;
   }
 
-  function syncState(saved, seen) {
+  function unique(list) {
+    return list.filter(function(value,index,array){return value && array.indexOf(value)===index;});
+  }
+
+  function syncState(saved, seen, mergeExisting) {
     saved = Array.isArray(saved) ? saved.map(String) : [];
     seen = Array.isArray(seen) ? seen.map(String) : [];
+    if (mergeExisting) {
+      var existing = null;
+      try {
+        if (window.MominDuasNativeV1 && typeof window.MominDuasNativeV1.getState === "function") {
+          existing = window.MominDuasNativeV1.getState();
+        }
+      } catch (_) {}
+      if (!existing) {
+        try {
+          var nativeSaved = JSON.parse(localStorage.getItem("noor-dua-prototype-bookmarks") || "[]");
+          var nativeSeen = JSON.parse(localStorage.getItem("noor-dua-prototype-recents") || "[]");
+          existing = {
+            saved: Array.isArray(nativeSaved) ? nativeSaved.map(function(id){return String(id).replace(/^d:/,"");}) : [],
+            seen: Array.isArray(nativeSeen) ? nativeSeen.slice().reverse() : []
+          };
+        } catch (_) { existing = {saved:[],seen:[]}; }
+      }
+      saved = unique((existing.saved || []).concat(saved));
+      seen = unique((existing.seen || []).concat(seen)).slice(-30);
+    }
+    var state = {saved:saved,seen:seen};
     try {
-      localStorage.setItem("duas-saved", JSON.stringify(saved));
-      localStorage.setItem("duas-seen", JSON.stringify(seen));
-      localStorage.setItem("noor-dua-prototype-bookmarks", JSON.stringify(
-        saved.map(function (id) { return "d:" + id; })
-      ));
-      localStorage.setItem("noor-dua-prototype-recents", JSON.stringify(seen));
+      localStorage.setItem("duas-saved", JSON.stringify(state.saved));
+      localStorage.setItem("duas-seen", JSON.stringify(state.seen));
     } catch (_) {}
     if (window.MominDuasNativeV1 && typeof window.MominDuasNativeV1.syncState === "function") {
-      window.MominDuasNativeV1.syncState(saved, seen);
+      var synced = window.MominDuasNativeV1.syncState(state.saved, state.seen);
+      if (synced && Array.isArray(synced.saved) && Array.isArray(synced.seen)) state = synced;
     }
+    try {
+      localStorage.setItem("duas-saved", JSON.stringify(state.saved));
+      localStorage.setItem("duas-seen", JSON.stringify(state.seen));
+    } catch (_) {}
+    return state;
   }
 
   function openDua(id) {
