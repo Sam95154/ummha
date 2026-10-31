@@ -257,7 +257,7 @@
         invoke("listDevices");
       }
     },
-    setUser:function(user){authUser=normaliseUser(user);refreshScreen();if(authUser&&typeof actions.listDevices==="function")invoke("listDevices");},
+    setUser:function(user,quiet){authUser=normaliseUser(user);if(!quiet){refreshScreen();if(authUser&&typeof actions.listDevices==="function")invoke("listDevices");}return authUser?Object.assign({},authUser):null;},
     setDevices:function(list){devices=Array.isArray(list)?list.slice():[];refreshScreen();},
     clearSession:function(){authUser=null;devices=[];refreshScreen();},
     getUser:function(){return authUser?Object.assign({},authUser):null;},
