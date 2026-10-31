@@ -14,7 +14,7 @@
     try{if(typeof livePrayer!=="undefined"&&livePrayer&&livePrayer.timings)return {timings:livePrayer.timings,timezone:livePrayer.meta&&livePrayer.meta.timezone}}catch(_){}
     try{if(window.livePrayer&&window.livePrayer.timings)return {timings:window.livePrayer.timings,timezone:window.livePrayer.meta&&window.livePrayer.meta.timezone}}catch(_){}
     var cached=parseJSON(get("noor-prayer-cache","null"),null);
-    if(cached&&cached.data&&cached.data.timings)return {timings:cached.data.timings,timezone:cached.data.meta&&cached.data.meta.timezone};
+    if(cached&&cached.data&&cached.data.timings)return {timings:cached.data.timings,timezone:cached.data.meta&&cached.data.meta.timezone,hijri:cached.data.date&&cached.data.date.hijri};
     return null;
   }
   function readPrefs(){
@@ -116,6 +116,48 @@
       window.setTimeout(function(){try{ctx.close()}catch(_){}},950);
     }catch(_){}
   }
+  function isFriday(date,timezone){
+    try{return new Intl.DateTimeFormat("en-US",{timeZone:timezone||undefined,weekday:"short"}).format(date)==="Fri"}
+    catch(_){return date.getDay()===5}
+  }
+  function checkUpdateReminders(prefs,data,now,keyDay,nowMin){
+    /* Jumu'ah: use today's real Dhuhr time; alert once in the hour before it. */
+    if(prefs.jumuah&&isFriday(now,data.timezone)){
+      var dhuhr=minutes(data.timings.Dhuhr||data.timings.dhuhr);
+      if(dhuhr!==null){
+        var target=(dhuhr-60+1440)%1440,elapsed=(nowMin-target+1440)%1440;
+        var key="noor-jumuah-reminder-sent-"+keyDay;
+        if(nowMin<=dhuhr&&elapsed<=60&&get(key,"")!=="true"){
+          if(showNotification("MOMIN · Jumu'ah reminder","Friday prayer is approaching. Check your local mosque's khutbah and prayer time.","momin-jumuah-"+keyDay,"cal"))put(key,"true");
+        }
+      }
+    }
+    /* Morning and evening adhkar: a gentle local-time prompt, once per window. */
+    if(prefs.adhkar){
+      [{name:"Morning",at:7,from:7,until:12},{name:"Evening",at:17,from:17,until:21}].forEach(function(slot){
+        var key="noor-adhkar-reminder-sent-"+keyDay+"-"+slot.name.toLowerCase();
+        if(nowMin>=slot.from*60&&nowMin<slot.until*60&&get(key,"")!=="true"){
+          if(showNotification("MOMIN · "+slot.name+" adhkar","Take a quiet moment for your morning and evening remembrance.","momin-adhkar-"+keyDay+"-"+slot.name.toLowerCase(),"mo"))put(key,"true");
+        }
+      });
+    }
+    /* Hijri occasions follow the returned local calendar date; observance can vary by moon sighting. */
+    if(prefs.dates&&data.hijri&&data.hijri.month){
+      var day=Number(data.hijri.day),month=Number(data.hijri.month.number),year=String(data.hijri.year||"");
+      var occasions={
+        "1-1":"Islamic New Year",
+        "1-10":"Day of Ashura",
+        "9-1":"Ramadan begins",
+        "10-1":"Eid al-Fitr",
+        "12-9":"Day of Arafah",
+        "12-10":"Eid al-Adha"
+      };
+      var eventName=occasions[month+"-"+day],eventKey="noor-islamic-date-reminder-sent-"+year+"-"+month+"-"+day;
+      if(eventName&&nowMin>=7*60&&get(eventKey,"")!=="true"){
+        if(showNotification("MOMIN · Islamic date",eventName+" — dates may vary by local moon sighting.","momin-islamic-date-"+year+"-"+month+"-"+day,"bk"))put(eventKey,"true");
+      }
+    }
+  }
   function checkPrayerReminders(){
     var prefs=readPrefs();
     if(!prefs.on||!("Notification" in window)||Notification.permission!=="granted")return;
@@ -136,6 +178,7 @@
       if(sound==="azan")playAzan();
       else if(sound==="chime")playChime();
     });
+    checkUpdateReminders(prefs,data,now,keyDay,nowMin);
   }
   function currentRoute(){
     try{return window.MominSharedShellV1&&window.MominSharedShellV1.currentRoute?window.MominSharedShellV1.currentRoute():""}catch(_){return ""}
