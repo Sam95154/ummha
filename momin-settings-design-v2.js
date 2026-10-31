@@ -102,7 +102,7 @@ function initState(){
 function optionHtml(items,value){
  return items.map(function(x){return '<option value="'+esc(x[0])+'"'+(String(x[0])===String(value)?" selected":"")+'>'+esc(x[1])+'</option>'}).join("");
 }
-function methodItems(){return choicesMethods()}
+function methodItems(){return prayerMethodOptions()}
 function translationItems(){return choicesTranslations()}
 function icon(name){return '<svg class="i"><use href="#ic-'+name+'"/></svg>'}
 function label(title,desc){return '<div class="rl"><b>'+esc(title)+'</b>'+(desc?'<span>'+esc(desc)+'</span>':"")+'</div>'}
