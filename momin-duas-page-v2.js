@@ -4,7 +4,7 @@
   if (window.MominDuasPageV2 && window.MominDuasPageV2.initialized) return;
 
   var FRAME_ID = "momin-duas-page-v2-frame";
-  var PAGE_URL = "./duas-page-v2.html?embed=1&v=20261101-duas-redesign-v3";
+  var PAGE_URL = "./duas-page-v2.html?embed=1&v=20261101-duas-redesign-v4";
   var previousRender = window.render;
   var previousGo = window.go;
 
@@ -12,7 +12,16 @@
     return /^#\/dua-(?:category|chapter|detail|special)(?:\/|$)/.test(location.hash || "");
   }
 
-  function pageMarkup() {
+  var catalogueReturnRoute = "home";
+  function cleanCatalogueRoute(route) {
+    route = String(route || "home").replace(/^#/, "");
+    if (route === "home" || route === "collections" || route === "saved" || route === "recent" || route === "daily") return route;
+    if (/^c-[a-z0-9-]+$/.test(route)) return route;
+    return "home";
+  }
+
+  function pageMarkup(route) {
+    var targetRoute = cleanCatalogueRoute(route || catalogueReturnRoute);
     var wrap = document.createElement("div");
     wrap.className = "momin-duas-page-v2-wrap";
     wrap.style.width = "100%";
@@ -23,7 +32,7 @@
     var frame = document.createElement("iframe");
     frame.id = FRAME_ID;
     frame.title = "MOMIN Duas";
-    frame.src = PAGE_URL;
+    frame.src = PAGE_URL + (targetRoute === "home" ? "" : "#" + targetRoute);
     frame.loading = "eager";
     frame.scrolling = "no";
     frame.referrerPolicy = "strict-origin-when-cross-origin";
@@ -43,16 +52,21 @@
     }
   }
 
-  function renderRoot() {
+  function renderRoot(route) {
+    catalogueReturnRoute = cleanCatalogueRoute(route || "home");
     try { page = "duas"; } catch (_) {}
     document.body.classList.remove("dua-app-mode");
     document.body.dataset.route = "duas";
     clearNativeDuaHash();
     var view = document.getElementById("view");
     if (!view) return false;
-    view.innerHTML = pageMarkup();
+    view.innerHTML = pageMarkup(catalogueReturnRoute);
     window.scrollTo({ top: 0, behavior: "auto" });
     return true;
+  }
+
+  function returnToCatalogue() {
+    return renderRoot(catalogueReturnRoute);
   }
 
   function navigate(target) {
@@ -107,7 +121,8 @@
     return state;
   }
 
-  function openDua(id) {
+  function openDua(id, returnRoute) {
+    catalogueReturnRoute = cleanCatalogueRoute(returnRoute || catalogueReturnRoute);
     var native = window.MominDuasNativeV1;
     if (native && typeof native.openDua === "function" && native.openDua(id)) return true;
     if (typeof window.toast === "function") window.toast("This supplication is not available right now.");
@@ -167,6 +182,8 @@
     initialized: true,
     bridge: window.MominDuasBridgeV1,
     render: pageMarkup,
-    openDua: openDua
+    openDua: openDua,
+    returnToCatalogue: returnToCatalogue,
+    getReturnRoute: function () { return catalogueReturnRoute; }
   };
 })();
