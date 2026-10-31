@@ -29,7 +29,7 @@
  --bg:var(--momin-bg);--surface:var(--momin-card);--card:var(--momin-card);
  --card-2:var(--momin-card-2);--line:var(--momin-border);--ink:var(--momin-text);
  --muted:var(--momin-muted);--accent:var(--momin-gold);--accent-strong:var(--momin-gold-bright);
- --accent-soft:var(--momin-gold-soft);--green:var(--momin-success);
+ --accent-soft:var(--momin-gold-soft);--green:var(--momin-gold);--mint:var(--momin-gold-soft);--success:var(--momin-success);
  --momin-header-height:72px;
 }
 @media(prefers-color-scheme:light){
