@@ -6,6 +6,60 @@
   var PRAYERS=[["fajr","Fajr"],["dhuhr","Dhuhr"],["asr","Asr"],["maghrib","Maghrib"],["isha","Isha"]];
   var ICONS={Fajr:"p0",Dhuhr:"p1",Asr:"p2",Maghrib:"p3",Isha:"p4"};
   var TIMER=null,AZAN=null;
+  var PUSH_PUBLIC_KEY="BFp-52sdHBzvkbGvNBnUi7-mlwuohtdMMX59Y1Us34Duw-DI8w-KOYbYdkpqGR-0ZHOXQdIjCYSoatcjcy7P_nE";
+  var pushRegistration=null,pushSetupPromise=null;
+  var PUSH_ORIGIN="https://qzwqpiquvhpjwqgaxorp.supabase.co";
+  var PUSH_APKEY="sb_publishable_SAHjdts8xtuQSXE_lPa1cw_V6J3PjQt";
+  var PUSH_FUNCTION=PUSH_ORIGIN+"/functions/v1/momin-push-register";
+  function b64urlBytes(value){var s=String(value).replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";var raw=atob(s),out=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out}
+  function getDeviceKey(){var key=get("momin-device-key-v1","");if(!key){key=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():"momin-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2);put("momin-device-key-v1",key)}return key}
+  async function getPushSession(){var client=window.mominSupabase;if(!client||!client.auth)return null;var result=await client.auth.getSession();if(result.error||!result.data||!result.data.session)return null;return result.data.session}
+  function currentPushPreferences(){return {on:get("noor-notifications","true")!=="false",lead:Math.max(0,Math.min(60,Number(get("noor-prayer-reminder-minutes","0"))||0)),pr:PRAYERS.map(function(p){return get("noor-notify-"+p[0],"true")!=="false"}),jumuah:get("noor-jumuah-reminders","true")!=="false",adhkar:get("noor-adhkar-reminders","false")==="true",dates:get("noor-islamic-event-reminders","true")!=="false",sound:get("noor-adhan-sound","system")}}
+  function pushLocationData(){
+    var rawLat=get("noor-latitude",""),rawLon=get("noor-longitude",""),lat=Number(rawLat),lon=Number(rawLon);
+    var coords=rawLat!==""&&rawLon!==""&&Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180,method=3;
+    try{if(typeof API_STORE!=="undefined"&&API_STORE&&API_STORE.method!==undefined)method=Number(API_STORE.method)||3}catch(_){}
+    if(get("noor-method","")!=="")method=Number(get("noor-method","3"))||3;
+    return {latitude:coords?lat:null,longitude:coords?lon:null,city:get("noor-city",""),country:get("noor-country",""),timezone:(Intl.DateTimeFormat().resolvedOptions().timeZone||"Asia/Kolkata"),calculation_method:method,asr_school:get("noor-asr-method","standard")==="hanafi"?1:0};
+  }
+  async function pushApi(action,extra){
+    var session=await getPushSession();if(!session)throw new Error("Please sign in to MOMIN again before enabling background notifications.");
+    var response=await fetch(PUSH_FUNCTION,{method:"POST",headers:{"Content-Type":"application/json","apikey":PUSH_APKEY,"Authorization":"Bearer "+session.access_token},body:JSON.stringify(Object.assign({action:action,device_key:getDeviceKey(),device_name:(/Android/i.test(navigator.userAgent||"")?"Android":"MOMIN device")+" · "+(navigator.userAgent||"").slice(0,140),preferences:currentPushPreferences()},extra||{}))});
+    var data={};try{data=await response.json()}catch(_){}if(!response.ok)throw new Error(data.error||"Background notification service returned HTTP "+response.status);return {ok:true,data:data};
+  }
+  async function getPushWorker(){if(!("serviceWorker" in navigator)||!window.isSecureContext)throw new Error("Background notifications require a secure, supported browser.");if(!pushRegistration)pushRegistration=await navigator.serviceWorker.register("/momin-sw.js",{scope:"/"});await navigator.serviceWorker.ready;return pushRegistration}
+  async function registerExistingPush(prefs){
+    if(!("PushManager" in window)||!("Notification" in window))return false;
+    var registration=await getPushWorker(),subscription=await registration.pushManager.getSubscription();if(!subscription)return false;
+    var loc=pushLocationData(),result=await pushApi("register",{subscription:subscription.toJSON(),preferences:prefs||currentPushPreferences(),latitude:loc.latitude,longitude:loc.longitude,city:loc.city,country:loc.country,timezone:loc.timezone,calculation_method:loc.calculation_method,asr_school:loc.asr_school});
+    put("momin-push-enabled","true");put("momin-push-last-sync",new Date().toISOString());return result.data;
+  }
+  async function enableBackgroundPush(prefs){
+    if(!("Notification" in window)||!("serviceWorker" in navigator)||!("PushManager" in window))throw new Error("This browser does not support background push. Install MOMIN as an app or use a supported browser.");
+    var permission=Notification.permission;if(permission==="default")permission=await Notification.requestPermission();
+    if(permission!=="granted")throw new Error(permission==="denied"?"Notifications are blocked for MOMIN. Allow them in your browser or phone settings.":"Notifications were not enabled.");
+    if(pushSetupPromise)return await pushSetupPromise;
+    pushSetupPromise=(async function(){
+      var registration=await getPushWorker(),subscription=await registration.pushManager.getSubscription();
+      if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64urlBytes(PUSH_PUBLIC_KEY)});
+      var loc=pushLocationData(),result=await pushApi("register",{subscription:subscription.toJSON(),preferences:prefs||currentPushPreferences(),latitude:loc.latitude,longitude:loc.longitude,city:loc.city,country:loc.country,timezone:loc.timezone,calculation_method:loc.calculation_method,asr_school:loc.asr_school});
+      put("momin-push-enabled","true");put("momin-push-last-sync",new Date().toISOString());return result.data;
+    })();
+    try{return await pushSetupPromise}finally{pushSetupPromise=null}
+  }
+  async function syncPushPreferences(){if(get("momin-push-enabled","false")!=="true")return false;try{return !!(await registerExistingPush(currentPushPreferences()))}catch(error){console.warn("MOMIN background notification preference sync:",error);return false}}
+  async function sendPushTest(){if(get("momin-push-enabled","false")!=="true")await enableBackgroundPush(currentPushPreferences());await pushApi("test",{});try{await refreshPushInbox()}catch(_){}return true}
+  async function refreshPushInbox(){
+    var result=await pushApi("inbox",{}),items=(result.data&&result.data.items||[]).map(function(item){var at=item.sent_at||item.created_at||new Date().toISOString(),date=new Date(at);return {t:item.title||"MOMIN reminder",s:item.body||"",w:date.toLocaleDateString([],{month:"short",day:"numeric"}),i:item.icon_key||"b",at:at,route:item.route||"home"}});
+    put("noor-notification-inbox",JSON.stringify(items));try{window.dispatchEvent(new CustomEvent("momin:notifications-updated"))}catch(_){}return items;
+  }
+  async function disableBackgroundPush(){
+    try{var session=await getPushSession();if(session)await pushApi("unsubscribe",{});if("serviceWorker" in navigator){var reg=pushRegistration||await navigator.serviceWorker.getRegistration("/");if(reg){var sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe()}}put("momin-push-enabled","false");return true}
+    catch(error){console.warn("MOMIN push unsubscribe:",error);return false}
+  }
+  if("serviceWorker" in navigator&&window.isSecureContext)getPushWorker().catch(function(error){console.warn("MOMIN service worker:",error)});
+  window.addEventListener("message",function(event){if(event.origin!==location.origin||!event.data||event.data.type!=="MOMIN_PUSH_OPEN")return;var route=String(event.data.route||"home");if(["home","prayers","quran","duas","calendar","notifications","settings","journey"].indexOf(route)<0)route="home";navigate(route)});
+
   function get(key,fallback){try{var v=localStorage.getItem(key);return v===null?fallback:v}catch(_){return fallback}}
   function put(key,value){try{localStorage.setItem(key,String(value));return true}catch(_){return false}}
   function parseJSON(value,fallback){try{return JSON.parse(value)}catch(_){return fallback}}
@@ -203,12 +257,17 @@
   }
   function snapshot(){
     var data=prayerData();
-    return {prefs:readPrefs(),prayerTimes:data&&data.timings||null,inbox:readInbox(),permission:("Notification" in window)?Notification.permission:"unsupported",location:get("noor-city","")};
+    return {prefs:readPrefs(),prayerTimes:data&&data.timings||null,inbox:readInbox(),permission:("Notification" in window)?Notification.permission:"unsupported",pushEnabled:get("momin-push-enabled","false")==="true",location:get("noor-city","")};
   }
   window.MominNotificationsBridgeV1={
     snapshot:snapshot,
-    savePrefs:savePrefs,
+    savePrefs:function(prefs){var saved=savePrefs(prefs);syncPushPreferences();return saved;},
     requestPermission:requestPermission,
+    enableBackgroundPush:enableBackgroundPush,
+    syncPushPreferences:syncPushPreferences,
+    sendPushTest:sendPushTest,
+    refreshInbox:refreshPushInbox,
+    disableBackgroundPush:disableBackgroundPush,
     sendTest:function(){
       return requestPermission().then(function(permission){
         if(permission!=="granted")return false;
@@ -225,27 +284,23 @@
   };
 
   window.saveNotificationPrefsV1=async function(){
-    var master=document.getElementById("settingsPrayerNotificationsV1");
-    var prefs=readPrefs();
+    var master=document.getElementById("settingsPrayerNotificationsV1"),prefs=readPrefs();
     if(master)prefs.on=!!master.checked;
     PRAYERS.forEach(function(p,i){var el=document.getElementById("settingsNotify-"+p[0]);if(el)prefs.pr[i]=!!el.checked});
     var lead=document.getElementById("settingsReminderMinutesV1");if(lead)prefs.lead=Number(lead.value)||0;
     savePrefs(prefs);
     var permission="unsupported";
     if(prefs.on)permission=await requestPermission();
-    if(prefs.on&&permission!=="granted")toast("Preferences saved. Allow browser notifications to receive prayer alerts.");
-    else toast("Notification preferences saved.");
-    checkPrayerReminders();
-    return true;
+    if(prefs.on&&permission==="granted"){
+      try{await enableBackgroundPush(prefs);toast("Background notifications are enabled for this device.");}
+      catch(error){toast("Preferences saved. Background push setup needs attention: "+error.message);}
+    }else if(prefs.on){toast("Preferences saved. Allow notifications for MOMIN in device settings.");}
+    else{await disableBackgroundPush();toast("Notifications paused for this device.");}
+    checkPrayerReminders();return true;
   };
   window.testMominNotificationV1=async function(){
-    var permission=await requestPermission();
-    if(permission!=="granted"){toast("Notifications are not permitted. Allow them for this site in browser settings.");return false}
-    var ok=showNotification("MOMIN notification test","This is a test reminder from MOMIN.","momin-settings-test-"+Date.now(),"b");
-    if(!ok){toast("The browser could not display a test notification.");return false}
-    var sound=(document.getElementById("settingsAdhanSound")||{}).value||get("noor-adhan-sound","azan");
-    if(sound==="azan")playAzan();else if(sound==="chime")playChime();
-    toast("Test notification sent.");return true;
+    try{await sendPushTest();toast("A background push test was sent to this device.");return true;}
+    catch(error){toast("Background notification test failed: "+error.message);return false;}
   };
   window.previewMominAzanV1=function(){
     if(playAzan())toast("Makkah Azan preview started. Keep MOMIN open while it plays.");
@@ -274,5 +329,13 @@
   window.notificationsPage=function(){
     return '<div class="momin-notifications-frame-shell"><iframe class="momin-notifications-frame" title="MOMIN notifications" src="./notifications.html?v=20261101-notifications-v2"></iframe></div>';
   };
-  try{if(window.page==="notifications"&&typeof window.render==="function")window.render()}catch(_){}
+  try{
+    var query=new URL(location.href),route=query.searchParams.get("mominPushRoute");
+    if(route&&["home","prayers","quran","duas","calendar","notifications","settings","journey"].indexOf(route)>=0){
+      query.searchParams.delete("mominPushRoute");
+      history.replaceState(history.state,"",query.pathname+query.search+query.hash);
+      window.setTimeout(function(){navigate(route)},450);
+    }
+    if(window.page==="notifications"&&typeof window.render==="function")window.render();
+  }catch(_){}
 })();
