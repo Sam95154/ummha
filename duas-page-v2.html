@@ -378,7 +378,8 @@ body.momin-duas-embedded .toast{bottom:18px}
     "t": "On entering the mosque",
     "s": "Sahih Muslim 713 · Hisn al-Muslim 20",
     "c": [
-      "prayer"
+      "prayer",
+      "daily"
     ]
   },
   {
@@ -386,7 +387,8 @@ body.momin-duas-embedded .toast{bottom:18px}
     "t": "On leaving the mosque",
     "s": "Sahih Muslim 713 · Hisn al-Muslim 21",
     "c": [
-      "prayer"
+      "prayer",
+      "daily"
     ]
   },
   {
@@ -394,7 +396,8 @@ body.momin-duas-embedded .toast{bottom:18px}
     "t": "A prayer for this life and the next",
     "s": "Quran 2:201",
     "c": [
-      "prayer"
+      "prayer",
+      "daily"
     ]
   },
   {
@@ -402,8 +405,7 @@ body.momin-duas-embedded .toast{bottom:18px}
     "t": "Glory and praise be to Allah",
     "s": "Sahih al-Bukhari 6405 · Sahih Muslim 2691",
     "c": [
-      "praise",
-      "daily"
+      "praise"
     ]
   },
   {
@@ -411,8 +413,7 @@ body.momin-duas-embedded .toast{bottom:18px}
     "t": "Words beloved to Allah",
     "s": "Sahih Muslim 2137 · Hisn al-Muslim",
     "c": [
-      "praise",
-      "daily"
+      "praise"
     ]
   },
   {
@@ -616,7 +617,7 @@ body.momin-duas-embedded .toast{bottom:18px}
   function cnt(id){var n=inCol(id).length;return n?n+(n===1?" dua":" duas"):"Coming soon"}
 
   /* state */
-  var RECENT_BASE=0,saved=[],seen=[];
+  var RECENT_BASE=11,saved=[],seen=[];
   try{saved=JSON.parse(localStorage.getItem("duas-saved")||"[]")||[]}catch(e){}
   try{seen=JSON.parse(localStorage.getItem("duas-seen")||"[]")||[]}catch(e){}
   var LEGACY_DUA_IDS={m1:"morning-01",m2:"morning-02",f1:"morning-03",s1:"sleep-01",s2:"sleep-02",q1:"prayer-01",q2:"prayer-02",j1:"prayer-03"};
