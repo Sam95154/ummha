@@ -231,7 +231,7 @@ svg{display:block}
   $("back").onclick=function(){
     try{
       if(window.parent!==window && typeof window.parent.go==="function"){
-        window.parent.document.body.classList.remove("momin-founder-v3-active");
+        window.parent.document.body.classList.remove("momin-founder-route-v3");
         window.parent.go("settings");
         return;
       }
@@ -244,7 +244,7 @@ svg{display:block}
       var route=routes[t.dataset.t]||"home";
       try{
         if(window.parent!==window && typeof window.parent.go==="function"){
-          window.parent.document.body.classList.remove("momin-founder-v3-active");
+          window.parent.document.body.classList.remove("momin-founder-route-v3");
           window.parent.go(route);
           return;
         }
