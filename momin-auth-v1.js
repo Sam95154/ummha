@@ -116,16 +116,18 @@
           .update({revoked_at:new Date().toISOString(),is_current:false})
           .eq("id",id);
         if(error)throw error;
-        if(device.device_key===deviceKey)await supabase.auth.signOut({scope:"local"});
+        if(device.device_key===deviceKey){try{if(window.MominNotificationsBridgeV1)await window.MominNotificationsBridgeV1.disableBackgroundPush()}catch(_){}await supabase.auth.signOut({scope:"local"});}
         else toast("Device marked for sign-out. It will sign out when it next connects to MOMIN.");
         return await profileApi.getDevices().filter(function(d){return d.id!==id});
       },
       signOut:async function(){
+        try{if(window.MominNotificationsBridgeV1)await window.MominNotificationsBridgeV1.disableBackgroundPush()}catch(_){}
         var {error}=await supabase.auth.signOut({scope:"local"});
         if(error)throw error;
         return true;
       },
       deleteAccount:async function(){
+        try{if(window.MominNotificationsBridgeV1)await window.MominNotificationsBridgeV1.disableBackgroundPush()}catch(_){}
         var {data,error}=await supabase.functions.invoke("momin-delete-account",{body:{}});
         if(error)throw error;
         await supabase.auth.signOut({scope:"local"});
