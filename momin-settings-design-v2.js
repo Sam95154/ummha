@@ -255,7 +255,7 @@ function dirtyUpdate(){
   var dirty=Object.keys(allKeys).some(function(k){return draft[k]!==saved[k];});
   a.classList.toggle("dirty",dirty);if(dirty)any=true;
  });
- var c=document.getElementById("chip");if(c){c.classList.toggle("dirty",any);c.textContent=any?"Unsaved changes":"All changes saved";}
+
 }
 function refresh(){
  var theme=document.getElementById("curTheme");if(theme){var labels={System:"System default",Light:"Light",Dark:"Dark",Sepia:"Sepia"};theme.textContent=labels[draft.theme]||draft.theme;}
