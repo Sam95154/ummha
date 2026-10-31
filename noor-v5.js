@@ -666,10 +666,13 @@ async function loadIndianQuranTranslationsV6(){
    }
    var aliases={assamese:"as",bengali:"bn",bangla:"bn",bodo:"brx",dogri:"doi",gujarati:"gu",hindi:"hi",kannada:"kn",kashmiri:"ks",konkani:"kok",maithili:"mai",malayalam:"ml",manipuri:"mni",meitei:"mni",marathi:"mr",nepali:"ne",odia:"or",oriya:"or",punjabi:"pa",sanskrit:"sa",santali:"sat",santhali:"sat",sindhi:"sd",tamil:"ta",telugu:"te",urdu:"ur"};
    var known={};quranTranslationsV5.forEach(function(x){if(x.id)known[String(x.id)]=true});
+   /* These catalogue IDs returned no verse rows from the Quran.com Juz endpoint during verification.
+      Hindi remains available through the existing hi.hindi edition; Kannada stays visible as unavailable. */
+   var quranComEmptyVerseEditions={"122":true,"771":true};
    rows.forEach(function(t){
     var raw=String(t.language_name||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[_-]+/g," ").replace(/\s+/g," ").trim();
     var code=aliases[raw]||mominLanguageCodesV6[raw],id=String(t.id||"");
-    if(!code||!id||known["qcom:"+id])return;
+    if(!code||!id||known["qcom:"+id]||quranComEmptyVerseEditions[id])return;
     var language=mominIndianLanguagesV6.find(function(l){return l.code===code});
     if(!language)return;
     quranTranslationsV5.push({id:"qcom:"+id,label:language.name+" — "+String(t.name||t.author_name||"Quran translation"),language:code,dir:(code==="ur"||code==="sd"||code==="ks")?"rtl":"ltr",provider:"quran.com",translationId:id});
