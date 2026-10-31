@@ -126,7 +126,7 @@
   window.settingsPage=detailsPage;
   window.mominFounderPageV1=function(){
     document.body.classList.add("momin-founder-route-v3");
-    return '<iframe id="momin-founder-frame-v3" title="About the Founder" src="./founder.html?v=20261031-new-founder-page-v2" loading="eager" referrerpolicy="same-origin"></iframe>';
+    return '<iframe id="momin-founder-frame-v3" title="About the Founder" src="./founder.html?v=20261031-founder-no-location-v3" loading="eager" referrerpolicy="same-origin"></iframe>';
   };
   window.openMominFounderPageV1=function(){
     try{
