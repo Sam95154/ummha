@@ -65,7 +65,7 @@
       var name=String(device.name||device.device_name||device.browser||"Signed-in device");
       var detail=[device.location,device.last_active||device.last_seen].filter(Boolean).join(" · ");
       return '<div class="pf-device"><div class="pf-device-icon" aria-hidden="true">▣</div><div class="pf-device-copy"><b>'+esc(name)+'</b><small>'+esc(detail||(device.is_current||device.current?"This device":"Signed-in session"))+(device.is_current||device.current?" · This device":"")+'</small></div>'+
-        ((device.is_current||device.current)?"":'<button type="button" class="pf-link pf-revoke" data-mprofile-action="revoke-device" data-device-id="'+esc(id)+'">Sign out</button>')+
+        ((device.is_current||device.current)?"":'<button type="button" class="pf-link pf-revoke" data-mprofile-action="revoke-device" data-device-id="'+esc(id)+'">Remove</button>')+
         '</div>';
     }).join("");
   }
@@ -108,7 +108,7 @@
       '<div class="pf-section">'+
         '<h4>Logged-in devices</h4>'+
         '<div class="pf-device-list">'+deviceMarkup()+'</div>'+
-        (loggedIn?'<button type="button" class="pf-outline pf-refresh-devices" data-mprofile-action="refresh-devices">Refresh device list</button>':'')+
+        (loggedIn?'<p class="pf-hint">Removing a device marks it for sign-out. That device signs out when it next reconnects to MOMIN.</p><button type="button" class="pf-outline pf-refresh-devices" data-mprofile-action="refresh-devices">Refresh device list</button>':'')+
       '</div>'+
       (loggedIn?
         '<div class="pf-account-actions"><button type="button" class="pf-outline" data-mprofile-action="logout">Log out</button><button type="button" class="pf-danger" data-mprofile-action="delete-account">Delete account</button></div>':
@@ -164,6 +164,7 @@
         result.then(function(value){
           if(action==="listDevices"&&Array.isArray(value)){devices=value;refreshScreen();}
           else if(action==="signOut"||action==="deleteAccount"){authUser=null;devices=[];refreshScreen();}
+          else if(action==="revokeDevice"){invoke("listDevices");}
           else if(value&&value.user)window.MominProfileSettingsV1.setSession(value);
         }).catch(function(error){toast(error&&error.message||"The account action could not be completed.");});
       }else if(action==="listDevices"&&Array.isArray(result)){devices=result;refreshScreen();}
@@ -172,7 +173,7 @@
   function handleAction(button){
     var action=button.getAttribute("data-mprofile-action");
     var id=button.getAttribute("data-device-id")||"";
-    if(action==="sign-in")return invoke("signInWithGoogle");
+    if(action==="sign-in"){location.assign("/login.html");return;}
     if(action==="link-google")return invoke("linkGoogle");
     if(action==="change-password"){
       if(!authUser){toast("Sign in first to manage your password.");return;}
