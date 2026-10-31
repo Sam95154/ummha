@@ -126,8 +126,7 @@
   window.settingsPage=detailsPage;
   window.mominFounderPageV1=function(){
     ensureMominAboutStylesV1();
-    return 
-      '<main class="momin-founder-page" aria-labelledby="momin-founder-page-title">'+
+    return '<main class="momin-founder-page" aria-labelledby="momin-founder-page-title">'+
       '<button type="button" class="momin-founder-back" onclick="go(&quot;settings&quot;)"><span aria-hidden="true">←</span> Back to Settings</button>'+
       '<section class="momin-founder-page-card">'+
       '<div class="momin-founder-page-ornament" aria-hidden="true"><img src="./momin-mark.svg?v=islamic-logo-v4" alt="MOMIN app logo"></div>'+
