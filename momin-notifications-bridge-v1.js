@@ -1,6 +1,6 @@
-/* MOMIN Notifications Bridge V1
-   Shared foreground notification scheduler and app/iframe bridge.
-   Background delivery is intentionally not claimed: browsers may suspend pages. */
+/* MOMIN Notifications Bridge V2
+   Shared foreground fallback, authenticated Web Push subscriptions, and app/iframe routing.
+   The server-side Supabase scheduler is responsible for reminders while MOMIN is closed. */
 (function(){
   "use strict";
   var PRAYERS=[["fajr","Fajr"],["dhuhr","Dhuhr"],["asr","Asr"],["maghrib","Maghrib"],["isha","Isha"]];
