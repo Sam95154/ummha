@@ -40,8 +40,7 @@ function toast(message){
  toastTimer=setTimeout(function(){t.classList.remove("on")},2300);
 }
 function readTheme(){
- var t=get("noor-theme-preference",get("noor-theme","Dark"));
- return ["System","Light","Dark","Sepia"].indexOf(t)>=0?t:"Dark";
+ return "Dark";
 }
 function qTheme(){var t=get("noor-quran-theme","night");return ["night","paper","white"].indexOf(t)>=0?t:"night";}
 function qLayout(){return get("noor-quran-reading-mode-v8","list")==="page"?"page":"list";}
@@ -145,9 +144,8 @@ function profileMarkup(){
 function buildSections(){
  var sections=[];
  sections.push({id:"profile",ic:"user",title:"Profile & Account",sub:"Profile, password and signed-in devices",body:profileMarkup()});
- sections.push({id:"appearance",ic:"contrast",title:"Appearance & Personalization",sub:"Theme, contrast and movement",body:
-  note("These settings use MOMIN's shared appearance and accessibility preferences.")+
-  selectRow("theme","Display mode","Choose how MOMIN looks",[["System","System default"],["Light","Light"],["Dark","Dark"],["Sepia","Sepia"]],"settingsTheme")+
+ sections.push({id:"appearance",ic:"contrast",title:"Appearance & Personalization",sub:"Dark appearance · accessibility preferences",body:
+  note("MOMIN uses its fixed dark appearance. You can still adjust motion and contrast.")+
   switchRow("reduceMotion","Reduce animations","Prefer less movement","","settingsReduceMotionV1")+
   switchRow("contrast","High contrast","Increase text and border contrast","","settingsHighContrastV1")+
   saveButton("Save appearance","appearance")});
@@ -277,11 +275,17 @@ function refresh(){
  dirtyUpdate();
 }
 function applyTheme(){
- var theme=document.getElementById("settingsTheme"),reduce=document.getElementById("settingsReduceMotionV1"),contrast=document.getElementById("settingsHighContrastV1");
- if(theme)theme.value=draft.theme;if(reduce)reduce.checked=!!draft.reduceMotion;if(contrast)contrast.checked=!!draft.contrast;
- if(typeof window.saveAppearancePrefsV1==="function"){window.saveAppearancePrefsV1();return true;}
- if(typeof window.setTheme==="function")window.setTheme(draft.theme);
- localStorage.setItem("noor-reduce-motion",draft.reduceMotion?"true":"false");localStorage.setItem("noor-high-contrast",draft.contrast?"true":"false");
+ var reduce=document.getElementById("settingsReduceMotionV1"),contrast=document.getElementById("settingsHighContrastV1");
+ draft.theme="Dark";saved.theme="Dark";
+ if(reduce)reduce.checked=!!draft.reduceMotion;if(contrast)contrast.checked=!!draft.contrast;
+ try{
+  localStorage.setItem("noor-theme","Dark");
+  localStorage.setItem("noor-theme-preference","Dark");
+  localStorage.setItem("noor-reduce-motion",draft.reduceMotion?"true":"false");
+  localStorage.setItem("noor-high-contrast",draft.contrast?"true":"false");
+ }catch(_){}
+ if(typeof window.setTheme==="function")window.setTheme("Dark");
+ else document.documentElement.setAttribute("data-theme","dark");
  return true;
 }
 function applyLocation(){
