@@ -290,6 +290,68 @@ body.momin-app-shell-active .momin-mosque-design-v2 .wrap>header{display:none!im
 body.momin-app-shell-active .page-title{margin-top:8px}
 body.momin-app-shell-active .page-title h1{font-size:24px}
 body.momin-app-shell-active .momin-support-card{background:var(--momin-card)!important;color:var(--momin-text)!important;border-color:var(--momin-gold-border)!important}
+/* Preserve functional page actions while replacing only duplicated global chrome. */
+body.momin-app-shell-active.dua-app-mode .dua-topbar{
+ position:relative!important;top:auto!important;display:flex!important;justify-content:flex-end!important;align-items:center!important;
+ min-height:42px!important;margin:0 0 12px!important;padding:0!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+body.momin-app-shell-active.dua-app-mode .dua-topbar .dua-back,
+body.momin-app-shell-active.dua-app-mode .dua-topbar h1{display:none!important}
+body.momin-app-shell-active.dua-app-mode .dua-topbar .dua-top-actions{display:flex!important;justify-content:flex-end!important;min-width:0!important}
+body.momin-app-shell-active.dua-app-mode .dua-bottom-nav{display:none!important}
+body.momin-app-shell-active .quran-library.qv-shell .qv-top{
+ position:relative!important;top:auto!important;margin:0!important;padding:0!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+body.momin-app-shell-active .quran-library.qv-shell .qv-head{
+ height:auto!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;
+ margin:0!important;padding:8px 0!important;
+}
+body.momin-app-shell-active .quran-library.qv-shell .qv-head h1{display:none!important}
+body.momin-app-shell-active .momin-qibla-finder .mq-header{
+ display:flex!important;justify-content:flex-end!important;align-items:center!important;
+ margin:0!important;padding:8px 0!important;border:0!important;background:transparent!important;
+}
+body.momin-app-shell-active .momin-qibla-finder .mq-header>div:first-child{display:none!important}
+body.momin-app-shell-active .momin-mosque-design-v2 .wrap>header{
+ display:flex!important;justify-content:flex-end!important;align-items:center!important;
+ height:auto!important;margin:0!important;padding:8px 0!important;border:0!important;background:transparent!important;box-shadow:none!important;
+}
+body.momin-app-shell-active .momin-mosque-design-v2 .wrap>header .brand{display:none!important}
+body.momin-app-shell-active.momin-settings-v2-active .app>main>.top{display:none!important}
+/* Shared theme tokens applied to legacy aliases used by existing page renderers. */
+:root{--paper:var(--momin-card);--mint:var(--momin-gold-soft);--gold:var(--momin-gold);--gold-2:var(--momin-gold-bright);}
+body.momin-app-shell-active .quran-library.qv-shell{
+ --qv-bg:var(--momin-bg)!important;--qv-card:var(--momin-card)!important;
+ --qv-card2:var(--momin-card-2)!important;--qv-line:var(--momin-border)!important;
+ --qv-ink:var(--momin-text)!important;--qv-muted:var(--momin-muted)!important;
+ --qv-gold:var(--momin-gold)!important;--qv-gold2:var(--momin-gold-bright)!important;
+ --qv-gold-soft:var(--momin-gold-soft)!important;
+ --qv-glass:color-mix(in srgb,var(--momin-card) 90%,transparent)!important;
+ background:radial-gradient(ellipse at 50% -10%,var(--momin-gold-soft),transparent 46%),var(--momin-bg)!important;
+ color:var(--momin-text)!important;
+}
+body.momin-app-shell-active.dua-app-mode .dua-page{
+ --dua-bg:var(--momin-bg)!important;
+ --dua-glow:radial-gradient(120% 50% at 50% -5%,var(--momin-gold-soft),transparent 70%)!important;
+ --dua-card:var(--momin-card)!important;--dua-card2:var(--momin-card-2)!important;
+ --dua-line:var(--momin-border)!important;--dua-ink:var(--momin-text)!important;
+ --dua-muted:var(--momin-muted)!important;--dua-gold:var(--momin-gold)!important;
+ --dua-gold2:var(--momin-gold-bright)!important;--dua-goldsoft:var(--momin-gold-soft)!important;
+ --dua-glass:color-mix(in srgb,var(--momin-card) 90%,transparent)!important;
+ --dua-field:color-mix(in srgb,var(--momin-card-2) 75%,transparent)!important;
+ --dua-hill1:#5a4720!important;--dua-hill2:#241a0c!important;
+ background:var(--momin-bg)!important;color:var(--momin-text)!important;
+}
+body.momin-app-shell-active .momin-qibla-finder .mq-dial-card,
+body.momin-app-shell-active .momin-qibla-finder .mq-result,
+body.momin-app-shell-active .momin-qibla-finder .mq-dl,
+body.momin-app-shell-active .momin-qibla-finder .mq-form{
+ background:var(--momin-card)!important;color:var(--momin-text)!important;border-color:var(--momin-border)!important;
+}
+body.momin-app-shell-active .momin-mosque-design-v2 .wrap{padding-bottom:12px!important}
+body.momin-app-shell-active .momin-support-card{background:var(--momin-card)!important;color:var(--momin-text)!important;border-color:var(--momin-gold-border)!important}
 body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)!important}
 `;
   function esc(value){
@@ -446,22 +508,8 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
   function scheduleSync(){if(syncPending)return;syncPending=true;window.requestAnimationFrame(sync)}
   function headerAction(action){
     if(action==="settings"){navigate("settings");return;}
-    if(action==="notifications"){
-      if(typeof window.toast==="function")window.toast("You’re all caught up");
-      else if(typeof toast==="function")toast("You’re all caught up");
-      return;
-    }
-    if(action==="profile"){
-      navigate("settings");
-      window.setTimeout(function(){
-        var section=document.getElementById("sec-profile");
-        if(section){
-          var heading=section.querySelector(".acc-h");
-          if(heading&&!section.classList.contains("open"))heading.click();
-          section.scrollIntoView({behavior:"smooth",block:"start"});
-        }
-      },100);return;
-    }
+    if(action==="notifications"){navigate("notifications");return;}
+    if(action==="profile"){navigate("profile");return;}
     if(action==="back"){
       if(routeNow()==="quran"&&document.querySelector(".quran-reader")&&typeof window.returnToQuranLibrary==="function"){
         window.returnToQuranLibrary();scheduleSync();return;
@@ -473,9 +521,13 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
   function navigate(target,fromBack){
     if(!target||typeof originalGo!=="function")return;
     var before=routeNow();
+    if(before===target&&!(target==="quran"&&document.querySelector(".quran-reader")))return;
     if(before!==target){
       scrollPositions[before]=window.scrollY||document.documentElement.scrollTop||0;
       if(!fromBack)routeStack.push(before);
+    }
+    if(!fromBack&&before!==target&&window.history&&window.history.pushState){
+      try{window.history.pushState({mominShellRoute:target},"",location.href)}catch(_){}
     }
     var result=originalGo.call(window,target);scheduleSync();
     var restore=scrollPositions[target]||0;
@@ -491,7 +543,14 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     }
   }
   function init(){
-    ensureStyle();ensureComponents();wrapNavigation();sync();
+    ensureStyle();ensureComponents();wrapNavigation();
+    if(window.history&&window.history.replaceState){
+      try{
+        if(!window.history.state||!window.history.state.mominShellRoute)
+          window.history.replaceState({mominShellRoute:routeNow()},"",location.href);
+      }catch(_){}
+    }
+    sync();
     var view=document.getElementById("view");
     if(view&&window.MutationObserver){
       observer=new MutationObserver(scheduleSync);observer.observe(view,{childList:true,subtree:true});
@@ -500,6 +559,17 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
       var header=document.getElementById(HEADER_ID);
       if(header)header.classList.toggle("is-scrolled",(window.scrollY||0)>4);
     },{passive:true});
+    window.addEventListener("popstate",function(event){
+      var target=event.state&&event.state.mominShellRoute;
+      if(!target||target===routeNow()||!originalGo)return;
+      if(routeStack.length)routeStack.pop();
+      originalGo.call(window,target);scheduleSync();
+      window.setTimeout(function(){
+        window.scrollTo({top:scrollPositions[target]||0,behavior:"auto"});
+        scheduleSync();
+      },70);
+    });
+    window.addEventListener("hashchange",scheduleSync);
     window.addEventListener("momin:auth-state-changed",scheduleSync);
   }
   window.MominSharedShellV1={
