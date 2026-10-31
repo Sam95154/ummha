@@ -98,6 +98,7 @@ function persistLocationV5(){
     localStorage.setItem('noor-country',String(API_STORE.country||''));
     localStorage.setItem('noor-method',String(API_STORE.method||'3'));
     localStorage.setItem('noor-location-source',API_STORE.latitude!==null?'gps':'city');
+    try{if(window.MominNotificationsBridgeV1)window.MominNotificationsBridgeV1.syncPushPreferences()}catch(_){}
   }catch(_){}
 }
 
