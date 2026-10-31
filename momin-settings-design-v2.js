@@ -457,6 +457,34 @@ function initializePage(){
 }
 function toggleAcc(section,force){var open=force==null?!section.classList.contains("open"):force;section.classList.toggle("open",open);section.querySelector(".acc-h").setAttribute("aria-expanded",String(open));var body=section.querySelector(".acc-b>div");if(open)body.removeAttribute("inert");else body.setAttribute("inert","")}
 function initialize(){initializePage()}
+/* Apply the saved Hijri date adjustment to the actual Calendar page display. */
+function adjustedHijriLabelV2(){
+ var adjustment=Number(localStorage.getItem("noor-hijri-adjustment")||"0");
+ if(adjustment!==-1&&adjustment!==0&&adjustment!==1)adjustment=0;
+ var date=new Date();date.setDate(date.getDate()+adjustment);
+ try{
+  var parts={};
+  new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn",{day:"numeric",month:"long",year:"numeric"}).formatToParts(date).forEach(function(part){parts[part.type]=part.value;});
+  if(parts.day&&parts.month&&parts.year)return parts.day+" "+parts.month+" "+parts.year+" AH";
+ }catch(_){}
+ return "";
+}
+var baseCalendarPageV2=window.calendarPage;
+if(typeof baseCalendarPageV2==="function"){
+ window.calendarPage=function(){
+  var html=baseCalendarPageV2.apply(this,arguments);
+  var adjustment=Number(localStorage.getItem("noor-hijri-adjustment")||"0");
+  if(adjustment!==-1&&adjustment!==0&&adjustment!==1)adjustment=0;
+  if(!adjustment)return html;
+  var hijri=null;
+  try{hijri=livePrayer&&livePrayer.date&&livePrayer.date.hijri;}catch(_){}
+  var original=hijri?hijri.day+" "+hijri.month.en+" "+hijri.year+" AH":"";
+  var adjusted=adjustedHijriLabelV2();
+  if(!adjusted)return html;
+  if(original&&html.indexOf(original)>=0)return html.split(original).join(adjusted);
+  return html;
+ };
+}
 var baseRender=window.render,token=0;
 window.settingsPage=function(){ensureStyle();return ICONS+PAGE};
 if(typeof settingsPage!=="undefined")settingsPage=window.settingsPage;
