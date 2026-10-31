@@ -52,7 +52,8 @@
       '.momin-founder-page{max-width:940px;margin:0 auto 36px;color:var(--ink)}'+
       '.momin-founder-back{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:10px 13px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);font:600 12px var(--sans);cursor:pointer}'+
       '.momin-founder-page-card{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(250px,.86fr) minmax(0,1.14fr);gap:22px;align-items:center;padding:24px;border:1px solid rgba(197,160,82,.55);border-radius:24px;background:radial-gradient(120% 100% at 100% 0%,rgba(220,185,104,.17),transparent 68%),linear-gradient(135deg,var(--paper),var(--bg));box-shadow:var(--shadow)}'+
-      '.momin-founder-page-ornament{position:absolute;top:-20px;right:18px;color:rgba(197,160,82,.13);font-size:106px;line-height:1;pointer-events:none}'+
+      '.momin-founder-page-ornament{position:absolute;top:18px;right:22px;width:92px;height:92px;display:grid;place-items:center;color:rgba(220,177,82,.32);pointer-events:none;z-index:0}'+
+      '.momin-founder-page-ornament svg{display:block;width:100%;height:100%;overflow:visible}'+
       '.momin-founder-page-heading{grid-column:1/-1;position:relative;z-index:1;padding:0 0 2px;border-bottom:1px solid rgba(197,160,82,.45)}'+
       '.momin-founder-page-heading .momin-about-kicker{font-size:10px}.momin-founder-page-heading h2{margin:0 0 7px;font:700 clamp(24px,4vw,34px) Georgia,serif;line-height:1.16;color:var(--ink)}'+
       '.momin-founder-page-heading p:last-child{margin:0 0 14px;font-size:12px;line-height:1.6;color:var(--muted)}'+
@@ -64,7 +65,7 @@
       '.momin-founder-page-role span{font-size:17px;color:var(--accent)}'+
       '.momin-founder-signature{margin-top:18px;padding-top:13px;border-top:1px solid var(--line);font:italic 16px Georgia,serif;color:var(--accent)}'+
       '.momin-founder-page-actions{display:flex;justify-content:flex-end;margin-top:14px}'+
-      '@media(max-width:650px){.momin-founder-entry{align-items:flex-start;flex-wrap:wrap;padding:13px}.momin-founder-entry>.momin-sc-btn{width:100%}.momin-founder-page-card{grid-template-columns:minmax(0,1fr);gap:16px;padding:15px;border-radius:19px}.momin-founder-page-heading{grid-column:auto}.momin-founder-page-photo-wrap{width:min(100%,430px);aspect-ratio:3/4;margin:0 auto}.momin-founder-page-bio h3{font-size:25px}.momin-founder-page-bio>p:not(.momin-founder-page-role){font-size:12px}.momin-founder-page-ornament{font-size:70px;right:6px;top:0}}';
+      '@media(max-width:650px){.momin-founder-entry{align-items:flex-start;flex-wrap:wrap;padding:13px}.momin-founder-entry>.momin-sc-btn{width:100%}.momin-founder-page-card{grid-template-columns:minmax(0,1fr);gap:16px;padding:15px;border-radius:19px}.momin-founder-page-heading{grid-column:auto}.momin-founder-page-photo-wrap{width:min(100%,430px);aspect-ratio:3/4;margin:0 auto}.momin-founder-page-bio h3{font-size:25px}.momin-founder-page-bio>p:not(.momin-founder-page-role){font-size:12px}.momin-founder-page-ornament{width:66px;height:66px;right:8px;top:8px}}';
     document.head.appendChild(style);
   }
   function detailsPage(){
@@ -129,9 +130,15 @@
       '<main class="momin-founder-page" aria-labelledby="momin-founder-page-title">'+
       '<button type="button" class="momin-founder-back" onclick="go(&quot;settings&quot;)"><span aria-hidden="true">←</span> Back to Settings</button>'+
       '<section class="momin-founder-page-card">'+
-      '<div class="momin-founder-page-ornament" aria-hidden="true">۞</div>'+
+      '<div class="momin-founder-page-ornament" aria-hidden="true">'+
+      '<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">'+
+      '<path d="M75 10c-13 4-22 17-20 31 2 15 15 26 30 25-7 8-18 12-29 9C38 71 27 53 31 35 36 16 55 5 75 10Z" fill="#D6AD58"/>'+
+      '<path d="M19 101h82M28 101V62h9v39M83 101V62h9v39M24 62h17M79 62h17" stroke="#D6AD58" stroke-width="3" stroke-linecap="round"/>'+
+      '<path d="M42 101V76c0-13 8-23 18-30 10 7 18 17 18 30v25M42 79h36" stroke="#D6AD58" stroke-width="3" stroke-linejoin="round"/>'+
+      '<path d="M52 101V85a8 8 0 0 1 16 0v16M60 45V34M55 39h10" stroke="#D6AD58" stroke-width="2.6" stroke-linecap="round"/>'+
+      '</svg></div>'+
       '<div class="momin-founder-page-heading"><p class="momin-about-kicker">THE PERSON BEHIND MOMIN</p><h2 id="momin-founder-page-title">About the Founder</h2><p>Faith, thoughtful design, and technology brought together in one Islamic companion.</p></div>'+
-      '<div class="momin-founder-page-photo-wrap"><img class="momin-founder-page-photo" src="./momin-founder-4k.svg?v=1" alt="Founder of MOMIN in a brown traditional outfit and white kufi" fetchpriority="high"></div>'+
+      '<div class="momin-founder-page-photo-wrap"><img class="momin-founder-page-photo" src="./momin-founder.jpg?v=20261031-founder-photo-v2" alt="Shaik Sameer Basha, founder of MOMIN" fetchpriority="high" decoding="async"></div>'+
       '<div class="momin-founder-page-bio"><h3>Shaik Sameer Basha</h3><p class="momin-founder-page-role"><span aria-hidden="true">✦</span> Artificial Intelligence and Data Science Engineer</p><p>I’m Shaik Sameer Basha, the creator of MOMIN. I built MOMIN with the aim of bringing everyday Islamic tools together in one accessible place, combining my interest in technology with a commitment to making faith-supporting features easier to use.</p><p>My vision for MOMIN is to provide a calm, approachable experience where Muslims can reach useful worship tools, Quran reading, supplications and Islamic information without unnecessary complexity.</p><div class="momin-founder-signature">Where Faith Meets Devotion</div></div>'+
       '</section><div class="momin-founder-page-actions">'+button("Back to Settings","go(\'settings\')")+'</div></main>';
   };
