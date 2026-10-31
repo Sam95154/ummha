@@ -453,8 +453,11 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
         '<span class="momin-shell-home-logo" aria-label="MOMIN"><img src="./momin-mark.svg?v=islamic-logo-v3" alt="MOMIN"></span><div class="momin-shell-header__title"><h1>'+esc(title)+'</h1><p>'+esc(hijriDate())+'</p></div>'+actions+
       '</div>';
     }
+    var leftControl = route==="quran" && document.querySelector(".quran-reader")
+      ? '<span aria-hidden="true"></span>'
+      : '<button class="momin-shell-back" type="button" data-shell-action="back" aria-label="Back">'+icon("back")+'</button>';
     return '<div class="momin-shell-header__inner">'+
-      '<button class="momin-shell-back" type="button" data-shell-action="back" aria-label="Back">'+icon("back")+'</button>'+
+      leftControl+
       '<div class="momin-shell-header__title"><h1>'+esc(title)+'</h1></div>'+
       '<span class="momin-shell-logo" aria-label="MOMIN"><img src="./momin-mark.svg?v=islamic-logo-v3" alt="MOMIN"></span>'+
     '</div>';
