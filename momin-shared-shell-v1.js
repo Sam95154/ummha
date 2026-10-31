@@ -334,6 +334,16 @@ body.momin-app-shell-active .quran-library.qv-shell .qv-head{
  margin:0!important;padding:8px 0!important;
 }
 body.momin-app-shell-active .quran-library.qv-shell .qv-head h1{display:none!important}
+body.momin-app-shell-active .quran-library.qv-shell .qv-head>.qv-icon[aria-label="Back to Home"]{
+ margin-right:auto!important;
+ margin-left:0!important;
+ flex:0 0 44px!important;
+}
+body.momin-app-shell-active .quran-library.qv-shell .qv-head>.qv-icon[aria-label="Toggle bookmarked surahs"],
+body.momin-app-shell-active .quran-library.qv-shell .qv-head>.qv-icon[aria-label="Search surahs"]{
+ flex:0 0 44px!important;
+}
+
 body.momin-app-shell-active .momin-qibla-finder .mq-header{
  display:flex!important;justify-content:flex-end!important;align-items:center!important;
  margin:0!important;padding:8px 0!important;border:0!important;background:transparent!important;
