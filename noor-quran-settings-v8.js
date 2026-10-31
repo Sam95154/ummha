@@ -310,7 +310,28 @@ window.MominQuranSettingsV8={
  theme:function(t){if(["white","paper","night"].indexOf(t)<0)return;localStorage.setItem("noor-quran-theme",t);if(typeof setQuranTheme==="function")setQuranTheme(t);if(typeof render==="function")render();applyReaderSettingsV8()},
  mode:function(m){if(["list","page"].indexOf(m)<0)return;localStorage.setItem("noor-quran-reading-mode-v8",m);if(typeof render==="function")render();applyReaderSettingsV8()},
  page:function(direction){var api=getJuzReaderV8();if(api){if(typeof window.mominMoveJuzPageV1==="function")window.mominMoveJuzPageV1(direction);return}var rows=getVerseRowsV8(),pages=surahPagesV8(rows);if(!pages.length)return;var key="noor-quran-current-page-v8-"+(Number(localStorage.getItem("noor-surah-number")||1)),current=Number(localStorage.getItem(key)||pages[0]),i=pages.indexOf(current);if(i<0)i=0;i=Math.max(0,Math.min(pages.length-1,i+Number(direction||0)));localStorage.setItem(key,String(pages[i]));if(typeof render==="function")render();applyReaderSettingsV8()},
- toggleTranslationPicker:function(){translationPickerOpen=!translationPickerOpen;var e=document.getElementById("mominTranslationPickerV8");if(e)e.hidden=!translationPickerOpen;var b=document.querySelector(".momin-quran-selected-translation");if(b)b.setAttribute("aria-expanded",String(translationPickerOpen))},
+ toggleTranslationPicker:function(){
+  translationPickerOpen=!translationPickerOpen;
+  var e=document.getElementById("mominTranslationPickerV8");
+  if(e)e.hidden=!translationPickerOpen;
+  var b=document.querySelector(".momin-quran-selected-translation");
+  if(b)b.setAttribute("aria-expanded",String(translationPickerOpen));
+  if(translationPickerOpen&&typeof window.loadIndianQuranTranslationsV6==="function"){
+    var selected=currentTranslationId();
+    window.loadIndianQuranTranslationsV6().then(function(){
+      var select=document.getElementById("quranTranslationSelectV8");
+      if(!select)return;
+      var options=window.quranTranslationOptionsV5?window.quranTranslationOptionsV5():null;
+      if(options)select.innerHTML=options;
+      if(Array.prototype.some.call(select.options,function(option){return option.value===selected}))select.value=selected;
+      var label=document.getElementById("mominSelectedTranslationLabelV8");
+      if(label){
+        var selectedOption=Array.prototype.find.call(select.options,function(option){return option.value===selected});
+        if(selectedOption)label.textContent=selectedOption.textContent;
+      }
+    }).catch(function(){});
+  }
+ },
  search:function(q){var s=document.getElementById("quranTranslationSelectV8");if(!s)return;q=String(q||"").toLowerCase().trim();Array.prototype.forEach.call(s.options,function(o){o.hidden=!!q&&o.textContent.toLowerCase().indexOf(q)<0});Array.prototype.forEach.call(s.querySelectorAll("optgroup"),function(g){g.hidden=!Array.prototype.some.call(g.options,function(o){return !o.hidden})})},
  translation:function(id){if(String(id).indexOf("unavailable:")===0)return;var s=document.getElementById("quranTranslationSelectV8");if(!s||!Array.prototype.some.call(s.options,function(o){return o.value===id&&!o.disabled}))return;localStorage.setItem("noor-quran-edition",id);translationPickerOpen=false;var opt=Array.prototype.find.call(s.options,function(o){return o.value===id}),label=document.getElementById("mominSelectedTranslationLabelV8");if(label&&opt)label.textContent=opt.textContent;if(typeof setQuranTranslationEditionV5==="function")setQuranTranslationEditionV5(id);else if(typeof readSurah==="function")readSurah(readerChapter().number||1);applyReaderSettingsV8()},
  showMeaning:function(on){localStorage.setItem("noor-quran-show-translation-v8",on?"true":"false");localStorage.setItem("noor-quran-translation",on?"true":"false");applyReaderSettingsV8()},
