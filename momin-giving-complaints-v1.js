@@ -57,15 +57,16 @@
       const rows=data||[];
       let contributions=[];
       if(rows.length){
-        const {data:tx,error:txError}=await sb.from("momin_contributions")
-          .select("campaign_id,amount,payment_status").in("campaign_id",rows.map(x=>x.id)).eq("payment_status","verified");
+        const {data:tx,error:txError}=await sb.from("momin_public_giving_totals")
+          .select("campaign_id,received_amount,contribution_count").in("campaign_id",rows.map(x=>x.id));
         if(txError) throw txError;
         contributions=tx||[];
       }
       state.campaigns=rows.map(c=>{
         const tx=contributions.filter(x=>x.campaign_id===c.id);
-        const received=tx.reduce((sum,x)=>sum+Number(x.amount||0),0);
-        return {...c,received_amount:received,contribution_count:tx.length};
+        const aggregate=contributions.find(x=>x.campaign_id===c.id);
+        const received=Number(aggregate?.received_amount||0);
+        return {...c,received_amount:received,contribution_count:Number(aggregate?.contribution_count||0)};
       });
     }catch(error){notify(error.message);}
     finally{state.loadingCampaigns=false;state.campaignsLoaded=true;renderCustom();}
