@@ -485,7 +485,14 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
   }
   function ensureStyle(){
     if(document.getElementById(STYLE_ID))return;
-    var style=document.createElement("style");style.id=STYLE_ID;style.textContent=css;document.head.appendChild(style);
+    var style=document.createElement("style");style.id=STYLE_ID;
+  style.textContent=css+
+    'body.momin-app-shell-active.momin-founder-route-v3{height:100dvh!important;overflow:hidden!important}'+
+    'body.momin-app-shell-active.momin-founder-route-v3 .layout{display:block!important;width:100%!important;height:calc(100dvh - var(--momin-header-height))!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}'+
+    'body.momin-app-shell-active.momin-founder-route-v3 .layout>main{display:block!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}'+
+    'body.momin-app-shell-active.momin-founder-route-v3 #view.content{display:block!important;width:100%!important;max-width:none!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}'+
+    'body.momin-app-shell-active.momin-founder-route-v3 #momin-founder-frame-v3{display:block!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;background:#0f0d0a}';
+  document.head.appendChild(style);
   }
   function ensureComponents(){
     var layout=document.querySelector(".layout");if(!layout)return;
@@ -512,8 +519,9 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
   function injectFounderStyle(frame){
     try{
       var doc=frame.contentDocument;if(!doc||doc.getElementById("momin-shared-founder-v1-style"))return;
+      doc.documentElement.classList.add("momin-founder-embedded");
       var style=doc.createElement("style");style.id="momin-shared-founder-v1-style";
-      style.textContent='.app>.bar,.tabs{display:none!important}.app{padding-bottom:150px!important}.app>main{padding-top:8px!important}';
+      style.textContent='html.momin-founder-embedded .app>.bar,html.momin-founder-embedded .tabs{display:none!important}html.momin-founder-embedded body{padding-bottom:130px!important}html.momin-founder-embedded .app{padding-bottom:16px!important}html.momin-founder-embedded .app>main{padding-top:0!important}';
       doc.head.appendChild(style);
     }catch(_){}
   }
