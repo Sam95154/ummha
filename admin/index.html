@@ -9,25 +9,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./admin.css?v=phase2-2">
+  <link rel="stylesheet" href="./admin.css?v=password-login-v1">
 </head>
 <body>
   <div id="adminApp" class="admin-app">
-    <div id="demoBanner" class="demo-banner"><span class="demo-dot"></span><strong>SECURE ADMIN</strong><span>Privileged actions are role-controlled, MFA-protected and audit-logged.</span></div>
+    <div id="demoBanner" class="demo-banner"><span class="demo-dot"></span><strong>SECURE ADMIN</strong><span>Privileged actions are role-controlled and audit-logged.</span></div>
     <div id="loginScreen" class="login-screen" aria-label="Secure administrator sign-in">
       <div class="login-orbit orbit-one"></div><div class="login-orbit orbit-two"></div>
       <div class="login-card">
         <div class="login-brand"><img class="brand-symbol" src="../momin-mark.svg?v=islamic-logo-v3" alt="MOMIN logo"><div><div class="brand-name">MOMIN</div><div class="brand-sub">ADMIN CONTROL CENTRE</div></div></div>
-        <div class="eyebrow">FOUNDER CONTROL CENTRE</div>
+        <div class="eyebrow">ADMINISTRATOR SIGN IN</div>
         <h1 id="loginTitle">Welcome back</h1>
-        <p class="muted" id="loginDescription">Sign in with your authorized MOMIN administrator account. Two-step verification is required.</p>
+        <p class="muted" id="loginDescription">Use your dedicated admin email address and password.</p>
         <form id="demoLoginForm">
           <label class="field-label" for="demoEmail">Email address</label>
           <input class="field-input" id="demoEmail" type="email" placeholder="founder@example.com" autocomplete="username" value="" required>
           <label class="field-label" for="demoPassword">Password</label>
           <div class="password-field"><input class="field-input" id="demoPassword" type="password" placeholder="Enter password" autocomplete="current-password" value="" required><button class="icon-btn" id="togglePassword" type="button" aria-label="Show password">◎</button></div>
           <div class="login-options"><span class="muted tiny">Secure session on this browser</span><button class="text-btn" type="button" id="forgotPasswordBtn">Forgot password?</button></div>
-          <button class="btn btn-primary btn-block" type="submit">Sign in securely <span>→</span></button>
+          <button class="btn btn-primary btn-block" type="submit">Sign in <span>→</span></button>
         </form>
         <div class="login-note"><span class="lock-icon">⌑</span> Only approved MOMIN administrators can access this area. Ordinary app accounts are not administrators.</div>
         
@@ -156,6 +156,6 @@
     <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./admin.js?v=phase2-2" defer></script>
+  <script src="./admin.js?v=password-login-v1" defer></script>
 </body>
 </html>
