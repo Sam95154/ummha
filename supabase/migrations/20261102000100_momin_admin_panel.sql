@@ -207,29 +207,6 @@ grant select on public.momin_user_notifications to authenticated;
 grant update (read_at) on public.momin_user_notifications to authenticated;
 
 -- User IDs and account status are server-managed immutable/protected fields.
-create or replace function public.momin_protect_admin_profile_fields()
-returns trigger
-language plpgsql
-set search_path = ''
-as $
-begin
-  if current_user not in ('service_role', 'postgres', 'supabase_admin') then
-    if new.public_user_id is distinct from old.public_user_id then
-      raise exception 'User ID is permanent and cannot be changed.';
-    end if;
-    if new.account_status is distinct from old.account_status then
-      raise exception 'Account status can only be changed by MOMIN Admin.';
-    end if;
-  end if;
-  return new;
-end;
-$;
-
-drop trigger if exists momin_protect_admin_profile_fields on public.momin_profiles;
-create trigger momin_protect_admin_profile_fields
-before update on public.momin_profiles
-for each row execute function public.momin_protect_admin_profile_fields();
-
 -- Recreate the profile guard for INSERT and UPDATE operations.
 create or replace function public.momin_protect_admin_profile_fields()
 returns trigger language plpgsql set search_path = ''
