@@ -238,10 +238,46 @@ grant update (read_at) on public.momin_user_notifications to authenticated;
 -- User IDs and account status are server-managed immutable/protected fields.
 -- Recreate the profile guard for INSERT and UPDATE operations.
 create or replace function public.momin_protect_admin_profile_fields()
-returns trigger language plpgsql set search_path = ''
-as 'BEGIN IF current_user NOT IN (''service_role'', ''postgres'', ''supabase_admin'') THEN IF TG_OP = ''INSERT'' THEN NEW.public_user_id := ''MOM-'' || upper(substr(replace(gen_random_uuid()::text, ''-'', ''''), 1, 10)); NEW.account_status := ''Active''; ELSE IF NEW.public_user_id IS DISTINCT FROM OLD.public_user_id THEN RAISE EXCEPTION ''User ID is permanent and cannot be changed.''; END IF; IF NEW.account_status IS DISTINCT FROM OLD.account_status THEN RAISE EXCEPTION ''Account status can only be changed by MOMIN Admin.''; END IF; END IF; END IF; RETURN NEW; END;';
+returns trigger
+language plpgsql
+set search_path = ''
+as $func$
+declare
+  existing_public_id text;
+  existing_status text;
+begin
+  if current_user not in ('service_role', 'postgres', 'supabase_admin') then
+    if tg_op = 'INSERT' then
+      -- Upserts execute BEFORE INSERT before conflict handling. Preserve a row's existing
+      -- permanent ID and admin-managed status when the MOMIN auth bridge syncs a profile.
+      select p.public_user_id, p.account_status
+        into existing_public_id, existing_status
+        from public.momin_profiles p
+        where p.user_id = new.user_id;
+      if found then
+        new.public_user_id := existing_public_id;
+        new.account_status := existing_status;
+      else
+        new.public_user_id := 'MOM-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10));
+        new.account_status := 'Active';
+      end if;
+    else
+      if new.public_user_id is distinct from old.public_user_id then
+        raise exception 'User ID is permanent and cannot be changed.';
+      end if;
+      if new.account_status is distinct from old.account_status then
+        raise exception 'Account status can only be changed by MOMIN Admin.';
+      end if;
+    end if;
+  end if;
+  return new;
+end;
+$func$;
+
 drop trigger if exists momin_protect_admin_profile_fields on public.momin_profiles;
-create trigger momin_protect_admin_profile_fields before insert or update on public.momin_profiles for each row execute function public.momin_protect_admin_profile_fields();
+create trigger momin_protect_admin_profile_fields
+before insert or update on public.momin_profiles
+for each row execute function public.momin_protect_admin_profile_fields();
 
 -- Ensure every existing authenticated MOMIN account has one stable profile/User ID.
 insert into public.momin_profiles
