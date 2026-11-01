@@ -216,8 +216,7 @@
   html body .qv-stats,
   html body .kpis,
   html body .duo,
-  html body.momin-duas-embedded .grid,
-  html body.momin-inspiration-embedded .list {
+  html body.momin-duas-embedded .grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     min-width: 0;
@@ -228,6 +227,13 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     min-width: 0;
+  }
+
+  /* Keep long-form Quran verse lists in one readable column on every tablet width. */
+  html body.momin-inspiration-embedded .app .list {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   html body .grid > *,
@@ -551,8 +557,7 @@
   html body .qv-learn,
   html body .qv-stats,
   html body .kpis,
-  html body.momin-duas-embedded .grid,
-  html body.momin-inspiration-embedded .list {
+  html body.momin-duas-embedded .grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     min-width: 0;
@@ -570,6 +575,13 @@
   html body .app .list,
   html body .app .rows {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* Do not split Arabic verse and translation cards into narrow newspaper columns. */
+  html body.momin-inspiration-embedded .app .list {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   html body .grid > *,

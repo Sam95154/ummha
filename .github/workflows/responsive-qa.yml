@@ -1,4 +1,4 @@
-name: MOMIN Responsive QA
+name: MOMIN Responsive and Browser QA
 
 on:
   push:
@@ -14,9 +14,9 @@ permissions:
 
 jobs:
   responsive-qa:
-    name: Static responsive and source QA
+    name: Static and Chromium responsive QA
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -24,5 +24,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Run responsive and asset QA
+      - name: Install project and browser-test dependencies
+        run: npm install --no-audit --no-fund
+      - name: Run static responsive and source checks
         run: npm run qa:responsive
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Run authenticated and responsive browser tests
+        run: npm run qa:e2e
+      - name: Upload browser-test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: momin-playwright-results
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7

@@ -8,7 +8,8 @@
     "android:web": "node scripts/prepare-android-web.mjs",
     "android:prepare": "npm run android:web && node scripts/prepare-android-project.mjs",
     "android:debug": "npm run android:prepare && cd android && ./gradlew assembleDebug",
-    "android:bundle": "npm run android:prepare && cd android && ./gradlew bundleRelease"
+    "android:bundle": "npm run android:prepare && cd android && ./gradlew bundleRelease",
+    "qa:e2e": "playwright test"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@capacitor/assets": "3.0.5",
     "@capacitor/cli": "8.5.3",
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "@playwright/test": "1.64.1"
   }
 }
