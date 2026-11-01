@@ -203,7 +203,9 @@
       '<small>' + escapeHtml(c.progress || 0) + '%</small></td><td>' + badge(c.status) + '</td><td>' +
       '<button class="btn small" data-action="edit-campaign" data-id="' + escapeHtml(c.id) + '">Edit</button> ' +
       '<button class="btn small" data-action="campaign-status" data-id="' + escapeHtml(c.id) + '" data-status="' +
-      (c.status === "Active" ? "Paused" : "Active") + '">' + (c.status === "Active" ? "Pause" : "Activate") + "</button></td></tr>");
+      (c.status === "Active" ? "Paused" : "Active") + '">' + (c.status === "Active" ? "Pause" : "Activate") + "</button> " +
+      '<button class="btn small" data-action="campaign-status" data-id="' + escapeHtml(c.id) + '" data-status="Completed" ' +
+      (c.status === "Completed" ? "disabled" : "") + ">Complete</button></td></tr>");
     if (state.givingTab === "contributions") {
       const tx = state.contributions.map(c => "<tr><td>" + escapeHtml(c.transaction_ref) + "</td><td>" +
         escapeHtml(c.user_public_id || "Anonymous") + "</td><td>" + escapeHtml(c.user_name) + "</td><td>" +
@@ -224,7 +226,7 @@
       field("Start date","starts_at",state.editCampaign?.starts_at || "","date") + field("End date","ends_at",state.editCampaign?.ends_at || "","date") +
       '<div class="field wide"><label>Donation instructions</label><textarea class="control" name="donation_instructions" maxlength="2000">' + escapeHtml(state.editCampaign?.donation_instructions || "") + '</textarea></div>' +
       '<div class="field wide"><label>Cover image (optional)</label><input class="control" type="file" name="image" accept="image/jpeg,image/png,image/webp"><input type="hidden" name="existing_image_url" value="' + escapeHtml(state.editCampaign?.image_url || "") + '"><small class="hint">JPG, PNG or WebP · max 2 MB. Upload a new file to replace it.</small>' + (state.editCampaign?.image_url ? '<img src="' + escapeHtml(state.editCampaign.image_url) + '" alt="" style="max-width:180px;border-radius:9px;margin-top:8px">' : '') + '<div id="campaign-image-preview"></div></div>' +
-      selectField("Publish status","status",[{value:"Draft",label:"Save as Draft"},{value:"Active",label:"Publish as Active"}], "Draft") +
+      selectField("Publish status","status",[{value:"Draft",label:"Save as Draft"},{value:"Active",label:"Publish as Active"},{value:"Paused",label:"Paused"},{value:"Completed",label:"Completed"}], state.editCampaign?.status || "Draft") +
       '<input type="hidden" name="id" value="' + escapeHtml(state.editCampaign?.id || "") + '">' +
       '<div class="field wide"><button class="btn primary" type="submit">' + (state.editCampaign ? "Save campaign changes" : "Save campaign") + '</button> ' +
       (state.editCampaign ? '<button class="btn" type="button" data-action="cancel-campaign-edit">Cancel</button>' : '') + '</div></form></section>' +
