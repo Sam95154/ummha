@@ -19,6 +19,7 @@ const css = read("admin/admin.css");
 const js = read("admin/admin.js");
 const api = read("supabase/functions/momin-admin-api/index.ts");
 const migration = read("supabase/migrations/20261102000100_momin_admin_panel.sql");
+const givingMigration = read("supabase/migrations/20261102000200_momin_giving_public_aggregate_table.sql");
 const userModule = read("momin-giving-complaints-v1.js");
 const index = read("index.html");
 const bridge = read("momin-notifications-bridge-v1.js");
@@ -53,7 +54,7 @@ check(userModule.includes("momin-complaint-attachments") && userModule.includes(
 check(index.includes("momin-giving-complaints-v1.js"), "Main MOMIN app loads the Giving and complaint module");
 check(bridge.includes("momin_user_notifications") && bridge.includes("markInboxRead"), "Admin announcements are connected to the existing User notification inbox");
 check(serviceWorker.includes('"complaints"'), "Push service worker accepts the Complaints destination");
-check(migration.includes("momin_giving_totals_public"), "User Giving progress uses a privacy-safe aggregate table");
+check(givingMigration.includes("momin_giving_totals_public") && givingMigration.includes("security_invoker = true"), "User Giving progress uses a privacy-safe aggregate table and invoker-secure compatibility view");
 check(migration.includes("add column if not exists phone text"), "Migration stores optional Auth phone contact details");
 check(migration.includes("existing_public_id") && migration.includes("existing_status"), "Profile upserts preserve permanent User ID and account status");
 check(api.includes("account_status", api.indexOf("async function activeRecipientIds")), "Notification sends filter recipient accounts by active status");
