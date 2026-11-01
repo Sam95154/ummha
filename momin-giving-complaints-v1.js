@@ -12,7 +12,7 @@
     catch (_) { return (code||"INR")+" "+Number(n||0).toLocaleString("en-IN"); }
   };
   const fmtDate = value => value ? new Date(value).toLocaleDateString([], {day:"numeric",month:"short",year:"numeric"}) : "—";
-  const state = { campaigns:[], campaignFilter:"All", loadingCampaigns:false, complaints:[], loadingComplaints:false, selectedComplaint:null, replies:[], loadingReplies:false, currentUser:null };
+  const state = { campaigns:[], campaignsLoaded:false, campaignFilter:"All", loadingCampaigns:false, complaints:[], complaintsLoaded:false, loadingComplaints:false, selectedComplaint:null, replies:[], loadingReplies:false, currentUser:null };
   function clientReady() {
     const sb = client();
     if (!sb) throw new Error("MOMIN account services are unavailable. Please refresh and sign in again.");
@@ -101,7 +101,7 @@
       const {data,error}=await sb.from("momin_complaints").select("id,ticket_id,category,subject,description,priority,status,attachment_path,created_at,updated_at,resolved_at,closed_at")
         .eq("user_id",user.id).order("updated_at",{ascending:false}).limit(100);
       if(error)throw error;
-      state.complaints=data||[];
+      state.complaints=data||[];state.complaintsLoaded=true;
     }catch(error){notify(error.message);}
     finally{state.loadingComplaints=false;renderCustom();}
   }
@@ -141,8 +141,8 @@
   function renderCustom() {
     const target=view();if(!target)return;
     if(typeof page==="undefined")return;
-    if(page==="giving"){target.innerHTML=givingMarkup();if(!state.campaigns.length&&!state.loadingCampaigns)loadCampaigns();}
-    else if(page==="complaints"){target.innerHTML=complaintsMarkup();if(!state.complaints.length&&!state.loadingComplaints&&!state.selectedComplaint)loadComplaints();}
+    if(page==="giving"){target.innerHTML=givingMarkup();if(!state.campaignsLoaded&&!state.loadingCampaigns)loadCampaigns();}
+    else if(page==="complaints"){target.innerHTML=complaintsMarkup();if(!state.complaintsLoaded&&!state.loadingComplaints&&!state.selectedComplaint)loadComplaints();}
     try{if(window.MominSharedShellV1)window.MominSharedShellV1.sync()}catch(_){}
   }
   const originalRender=window.render;
