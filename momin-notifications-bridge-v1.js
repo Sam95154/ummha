@@ -164,8 +164,7 @@
   function savePrefs(input){
     var p=normalizePrefs(input);
     put("noor-notifications",p.on?"true":"false");
-    if(get("momin-push-enabled","false")!=="true"){
-      PRAYERS.forEach(function(pair,i){put("noor-notify-"+pair[0],p.pr[i]?"true":"false")});
+    PRAYERS.forEach(function(pair,i){put("noor-notify-"+pair[0],p.pr[i]?"true":"false")});
     put("noor-prayer-reminder-minutes",p.lead);
     put("noor-jumuah-reminders",p.jumuah?"true":"false");
     put("noor-adhkar-reminders",p.adhkar?"true":"false");
@@ -291,7 +290,8 @@
     if(!prefs.on||!("Notification" in window)||Notification.permission!=="granted")return;
     var data=prayerData();if(!data||!data.timings)return;
     var now=new Date(),keyDay=dayKey(now,data.timezone),part=timeParts(now,data.timezone),nowMin=part.hour*60+part.minute;
-    PRAYERS.forEach(function(pair,i){
+    if(get("momin-push-enabled","false")!=="true"){
+      PRAYERS.forEach(function(pair,i){
       if(!prefs.pr[i])return;
       var prayerMin=minutes(data.timings[pair[1]]||data.timings[pair[1].toLowerCase()]);
       if(prayerMin===null)return;
