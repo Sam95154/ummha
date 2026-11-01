@@ -18,17 +18,18 @@ self.addEventListener("push", function(event) {
   var title = String(payload.title || "MOMIN reminder");
   var body = String(payload.body || "A reminder from MOMIN.");
   var route = String(payload.route || "home");
-  var allowed = ["home","prayers","quran","duas","calendar","notifications","settings","journey"];
+  var allowed = ["home","prayers","quran","duas","calendar","notifications","settings","journey","giving"];
   if (allowed.indexOf(route) < 0) route = "home";
   var options = {
     body: body,
     icon: "/momin-mark.svg?v=islamic-logo-v3",
     badge: "/momin-mark.svg?v=islamic-logo-v3",
+    image: payload.image_url || payload.image || undefined,
     tag: String(payload.tag || "momin-reminder"),
     renotify: false,
     requireInteraction: false,
     vibrate: [180, 90, 180],
-    data: { route: route, url: "/?mominPushRoute=" + encodeURIComponent(route) }
+    data: { route: route, campaign_id: payload.campaign_id || null, action_label: payload.action_label || null, url: "/?mominPushRoute=" + encodeURIComponent(route) }
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
