@@ -9,6 +9,8 @@ Separate administration route: `/admin/`
 - TOTP authenticator enrollment and challenge; admin Edge Function requires an AAL2 session.
 - Server-validated staff membership and permission keys; Founder bootstrap is server-side only.
 - User list, search, filters, pagination, masked email for roles without PII, current profile status, provider, last sign-in, devices and announcement opt-in.
+- Admin membership is preflight-checked before MFA enrolment; normal MOMIN accounts are not prompted to create an admin authenticator.
+- Notification Managers receive a recipient-only search action over users who explicitly opted into App Announcements; they do not need broad User Management access.
 - Individual user detail, device revocation, account suspension/reactivation with reason and audit record.
 - Notification templates and campaigns, individual/selected/all opted-in audience, country, recent users, push-enabled and Android/iOS/Web device targeting.
 - Notification image upload (JPG/PNG/WebP, max 2 MB), live mobile preview, destination, action label, test to the administrator's current push device, save draft, schedule and send-now workflow.
@@ -20,6 +22,7 @@ Separate administration route: `/admin/`
 ## Important boundaries
 
 - No broadcast was sent during deployment or testing.
+- Staff role lookup is server-side. A Notification Manager can search only eligible opted-in recipients; the Founder remains the only role with high-volume broadcast approval permission.
 - Campaigns are created as drafts and only queued after an explicit administrator action. Future campaigns are processed at the scheduled time.
 - Campaign targeting re-checks App Announcements opt-in at delivery. Prayer reminders are not treated as announcement consent.
 - Push provider acceptance is not a confirmed device delivery.
