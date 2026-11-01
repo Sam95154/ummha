@@ -164,7 +164,8 @@
   function savePrefs(input){
     var p=normalizePrefs(input);
     put("noor-notifications",p.on?"true":"false");
-    PRAYERS.forEach(function(pair,i){put("noor-notify-"+pair[0],p.pr[i]?"true":"false")});
+    if(get("momin-push-enabled","false")!=="true"){
+      PRAYERS.forEach(function(pair,i){put("noor-notify-"+pair[0],p.pr[i]?"true":"false")});
     put("noor-prayer-reminder-minutes",p.lead);
     put("noor-jumuah-reminders",p.jumuah?"true":"false");
     put("noor-adhkar-reminders",p.adhkar?"true":"false");
@@ -313,8 +314,9 @@
         if(sound==="azan")playAzan();
         else if(sound==="chime")playChime();
       }
-    });
-    checkUpdateReminders(prefs,data,now,keyDay,nowMin);
+      });
+      checkUpdateReminders(prefs,data,now,keyDay,nowMin);
+    }
   }
   function currentRoute(){
     try{return window.MominSharedShellV1&&window.MominSharedShellV1.currentRoute?window.MominSharedShellV1.currentRoute():""}catch(_){return ""}
