@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "Android wrapper for the existing MOMIN web app",
   "scripts": {
+    "qa:responsive": "node scripts/qa-responsive.mjs",
     "android:web": "node scripts/prepare-android-web.mjs",
     "android:prepare": "npm run android:web && node scripts/prepare-android-project.mjs",
     "android:debug": "npm run android:prepare && cd android && ./gradlew assembleDebug",
