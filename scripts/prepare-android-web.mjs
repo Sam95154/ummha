@@ -68,6 +68,39 @@ if (!indexHtml.includes("momin-capacitor-bridge.js")) {
 }
 fs.writeFileSync(indexPath, indexHtml, "utf8");
 
+const loginPath = path.join(webDir, "login.html");
+let loginHtml = fs.readFileSync(loginPath, "utf8");
+const supabaseScriptTag = '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>';
+if (!loginHtml.includes(supabaseScriptTag)) {
+  throw new Error("Could not find Supabase SDK script in login.html.");
+}
+if (!loginHtml.includes("momin-capacitor-bridge.js")) {
+  loginHtml = loginHtml.replace(
+    supabaseScriptTag,
+    '<script src="./momin-capacitor-bridge.js?v=android-v1"></script>\\n' + supabaseScriptTag
+  );
+}
+
+const oldLoginOAuth = `redirectTo:location.origin+"/",
+        queryParams:{access_type:"offline",prompt:"select_account"}
+      }
+    });
+    if(result.error)throw result.error;
+    if(!result.data||!result.data.url)throw new Error("Google sign-in could not be started.");`;
+const nativeLoginOAuth = `redirectTo:(window.MominNative&&window.MominNative.isNative)?window.MominNative.authRedirectUrl:location.origin+"/",
+        skipBrowserRedirect:!!(window.MominNative&&window.MominNative.isNative),
+        queryParams:{access_type:"offline",prompt:"select_account"}
+      }
+    });
+    if(result.error)throw result.error;
+    if(!result.data||!result.data.url)throw new Error("Google sign-in could not be started.");
+    if(window.MominNative&&window.MominNative.isNative)await window.MominNative.openOAuth(result.data.url);`;
+if (!loginHtml.includes(oldLoginOAuth)) {
+  throw new Error("Could not safely locate the Google sign-in block in login.html; refusing to patch it.");
+}
+loginHtml = loginHtml.replace(oldLoginOAuth, nativeLoginOAuth);
+fs.writeFileSync(loginPath, loginHtml, "utf8");
+
 const authPath = path.join(webDir, "momin-auth-v1.js");
 let authJs = fs.readFileSync(authPath, "utf8");
 const oldOAuth = `options:{redirectTo:location.origin+"/"}
