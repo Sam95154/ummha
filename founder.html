@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>About the Founder</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<script>(function(){try{if(window.self!==window.top)document.documentElement.classList.add("momin-founder-embedded")}catch(_){document.documentElement.classList.add("momin-founder-embedded")}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
@@ -130,6 +131,19 @@ svg{display:block}
 .toast{position:fixed;left:50%;bottom:calc(98px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;z-index:80;padding:12px 18px;border-radius:14px;background:var(--ink);color:var(--bg);font-size:.875rem;max-width:calc(100vw - 40px);text-align:center;pointer-events:none;transition:opacity .3s,transform .4s var(--ease)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.rv{opacity:1;transform:none}}
+
+/* Embedded Founder mode: MOMIN's shared shell owns the only header and bottom navigation. */
+html.momin-founder-embedded body{
+  padding-top:0!important;
+  padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))!important;
+  overflow-x:hidden!important;
+}
+html.momin-founder-embedded .app{padding-bottom:0!important;width:100%;max-width:480px}
+html.momin-founder-embedded .app>.bar,
+html.momin-founder-embedded .tabs{display:none!important}
+html.momin-founder-embedded .app>main{padding-top:0!important}
+html.momin-founder-embedded .app>main>.hero{margin-top:12px}
+html.momin-founder-embedded .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 </style>
 </head>
 <body>
