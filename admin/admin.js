@@ -164,7 +164,7 @@
   }
   function renderUsers() {
     const rows = state.users.map(u => '<tr><td><b>' + escapeHtml(u.user_id) + '</b></td><td>' + escapeHtml(u.name) +
-      '</td><td>' + escapeHtml(u.email || "—") + '</td><td>' + date(u.registered_at) + '</td><td>' + badge(u.status) +
+      '</td><td>' + escapeHtml(u.email || "—") + '</td><td>' + escapeHtml(u.phone || "—") + '</td><td>' + date(u.registered_at) + '</td><td>' + badge(u.status) +
       '</td><td><button type="button" class="btn small" data-action="view-user" data-id="' + escapeHtml(u.id) + '">Details</button> ' +
       '<button type="button" class="btn small" data-action="edit-user" data-id="' + escapeHtml(u.id) + '">Edit name</button> ' +
       '<button type="button" class="btn small ' + (u.status === "Active" ? "danger" : "") + '" data-action="user-status" data-id="' +
@@ -172,11 +172,11 @@
       (u.status === "Active" ? "Deactivate" : "Activate") + "</button></td></tr>");
     const totalPages = Math.max(1, Math.ceil(state.userTotal / 50));
     return heading("Users", "Search and manage all registered MOMIN accounts") +
-      '<section class="card"><form class="toolbar" data-form="user-search"><input class="control search" name="q" placeholder="Search name, unique User ID or email" value="' +
+      '<section class="card"><form class="toolbar" data-form="user-search"><input class="control search" name="q" placeholder="Search name, User ID, email or phone" value="' +
       escapeHtml(state.userQuery) + '"><select class="control" name="status"><option value="all">All statuses</option><option value="Active" ' +
       (state.userStatus === "Active" ? "selected" : "") + '>Active</option><option value="Inactive" ' +
       (state.userStatus === "Inactive" ? "selected" : "") + '>Inactive</option></select><button class="btn primary">Search</button></form>' +
-      table(["Unique User ID","Name","Email","Registered","Status","Actions"], rows) +
+      table(["Unique User ID","Name","Email","Phone","Registered","Status","Actions"], rows) +
       '<div class="toolbar mt"><small class="muted">Page ' + state.usersPage + " of " + totalPages + " · " + state.userTotal + " matching users</small>" +
       '<span class="spacer"></span><button type="button" class="btn small" data-action="users-page" data-page="' + Math.max(1, state.usersPage - 1) + '" ' +
       (state.usersPage <= 1 ? "disabled" : "") + '>Previous</button><button type="button" class="btn small" data-action="users-page" data-page="' +
