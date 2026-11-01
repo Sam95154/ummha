@@ -231,6 +231,17 @@ var prefs={on:true,lead:0,pr:[1,1,1,1,1],jumuah:1,adhkar:0,dates:1};
 var inbox=[],tt,pushReady=false;
 function ls(key,fallback){try{var v=localStorage.getItem(key);return v===null?fallback:v}catch(e){return fallback}}
 function parseMinute(value){var m=String(value||"").match(/(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):null}
+function refreshNativeNotificationStatus(){
+  if(!isNativePrayerApp())return;
+  try{
+    var api=window.parent.MominNativePrayerAlarm;
+    api.getStatus().then(function(status){
+      var b=bridge(),snap=b&&b.snapshot?b.snapshot():null;
+      pushReady=!!(snap&&snap.pushEnabled&&status.notificationsEnabled&&status.exactAlarmAllowed);
+      hero();
+    }).catch(function(){pushReady=false;hero()});
+  }catch(_){pushReady=false;hero()}
+}
 function syncFromBridge(){
   var b=bridge(),snap=null;
   try{if(b&&b.snapshot)snap=b.snapshot()}catch(e){}
@@ -270,8 +281,9 @@ function save(){
   }catch(e){}
 }
 function toast(m,a){var t=$("toast");t.innerHTML="<span>"+esc(m)+"</span>"+(a?'<button type="button">'+esc(a.l)+"</button>":"");if(a)t.querySelector("button").onclick=function(){a.f();t.classList.remove("on")};t.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){t.classList.remove("on")},a?4200:2200)}
-function perm(){return typeof Notification==="undefined"?"unsupported":Notification.permission}
-function live(){return perm()==="granted"&&prefs.on&&pushReady}
+function isNativePrayerApp(){try{return window.parent!==window&&window.parent.MominNativePrayerAlarm&&window.parent.MominNativePrayerAlarm.isNative}catch(e){return false}}
+function perm(){return isNativePrayerApp()?"granted":(typeof Notification==="undefined"?"unsupported":Notification.permission)}
+function live(){return isNativePrayerApp()?(prefs.on&&pushReady):(perm()==="granted"&&prefs.on&&pushReady)}
 
 /* hero */
 function hero(){
@@ -287,7 +299,8 @@ function ask(){
   if(!b||!b.enableBackgroundPush){toast("MOMIN background notification service is not available. Refresh the app.");return}
   b.enableBackgroundPush(prefs).then(function(result){
     prefs.on=true;save();syncFromBridge();hero();tick();
-    if(result&&result.location_ready)toast("Background reminders are enabled on this device.");
+    if(isNativePrayerApp())toast("Prayer alarms are scheduled on this Android device. Azan plays at actual prayer time when selected.");
+    else if(result&&result.location_ready)toast("Background reminders are enabled on this device.");
     else toast("This device is subscribed. Set your location in Prayer Times for accurate prayer reminders.");
   }).catch(function(error){
     toast(error&&error.message?error.message:"Notifications could not be enabled.");
@@ -410,7 +423,7 @@ function refreshPageFromBridge(){
   if(before!==after){segHTML();rowsHTML();upsHTML();hero();recent()}
   tick();
 }
-syncFromBridge();segHTML();rowsHTML();upsHTML();hero();recent();tick();bindParentNavigation();
+syncFromBridge();segHTML();rowsHTML();upsHTML();hero();recent();tick();bindParentNavigation();refreshNativeNotificationStatus();
 var initialBridge=bridge();
 if(initialBridge&&initialBridge.refreshInbox){
   initialBridge.refreshInbox().then(function(){syncFromBridge();recent()}).catch(function(){});
@@ -421,7 +434,7 @@ setInterval(function(){
   var b=bridge();if(b&&b.refreshInbox)b.refreshInbox().then(function(){syncFromBridge();recent()}).catch(function(){});
 },60000);
 window.addEventListener("storage",refreshPageFromBridge);
-window.addEventListener("focus",refreshPageFromBridge);
+window.addEventListener("focus",function(){refreshPageFromBridge();refreshNativeNotificationStatus()});
 document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshPageFromBridge()});
 })();
 </script>
