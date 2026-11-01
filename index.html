@@ -947,6 +947,9 @@ body.momin-founder-route-v3 #momin-founder-frame-v3{display:block!important;widt
   var SUPABASE_URL="https://qzwqpiquvhpjwqgaxorp.supabase.co";
   var SUPABASE_PUBLISHABLE_KEY="sb_publishable_SAHjdts8xtuQSXE_lPa1cw_V6J3PjQt";
   var root=document.documentElement,redirecting=false;
+  function hasAdminReturn(){
+    try{return sessionStorage.getItem("momin-admin-oauth-return")==="1"||new URLSearchParams(location.search).get("mominAdminReturn")==="1"}catch(_){return false}
+  }
   var supabaseClient=window.mominSupabase||window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
     auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
   });
@@ -960,7 +963,7 @@ body.momin-founder-route-v3 #momin-founder-frame-v3{display:block!important;widt
   function sendToProfile(){
     if(redirecting)return;
     redirecting=true;
-    var next=location.pathname+location.search+location.hash;
+    var next=hasAdminReturn()?"/admin/":(location.pathname+location.search+location.hash);
     if(!next||next.indexOf("/profile-complete.html")===0)next="/";
     location.replace("/profile-complete.html?next="+encodeURIComponent(next));
   }
@@ -1003,6 +1006,11 @@ body.momin-founder-route-v3 #momin-founder-frame-v3{display:block!important;widt
       if(!isEmailVerified(user)){sendToProfile();return;}
       var complete=await hasCompletedProfile(user);
       if(!complete){sendToProfile();return;}
+      if(hasAdminReturn()){
+        try{sessionStorage.removeItem("momin-admin-oauth-return")}catch(_){}
+        location.replace("/admin/");
+        return;
+      }
       root.classList.remove("momin-auth-pending");
     }catch(error){
       console.warn("MOMIN profile completion gate:",error);
