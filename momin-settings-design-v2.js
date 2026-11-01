@@ -169,7 +169,7 @@ function buildSections(){
   selectRow("lead","Advance reminder","A normal alert before prayer; it never plays the full Azan",[["0","At prayer time only"],["5","5 minutes before"],["10","10 minutes before"],["15","15 minutes before"],["30","30 minutes before"]],"settingsReminderMinutesV1")+
   note("<b>2 · Festival and Islamic-date reminders</b><br>Normal phone notifications for occasions such as Ramadan, Ashura and the two Eids. They do not play the Azan.")+
   switchRow("festivals","Festival reminders","Receive Islamic occasion reminders on this phone","","settingsFestivalNotificationsV1")+
-  note("<b>3 · Admin announcements</b><br>Updates and announcements from MOMIN administrators use a separate notification category. They never play the Azan.")+
+  note("<b>3 · Admin announcements</b><br>Admin announcements have their own phone notification category and never play the Azan. Remote delivery will be enabled when the replacement MOMIN admin message service is connected.")+
   switchRow("admin","Admin notifications","Allow announcements from the MOMIN admin service","","settingsAdminNotificationsV1")+
   saveButton("Save notification settings","notif")+
   actions(button("Send test notification","ghost","testnote")+button("Preview Makkah Azan","ghost","azan"))});
