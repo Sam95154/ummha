@@ -40,7 +40,7 @@ const routeGroups={
  users:"USER OPERATIONS","active-users":"USER OPERATIONS",devices:"USER OPERATIONS","user-support":"USER OPERATIONS",suspended:"USER OPERATIONS",
  notifications:"COMMUNICATION","create-notification":"COMMUNICATION",templates:"COMMUNICATION",scheduled:"COMMUNICATION","delivery-reports":"COMMUNICATION",announcements:"COMMUNICATION"
 };
-let client=null,session=null,staff=null,permissions=[],currentPage="dashboard",pageCache={},campaignId=null,uploadedImage=null,selectedUsers=[],userSearchTimer=null,authBusy=false,apiBusy=false,searchIndex=0,searchItems=[],usersPage=1,currentUsersStatus="all";
+let client=null,session=null,staff=null,permissions=[],currentPage="dashboard",pageCache={},campaignId=null,uploadedImage=null,selectedUsers=[],userSearchTimer=null,authBusy=false,apiBusy=false,searchIndex=0,searchItems=[],usersPage=1,currentUsersStatus="all",authFlowPromise=null;
 function toast(message,title){
  const n=document.createElement("div");n.className="toast";n.innerHTML=title?'<strong>'+esc(title)+'</strong>'+esc(message):esc(message);
  $("toastRegion").appendChild(n);window.setTimeout(()=>n.remove(),4800);
@@ -167,6 +167,8 @@ async function challengeMfa(factor){
  $("mfaCode").focus();
 }
 async function finishAuthentication(){
+ if(authFlowPromise)return authFlowPromise;
+ authFlowPromise=(async function(){
  const user=session&&session.user;if(!user)throw new Error("No authenticated session was returned.");
  if(!user.email_confirmed_at){await client.auth.signOut({scope:"local"});throw new Error("Verify your email address before accessing Admin.");
  }
@@ -179,6 +181,10 @@ async function finishAuthentication(){
  if(!mfaComplete)return;
  const s=await client.auth.getSession();session=s.data.session;
  await loadAdminSession();
+
+ })();
+ try{return await authFlowPromise}
+ finally{authFlowPromise=null}
 }
 async function loadAdminSession(){
  const result=await api("session");
@@ -527,7 +533,6 @@ function renderNavigationEvents(){
  $("modalOverlay").addEventListener("click",e=>{if(e.target===$("modalOverlay"))closeModal()});
  $("togglePassword").onclick=()=>{$("demoPassword").type=$("demoPassword").type==="password"?"text":"password"};
  $("demoLoginForm").addEventListener("submit",signIn);
- if($("forgotPasswordBtn"))$("forgotPasswordBtn").addEventListener("click",forgotPassword);
  $("mfaBackDashboard").onclick=()=>loadAdminSession().catch(renderError);
  $("quickCreate").setAttribute("aria-haspopup","menu");
  document.addEventListener("keydown",e=>{
