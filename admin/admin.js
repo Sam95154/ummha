@@ -69,11 +69,7 @@ function showLogin(message){
   $("demoLoginForm").insertAdjacentElement("afterend",b);
   b.addEventListener("click",googleSignIn);
  }
- if(!$("forgotPasswordBtn")){
-  const b=document.createElement("button");b.id="forgotPasswordBtn";b.type="button";b.className="text-btn full-center";b.textContent="Forgot password?";
-  $("loginScreen").querySelector(".login-card").appendChild(b);
-  b.addEventListener("click",forgotPassword);
- }
+ if($("forgotPasswordBtn"))$("forgotPasswordBtn").onclick=forgotPassword;
 }
 function showMfa(title,copy,content){
  $("workspace").classList.add("hidden");$("loginScreen").classList.add("hidden");$("mfaScreen").classList.remove("hidden");
@@ -198,7 +194,8 @@ function renderNavigation(){
  $("profileMenu").querySelector("small").textContent=(staff.role||"staff").replace(/_/g," ");
 }
 function requiredPermissionForPage(page){
- if(["users","active-users","devices","user-support","suspended"].includes(page))return "users.view";
+ if(page==="devices")return "users.devices";
+ if(["users","active-users","user-support","suspended"].includes(page))return "users.view";
  if(page==="create-notification")return "notifications.create";
  if(["notifications","templates","scheduled","delivery-reports","announcements"].includes(page))return "notifications.view";
  if(page==="approvals")return "notifications.approve";
@@ -506,6 +503,7 @@ function renderNavigationEvents(){
  $("modalOverlay").addEventListener("click",e=>{if(e.target===$("modalOverlay"))closeModal()});
  $("togglePassword").onclick=()=>{$("demoPassword").type=$("demoPassword").type==="password"?"text":"password"};
  $("demoLoginForm").addEventListener("submit",signIn);
+ if($("forgotPasswordBtn"))$("forgotPasswordBtn").addEventListener("click",forgotPassword);
  $("mfaBackDashboard").onclick=()=>loadAdminSession().catch(renderError);
  $("quickCreate").setAttribute("aria-haspopup","menu");
  document.addEventListener("keydown",e=>{
