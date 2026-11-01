@@ -53,7 +53,7 @@ check(userModule.includes("momin-complaint-attachments") && userModule.includes(
 check(index.includes("momin-giving-complaints-v1.js"), "Main MOMIN app loads the Giving and complaint module");
 check(bridge.includes("momin_user_notifications") && bridge.includes("markInboxRead"), "Admin announcements are connected to the existing User notification inbox");
 check(serviceWorker.includes('"complaints"'), "Push service worker accepts the Complaints destination");
-check(migration.includes("momin_public_giving_totals"), "User Giving progress uses a privacy-safe aggregate view");
+check(migration.includes("momin_giving_totals_public"), "User Giving progress uses a privacy-safe aggregate table");
 check(migration.includes("add column if not exists phone text"), "Migration stores optional Auth phone contact details");
 check(migration.includes("existing_public_id") && migration.includes("existing_status"), "Profile upserts preserve permanent User ID and account status");
 check(api.includes("account_status", api.indexOf("async function activeRecipientIds")), "Notification sends filter recipient accounts by active status");

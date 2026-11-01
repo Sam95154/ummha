@@ -57,7 +57,7 @@
       const rows=data||[];
       let contributions=[];
       if(rows.length){
-        const {data:tx,error:txError}=await sb.from("momin_public_giving_totals")
+        const {data:tx,error:txError}=await sb.from("momin_giving_totals_public")
           .select("campaign_id,received_amount,contribution_count").in("campaign_id",rows.map(x=>x.id));
         if(txError) throw txError;
         contributions=tx||[];

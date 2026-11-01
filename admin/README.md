@@ -35,7 +35,7 @@ The Admin UI uses the Supabase project configured for MOMIN. Until the Admin mig
 5. Keep the Admin origin in `ALLOWED_ORIGINS` and remove any unused origins before release.
 6. Run database security and performance advisors after applying the migration.
 
-The migration creates only additive tables/columns/policies and two storage buckets. It backfills stable User IDs for existing Auth accounts. The profile trigger preserves User IDs during the existing User app's profile upsert and prevents ordinary Users from changing User IDs or Admin-managed account status.
+The migrations create additive tables/columns/policies and two storage buckets. User-facing campaign progress is served from an aggregate-only table maintained by a contribution trigger, not by exposing donor records. It backfills stable User IDs for existing Auth accounts. The profile trigger preserves User IDs during the existing User app's profile upsert and prevents ordinary Users from changing User IDs or Admin-managed account status.
 
 ## Initial Admin account
 
