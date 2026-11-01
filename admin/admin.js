@@ -187,10 +187,10 @@
     if (state.notifTab === "history") {
       const rows = state.notifications.map(n => "<tr><td>" + escapeHtml(n.title) + "</td><td>" + escapeHtml(n.audience_type) +
         "</td><td>" + date(n.created_at) + "</td><td>" + (n.image_url ? "Image" : "Text only") + "</td><td>" +
-        badge(n.status) + "</td><td>" + escapeHtml(n.recipient_count || 0) + "</td><td>" + escapeHtml(n.sent_count || 0) + "</td></tr>");
+        badge(n.status) + "</td><td>" + escapeHtml(n.recipient_count || 0) + "</td><td>" + escapeHtml((n.read_count || 0) + " (" + (n.read_rate || 0) + "%)") + "</td><td>" + escapeHtml(n.sent_count || 0) + "</td></tr>");
       return heading("Notifications", "Notification delivery and history") +
         '<div class="tabs"><button data-action="notif-tab" data-tab="create">Create</button><button class="active" data-action="notif-tab" data-tab="history">History</button></div>' +
-        '<section class="card">' + table(["Title","Audience","Created","Media","Status","Recipients","Push sent"], rows) + "</section>";
+        '<section class="card">' + table(["Title","Audience","Created","Media","Status","Recipients","Read","Push sent"], rows) + "</section>";
     }
     const userOptions = state.notificationUsers.map(u => '<option value="' + escapeHtml(u.id) + '" ' +
       (state.notificationSelections.includes(u.id) ? "selected" : "") + '>' + escapeHtml(u.user_id + " · " + u.name) + "</option>").join("");
