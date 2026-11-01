@@ -148,6 +148,21 @@ create index if not exists momin_contributions_campaign_idx on public.momin_cont
 create index if not exists momin_contributions_user_idx on public.momin_contributions(user_id, created_at desc);
 create index if not exists momin_contributions_fund_idx on public.momin_contributions(fund_category, payment_status);
 
+-- Public Giving progress exposes only campaign-level aggregates, never donor rows.
+create or replace view public.momin_public_giving_totals as
+select
+  campaign_id,
+  fund_category,
+  currency,
+  sum(amount)::numeric(16,2) as received_amount,
+  count(*)::integer as contribution_count
+from public.momin_contributions
+where payment_status = 'verified'
+group by campaign_id, fund_category, currency;
+
+revoke all on public.momin_public_giving_totals from anon, authenticated;
+grant select on public.momin_public_giving_totals to authenticated;
+
 create table if not exists public.momin_complaints (
   id uuid primary key default gen_random_uuid(),
   ticket_id text not null unique default ('MOM-C-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10))),
