@@ -305,7 +305,7 @@ $("g").onclick=async function(){
     var result=await supabaseClient.auth.signInWithOAuth({
       provider:"google",
       options:{
-        redirectTo:location.origin+profilePath(),
+        redirectTo:location.origin+"/",
         queryParams:{access_type:"offline",prompt:"select_account"}
       }
     });
@@ -331,7 +331,7 @@ $("form").onsubmit=async function(event){
         password:password,
         options:{
           data:{full_name:fullName,name:fullName},
-          emailRedirectTo:location.origin+profilePath()
+          emailRedirectTo:location.origin+"/"
         }
       });
       if(signUp.error)throw signUp.error;
