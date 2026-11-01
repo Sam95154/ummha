@@ -77,7 +77,7 @@
         '<button type="button" class="plain" data-complaint-action="back">← My complaints</button>'+
         '<div class="card mt"><div class="rowbetween"><h3>'+esc(c.subject)+'</h3><span class="tag">'+esc(c.status)+'</span></div>'+
         '<p class="sub">'+esc(c.category)+' · '+esc(c.priority)+' · Submitted '+fmtDate(c.created_at)+'</p>'+
-        '<p>'+esc(c.description)+'</p>'+(c.attachment_path?'<p class="sub">Attachment submitted</p>':'')+
+        '<p>'+esc(c.description)+'</p>'+(c.attachment_url?'<p class="sub"><a href="'+esc(c.attachment_url)+'" target="_blank" rel="noopener noreferrer">View submitted attachment ↗</a></p>':'')+
         '<div class="sectionhead"><h2>Conversation and status history</h2></div>'+
         '<div class="timeline">'+(state.replies||[]).map(r=>'<div class="timeline-item"><b>'+(r.author_type==="admin"?"MOMIN Support":"You")+'</b><p>'+esc(r.message)+'</p><small>'+fmtDate(r.created_at)+'</small></div>').join("")+
         '<div class="timeline-item"><b>Current status: '+esc(c.status)+'</b><small>Last updated '+fmtDate(c.updated_at)+'</small></div></div></div>';
@@ -113,7 +113,12 @@
       const {data:replies,error:replyError}=await sb.from("momin_complaint_replies")
         .select("id,author_type,message,created_at").eq("complaint_id",id).order("created_at",{ascending:true});
       if(replyError)throw replyError;
-      state.selectedComplaint=data;state.replies=replies||[];renderCustom();
+      let attachmentUrl=null;
+      if(data.attachment_path){
+        const signed=await sb.storage.from("momin-complaint-attachments").createSignedUrl(data.attachment_path,3600);
+        if(!signed.error&&signed.data)attachmentUrl=signed.data.signedUrl;
+      }
+      state.selectedComplaint={...data,attachment_url:attachmentUrl};state.replies=replies||[];renderCustom();
     }catch(error){notify(error.message);}
   }
   async function submitComplaint(form) {
