@@ -7,7 +7,7 @@
   const state = {
     token: null, admin: null, page: "login", theme: localStorage.getItem("momin-admin-theme") || "dark",
     busy: false, error: "", toastTimer: null, menu: false, notifTab: "create", givingTab: "campaigns",
-    dashboard: null, users: [], userQuery: "", userStatus: "all", notifications: [],
+    dashboard: null, users: [], editCampaign: null, userQuery: "", userStatus: "all", notifications: [],
     campaigns: [], contributions: [], complaints: [], profile: null, selectedComplaint: null,
     notificationImage: null, campaignImage: null
   };
