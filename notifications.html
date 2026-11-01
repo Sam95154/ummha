@@ -190,7 +190,7 @@ nav a[aria-current]{color:var(--gold2);font-weight:700;background:var(--soft);bo
     <div class="rows" id="rows"></div>
   </section>
 
-  <section class="card rise" style="--d:4"><h2>Updates</h2><div class="rows" id="ups"></div></section>
+  <section class="card rise" style="--d:4"><h2>Updates</h2><p class="sub">Choose the updates you would like MOMIN to send. App announcements are optional and separate from prayer reminders.</p><div class="rows" id="ups"></div></section>
 
   <div class="sec rise" style="--d:5"><h3>Recent</h3><button id="clr" type="button">Clear all</button></div>
   <div id="recent"></div>
@@ -213,7 +213,7 @@ var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"
 /* ===== DATA: replace with real prayer times and the real notification inbox ===== */
 var PRAYER_NAMES=["Fajr","Dhuhr","Asr","Maghrib","Isha"];var P=PRAYER_NAMES.map(function(n){return {n:n,m:null}});
 var RECENT=[];
-var UPS=[{k:"jumuah",t:"Jumuʿah reminder",s:"A gentle reminder on Fridays",i:"cal"},{k:"adhkar",t:"Morning and evening adhkar",s:"Daily remembrance prompts",i:"mo"},{k:"dates",t:"Islamic dates and occasions",s:"Important days in the Hijri calendar",i:"bk"}];
+var UPS=[{k:"jumuah",t:"Jumuʿah reminder",s:"A gentle reminder on Fridays",i:"cal"},{k:"adhkar",t:"Morning and evening adhkar",s:"Daily remembrance prompts",i:"mo"},{k:"dates",t:"Islamic dates and occasions",s:"Important days in the Hijri calendar",i:"bk"},{k:"announcements",t:"App announcements",s:"Optional news, giving campaigns and community updates",i:"b"}];
 var LEADS=[0,5,10,15,30];
 /* ===== end of data ===== */
 function fmt(m){m=((m%1440)+1440)%1440;var h=Math.floor(m/60),mm=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+(mm<10?"0":"")+mm+" "+ap}
@@ -230,7 +230,7 @@ function syncFromBridge(){
   if(x){
     prefs.on=!!x.on;prefs.lead=Number(x.lead)||0;
     prefs.pr=Array.isArray(x.pr)?x.pr.map(Boolean):[1,1,1,1,1];
-    prefs.jumuah=!!x.jumuah;prefs.adhkar=!!x.adhkar;prefs.dates=!!x.dates;
+    prefs.jumuah=!!x.jumuah;prefs.adhkar=!!x.adhkar;prefs.dates=!!x.dates;prefs.announcements=!!x.announcements;
   }else{
     prefs.on=ls("noor-notifications","true")!=="false";
     prefs.lead=Math.max(0,Math.min(60,Number(ls("noor-prayer-reminder-minutes","0"))||0));
@@ -238,6 +238,7 @@ function syncFromBridge(){
     prefs.jumuah=ls("noor-jumuah-reminders","true")!=="false";
     prefs.adhkar=ls("noor-adhkar-reminders","false")==="true";
     prefs.dates=ls("noor-islamic-event-reminders","true")!=="false";
+    prefs.announcements=ls("momin-announcements-enabled","false")==="true";
   }
   var times=snap&&snap.prayerTimes;
   if(!times){
@@ -355,9 +356,19 @@ function tick(){
 }
 
 /* recent */
+function markCampaignRead(id){
+  var b=bridge();
+  if(!b||!b.markInboxRead)return;
+  b.markInboxRead(id).then(function(){refreshPageFromBridge();toast("Message marked as read.")}).catch(function(){toast("Could not update this message. Try again.")});
+}
 function recent(){
   $("clr").hidden=!inbox.length;
-  $("recent").innerHTML=inbox.length?inbox.map(function(m,i){return '<div class="msg" style="--d:'+i+'"><span class="ri"><svg class="i"><use href="#'+m.i+'"/></svg></span><div><b>'+esc(m.t)+"</b><p>"+esc(m.s)+"</p></div><time>"+esc(m.w)+"</time></div>"}).join(""):'<div class="empty"><div class="ri"><svg class="i"><use href="#b"/></svg></div><b>You’re all caught up</b>New reminders will appear here.</div>';
+  $("recent").innerHTML=inbox.length?inbox.map(function(m,i){
+    var image=m.image?'<img loading="lazy" alt="" src="'+esc(m.image)+'" style="display:block;width:100%;max-height:150px;object-fit:cover;border-radius:14px;margin:0 0 10px">':"";
+    var mark=m.inboxId&&m.unread?'<button class="text-btn" type="button" style="margin-top:7px" data-mark-read="'+esc(m.inboxId)+'">Mark as read</button>':"";
+    return '<article class="msg" style="--d:'+i+';padding:14px;border:1px solid var(--line);border-radius:18px;margin:9px 0;background:var(--card)">'+image+'<div style="display:flex;gap:10px;align-items:flex-start"><span class="ri"><svg class="i"><use href="#'+esc(m.i||"b")+'"/></svg></span><div style="flex:1;min-width:0"><b>'+esc(m.t)+"</b><p>"+esc(m.s)+"</p>"+mark+"</div><time>"+esc(m.w)+"</time></div></article>";
+  }).join(""):'<div class="empty"><div class="ri"><svg class="i"><use href="#b"/></svg></div><b>You’re all caught up</b>New reminders and announcements you’ve opted into will appear here.</div>';
+  $("recent").querySelectorAll("[data-mark-read]").forEach(function(button){button.addEventListener("click",function(){markCampaignRead(button.getAttribute("data-mark-read"))})});
 }
 $("clr").onclick=function(){
   var old=inbox.slice(),b=bridge();
