@@ -57,20 +57,14 @@ function showModal(title,body,confirmLabel,callback,opts){
 }
 function closeModal(){ $("modalOverlay").classList.add("hidden"); }
 function hideAuth(){
- $("loginScreen").classList.add("hidden");$("mfaScreen").classList.add("hidden");$("workspace").classList.remove("hidden");
+ $("loginScreen").classList.add("hidden");$("workspace").classList.remove("hidden");
 }
 function showLogin(message){
- $("workspace").classList.add("hidden");$("mfaScreen").classList.add("hidden");$("loginScreen").classList.remove("hidden");
+ $("workspace").classList.add("hidden");$("loginScreen").classList.remove("hidden");
  $("loginTitle").textContent="Welcome back";
  $("loginDescription").textContent=message||"Sign in with your dedicated MOMIN administrator email and password.";
  $("demoEmail").value="";$("demoPassword").value="";
  if($("forgotPasswordBtn"))$("forgotPasswordBtn").onclick=forgotPassword;
-}
-function showMfa(title,copy,content){
- $("workspace").classList.add("hidden");$("loginScreen").classList.add("hidden");$("mfaScreen").classList.remove("hidden");
- const card=$("mfaScreen").querySelector(".mfa-card");
- card.innerHTML='<button class="back-link" id="mfaBack">← Sign out</button><img class="brand-symbol large" src="../momin-mark.svg?v=islamic-logo-v3" alt="MOMIN logo"><div class="eyebrow">SECURE ADMIN ACCESS</div><h1>'+esc(title)+'</h1><p class="muted">'+esc(copy)+'</p>'+content;
- $("mfaBack").addEventListener("click",async()=>{await client.auth.signOut({scope:"local"});showLogin("Sign in again when you are ready to complete administrator verification.")});
 }
 async function api(action,payload){
  if(!session){const r=await client.auth.getSession();session=r.data&&r.data.session;if(!session)throw new Error("Your session expired. Sign in again.");}
@@ -467,12 +461,11 @@ function renderNavigationEvents(){
  $("quickMenu").querySelectorAll("[data-quick]").forEach(b=>b.onclick=()=>{const q=b.dataset.quick;navigate(q==="Notification"?"create-notification":q==="Staff invitation"?"staff":q==="Content"?"content":q==="Announcement"?"announcements":"create-campaign")});
  $("globalSearchButton").onclick=openSearch;
  $("adminBell").onclick=()=>navigate(hasPermission("notifications.approve")?"approvals":(hasPermission("notifications.view")?"notifications":"dashboard"));
- $("profileMenu").onclick=()=>showModal("Administrator session",'<p><strong>'+esc(staff.display_name||"MOMIN Admin")+'</strong></p><p class="muted">'+esc(staff.role)+'</p><p class="muted tiny">Your access is protected by Supabase authentication and two-step verification.</p>',"Sign out",async()=>{await client.auth.signOut({scope:"local"});session=null;staff=null;permissions=[];closeModal();showLogin("You have signed out of MOMIN Admin.")});
+ $("profileMenu").onclick=()=>showModal("Administrator session",'<p><strong>'+esc(staff.display_name||"MOMIN Admin")+'</strong></p><p class="muted">'+esc(staff.role)+'</p><p class="muted tiny">Your access uses a separate administrator session and server-checked role permissions.</p>',"Sign out",async()=>{await client.auth.signOut({scope:"local"});session=null;staff=null;permissions=[];closeModal();showLogin("You have signed out of MOMIN Admin.")});
  document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).classList.add("hidden"));
  $("modalOverlay").addEventListener("click",e=>{if(e.target===$("modalOverlay"))closeModal()});
  $("togglePassword").onclick=()=>{$("demoPassword").type=$("demoPassword").type==="password"?"text":"password"};
  $("demoLoginForm").addEventListener("submit",signIn);
- $("mfaBackDashboard").onclick=()=>loadAdminSession().catch(renderError);
  $("quickCreate").setAttribute("aria-haspopup","menu");
  document.addEventListener("keydown",e=>{
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openSearch()}
@@ -493,8 +486,7 @@ function renderSearchResults(){
 function renderErrorPage(e){console.error(e);renderError(e)}
 async function start(){
  if(!window.supabase||!window.supabase.createClient){showLogin("The secure sign-in library could not load. Refresh this page and try again.");return}
- client=window.mominSupabase||window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
- window.mominSupabase=client;
+ client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"momin-admin-auth-v1"}});
  renderNavigationEvents();
  try{
   const r=await client.auth.getSession();session=r.data&&r.data.session;
