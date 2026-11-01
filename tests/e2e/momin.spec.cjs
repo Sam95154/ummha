@@ -97,7 +97,7 @@ async function openAuthenticatedApp(page) {
   await page.goto("/index.html", { waitUntil: "domcontentloaded" });
   await expect(page.locator("body")).toHaveClass(/momin-app-shell-active/);
   await expect(page.locator("#momin-shared-bottom-nav-v1")).toBeVisible();
-  await expect(page.locator("#view")).not.toBeEmpty();
+  expect(await page.locator("#view").evaluate((element) => element.childElementCount)).toBeGreaterThan(0);
 }
 
 async function getOverflow(page) {
@@ -158,8 +158,8 @@ test.describe("MOMIN authenticated app", () => {
 
     const routes = [
       "home", "prayers", "quran", "qibla", "duas", "giving",
-      "tasbeeh", "calendar", "inspiration", "aideen", "settings",
-      "profile", "notifications", "ummah", "founder", "mosques", "journey"
+      "tasbeeh", "calendar", "inspiration", "settings",
+      "profile", "notifications", "founder", "mosques", "journey"
     ];
     const homeMarkup = await page.locator("#view").innerHTML();
 
@@ -173,6 +173,18 @@ test.describe("MOMIN authenticated app", () => {
       }
     }
     expect(pageErrors, "Uncaught browser errors while rendering feature routes").toEqual([]);
+  });
+
+  test("documents the intentional legacy route aliases", async ({ page }) => {
+    await openAuthenticatedApp(page);
+
+    await page.evaluate(() => window.go("aideen"));
+    await expect.poll(() => page.evaluate(() => window.MominSharedShellV1.currentRoute())).toBe("quran");
+    await expect(page.locator("#toast")).toContainText("Quran search is available from the Quran section");
+
+    await page.evaluate(() => window.go("ummah"));
+    await expect.poll(() => page.evaluate(() => window.MominSharedShellV1.currentRoute())).toBe("journey");
+    expect(await page.locator("#view").evaluate((element) => element.childElementCount)).toBeGreaterThan(0);
   });
 
   test("does not create horizontal overflow at phone, tablet and desktop widths", async ({ page }) => {

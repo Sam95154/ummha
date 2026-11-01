@@ -16,6 +16,7 @@ function check(condition, message) {
 function walk(dir, output = []) {
   if (!fs.existsSync(dir)) return output;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if ([".git", "node_modules", "www", "android", "ios"].includes(entry.name)) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full, output);
     else if (entry.isFile()) output.push(full);
@@ -108,13 +109,10 @@ if (fs.existsSync(shellPath)) {
   }
 }
 
-const sourceFiles = [
-  ...fs.readdirSync(ROOT)
-    .filter((name) => name.endsWith(".js") && fs.statSync(path.join(ROOT, name)).isFile())
-    .map((name) => path.join(ROOT, name)),
-  ...walk(path.join(ROOT, "scripts")).filter((file) => file.endsWith(".mjs")),
-  ...walk(path.join(ROOT, "src", "native")).filter((file) => file.endsWith(".js"))
-].sort();
+const sourceFiles = walk(ROOT)
+  .filter((file) => /\.(?:js|mjs|cjs)$/i.test(file))
+  .filter((file) => !file.includes(path.sep + "test-results" + path.sep))
+  .sort();
 
 check(sourceFiles.length > 0, "JavaScript source files are present");
 for (const file of sourceFiles) {
