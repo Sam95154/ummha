@@ -376,7 +376,7 @@
     return '<h2>' + escapeHtml(c.ticket_id) + " · " + escapeHtml(c.subject) + '</h2><p class="muted">' +
       escapeHtml(c.user_name || "MOMIN User") + " · " + escapeHtml(c.category) + " · " + escapeHtml(c.priority) + "</p><p>" +
       escapeHtml(c.description) + '</p><div class="timeline"><div class="timeline-item"><b>Submitted</b><small>' +
-      date(c.created_at) + "</small></div><div class="timeline-item"><b>Current status: " + escapeHtml(c.status) +
+      date(c.created_at) + '</small></div><div class="timeline-item"><b>Current status: ' + escapeHtml(c.status) +
       "</b><small>" + date(c.updated_at) + "</small></div>" + replies.map(r =>
         '<div class="timeline-item"><b>' + (r.author_type === "admin" ? "Admin response" : "User message") +
         '</b><p>' + escapeHtml(r.message) + "</p><small>" + date(r.created_at) + "</small></div>").join("") +
