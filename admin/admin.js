@@ -16,7 +16,7 @@ const titles={
  users:["USER OPERATIONS","All Users","Search and manage MOMIN accounts."],
  "active-users":["USER OPERATIONS","Active Users","Accounts with recent device activity."],
  devices:["USER OPERATIONS","User Devices","Registered devices and push readiness."],
- "user-support":["USER OPERATIONS","User Support","User assistance and recent account records."],
+ "user-support":["CUSTOMER EXPERIENCE","User Support","Support ticket management is planned for a later phase."],
  suspended:["USER OPERATIONS","Suspended Accounts","Review accounts currently suspended."],
  notifications:["COMMUNICATION","Notification Centre","Create, schedule and review user communications."],
  "create-notification":["COMMUNICATION","Create Notification","Compose a message and preview it before scheduling."],
@@ -208,7 +208,7 @@ function pageMeta(page){
 function setPageHeader(page){
  const meta=pageMeta(page);$("pageEyebrow").textContent=meta[0];$("pageTitle").textContent=meta[1];$("pageSubtitle").textContent=meta[2];$("breadcrumbCurrent").textContent=meta[1];
  $("pageActions").innerHTML="";
- if(page==="dashboard"){$("pageActions").innerHTML='<div class="select-wrap"><select id="dateRange"><option>Last 30 days</option><option>Today</option><option>Last 7 days</option><option>Last 90 days</option><option>This year</option></select></div><span class="phase-badge">LIVE DATA</span>'}
+ if(page==="dashboard")$("pageActions").innerHTML='<span class="phase-badge">LIVE DATA · CURRENT TOTALS</span>'
  if(page==="users"||page==="active-users"||page==="suspended")$("pageActions").innerHTML='<button class="btn btn-secondary" id="exportUsers">Export CSV</button>';
  if(page==="notifications"||page==="scheduled"||page==="announcements")$("pageActions").innerHTML='<button class="btn btn-primary" id="newNotification">＋ Create Notification</button>';
  if(page==="create-notification")$("pageActions").innerHTML='<button class="btn btn-secondary" id="backNotifications">← Campaigns</button>';
@@ -227,7 +227,6 @@ function navigate(page){
  const handlers={
  dashboard:renderDashboard,users:()=>renderUsers("all"),"active-users":()=>renderUsers("active"),
  suspended:()=>renderUsers("suspended"),devices:()=>renderUsers("all",true),
- "user-support":()=>renderUsers("all",true),
  notifications:()=>renderCampaigns("all"),scheduled:()=>renderCampaigns("scheduled"),
  announcements:()=>renderCampaigns("all"),"delivery-reports":()=>renderCampaigns("reports"),
  "create-notification":()=>renderComposer(),templates:()=>renderTemplates(),
@@ -497,7 +496,7 @@ function renderNavigationEvents(){
  $("quickCreate").onclick=()=>$("quickMenu").classList.toggle("hidden");
  $("quickMenu").querySelectorAll("[data-quick]").forEach(b=>b.onclick=()=>{const q=b.dataset.quick;navigate(q==="Notification"?"create-notification":q==="Staff invitation"?"staff":q==="Content"?"content":q==="Announcement"?"announcements":"create-campaign")});
  $("globalSearchButton").onclick=openSearch;
- $("adminBell").onclick=()=>navigate("approvals");
+ $("adminBell").onclick=()=>navigate(hasPermission("notifications.approve")?"approvals":(hasPermission("notifications.view")?"notifications":"dashboard"));
  $("profileMenu").onclick=()=>showModal("Administrator session",'<p><strong>'+esc(staff.display_name||"MOMIN Admin")+'</strong></p><p class="muted">'+esc(staff.role)+'</p><p class="muted tiny">Your access is protected by Supabase authentication and two-step verification.</p>',"Sign out",async()=>{await client.auth.signOut({scope:"local"});session=null;staff=null;permissions=[];closeModal();showLogin("You have signed out of MOMIN Admin.")});
  document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).classList.add("hidden"));
  $("modalOverlay").addEventListener("click",e=>{if(e.target===$("modalOverlay"))closeModal()});
