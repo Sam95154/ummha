@@ -16,10 +16,18 @@ public final class MominAlarmScheduler {
     public static synchronized void schedule(Context context,JSONArray alarms) throws Exception {
         AlarmManager manager=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         if(manager==null) throw new IllegalStateException("Android AlarmManager is unavailable.");
-        if(Build.VERSION.SDK_INT>=31 && !manager.canScheduleExactAlarms()) throw new SecurityException("Alarms & reminders permission is not enabled.");
+        boolean requiresExact=requiresExactAlarm(alarms);
+        if(requiresExact && Build.VERSION.SDK_INT>=31 && !manager.canScheduleExactAlarms()) throw new SecurityException("Alarms & reminders permission is not enabled.");
         cancelStored(context);
         context.getSharedPreferences(PREFS,Context.MODE_PRIVATE).edit().putString(KEY_ALARMS,alarms.toString()).apply();
         scheduleStored(context,alarms);
+    }
+    public static boolean requiresExactAlarm(JSONArray alarms) {
+        for(int i=0;i<alarms.length();i++){
+            JSONObject item=alarms.optJSONObject(i);
+            if(item!=null && "prayer".equalsIgnoreCase(item.optString("kind","prayer"))) return true;
+        }
+        return false;
     }
     public static synchronized void restore(Context context) {
         try {
@@ -45,7 +53,8 @@ public final class MominAlarmScheduler {
     }
     private static void scheduleStored(Context context,JSONArray alarms) {
         AlarmManager manager=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-        if(manager==null || (Build.VERSION.SDK_INT>=31 && !manager.canScheduleExactAlarms()))return;
+        if(manager==null)return;
+        boolean exactAllowed=Build.VERSION.SDK_INT<31 || manager.canScheduleExactAlarms();
         long now=System.currentTimeMillis();
         for(int i=0;i<alarms.length();i++){
             JSONObject item=alarms.optJSONObject(i); if(item==null)continue;
@@ -63,7 +72,9 @@ public final class MominAlarmScheduler {
             PendingIntent pending=PendingIntent.getBroadcast(context,requestCode(id),update,
                 PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
             try {
-                if ("prayer".equalsIgnoreCase(item.optString("kind", "prayer"))) {
+                String kind=item.optString("kind","prayer");
+                if ("prayer".equalsIgnoreCase(kind)) {
+                    if(!exactAllowed)continue;
                     // Prayer-time alerts are the critical user-requested event.
                     // Alarm-clock alarms remain exact through Doze and provide the
                     // exemption needed to start the Azan media foreground service.
@@ -72,12 +83,12 @@ public final class MominAlarmScheduler {
                     PendingIntent showIntent = PendingIntent.getActivity(context, 7701, show,
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                     manager.setAlarmClock(new AlarmManager.AlarmClockInfo(at, showIntent), pending);
-                } else if(Build.VERSION.SDK_INT>=23) {
-                    // Advance reminders are best-effort and do not hold up the
-                    // actual prayer-time alarm if the phone is in deep Doze.
-                    manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,at,pending);
+                } else if (Build.VERSION.SDK_INT>=23) {
+                    // Festival dates and advance reminders are normal reminders,
+                    // so they don't require exact-alarm special access.
+                    manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,at,pending);
                 } else {
-                    manager.setExact(AlarmManager.RTC_WAKEUP,at,pending);
+                    manager.set(AlarmManager.RTC_WAKEUP,at,pending);
                 }
             } catch(SecurityException error) { android.util.Log.e("MOMIN-Alarms","Exact alarm permission missing",error); }
         }

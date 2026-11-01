@@ -75,6 +75,8 @@ function initState(){
   nMaghrib:get("noor-notify-maghrib",get("noor-notifications","true"))!=="false",
   nIsha:get("noor-notify-isha",get("noor-notifications","true"))!=="false",
   lead:get("noor-prayer-reminder-minutes","0"),
+  festivals:get("noor-islamic-event-reminders","false")==="true",
+  admin:get("momin-announcements-enabled","false")==="true",
   translation:get("noor-quran-edition","en.sahih"),
   arSize:qSize(),
   showTr:get("noor-quran-show-translation-v8","true")!=="false",
@@ -156,15 +158,20 @@ function buildSections(){
   actions(saveButton("Save location","location")+button("Use current GPS","ghost","gps"))+
   selectRow("calc","Calculation method","Automatic by location or select a method",methodItems(),"settingsMethodInput")+
   selectRow("asr","Asr calculation","Choose your juristic method",[["standard","Standard (Shafi'i / Maliki / Hanbali)"],["hanafi","Hanafi"]],"settingsAsrMethod")+
-  selectRow("sound","Prayer-time sound","Sound used by MOMIN's prayer reminder service.",[["azan","Makkah Azan ringtone"],["chime","Gentle chime while app is open"],["system","System notification sound"],["silent","No extra sound"]],"settingsAdhanSound")+
   note("Prayer timings can vary by calculation method and local mosque. Confirm important timings locally.")+
   saveButton("Save prayer settings","location2")});
- sections.push({id:"notif",ic:"bell",title:"Notifications & Adhan",sub:"Prayer-by-prayer preferences",body:
-  note("MOMIN uses server-scheduled push alerts after this device is enabled. Alerts can arrive while the app is closed, subject to browser permission, network and phone power settings.")+
-  switchRow("notif","Enable notifications","Master notification preference","","settingsPrayerNotificationsV1")+
-  [["Fajr","nFajr","fajr"],["Dhuhr","nDhuhr","dhuhr"],["Asr","nAsr","asr"],["Maghrib","nMaghrib","maghrib"],["Isha","nIsha","isha"]].map(function(p){return switchRow(p[1],p[0],"Reminder preference","notif","settingsNotify-"+p[2]);}).join("")+
-  selectRow("lead","Advance reminder","Preferred lead time before prayer",[["0","At prayer time"],["5","5 minutes before"],["10","10 minutes before"],["15","15 minutes before"],["30","30 minutes before"]],"settingsReminderMinutesV1")+
-  saveButton("Save notifications","notif")+
+ sections.push({id:"notif",ic:"bell",title:"Notifications",sub:"Prayer Azan · Islamic occasions · Admin announcements",body:
+  note("<b>Three separate notification types</b><br>Prayer alerts can play your uploaded Makkah Azan at the actual prayer time. Festival reminders are normal notifications. Admin announcements are separate messages and never play the Azan.")+
+  switchRow("notif","Enable notifications","Master switch for MOMIN notifications","","settingsPrayerNotificationsV1")+
+  note("<b>1 · Prayer-time alerts and Azan</b><br>Advance reminders are notification-only. The full Azan is played at the actual prayer time when Makkah Azan is selected.")+
+  [["Fajr","nFajr","fajr"],["Dhuhr","nDhuhr","dhuhr"],["Asr","nAsr","asr"],["Maghrib","nMaghrib","maghrib"],["Isha","nIsha","isha"]].map(function(p){return switchRow(p[1],p[0],"Prayer-time alert and Azan preference","notif","settingsNotify-"+p[2]);}).join("")+
+  selectRow("sound","Prayer-time sound","Sound used at the actual prayer time",[["azan","Makkah Azan · uploaded MP3"],["system","System notification sound"],["silent","Silent prayer alert"]],"settingsAdhanSound")+
+  selectRow("lead","Advance reminder","A normal alert before prayer; it never plays the full Azan",[["0","At prayer time only"],["5","5 minutes before"],["10","10 minutes before"],["15","15 minutes before"],["30","30 minutes before"]],"settingsReminderMinutesV1")+
+  note("<b>2 · Festival and Islamic-date reminders</b><br>Normal phone notifications for occasions such as Ramadan, Ashura and the two Eids. They do not play the Azan.")+
+  switchRow("festivals","Festival reminders","Receive Islamic occasion reminders on this phone","","settingsFestivalNotificationsV1")+
+  note("<b>3 · Admin announcements</b><br>Updates and announcements from MOMIN administrators use a separate notification category. They never play the Azan.")+
+  switchRow("admin","Admin notifications","Allow announcements from the MOMIN admin service","","settingsAdminNotificationsV1")+
+  saveButton("Save notification settings","notif")+
   actions(button("Send test notification","ghost","testnote")+button("Preview Makkah Azan","ghost","azan"))});
  sections.push({id:"quran",ic:"book",title:"Quran Reading & Audio",sub:"Translation, text size, reciter and playback",body:
   note("These controls save directly to the Quran reader's existing settings.")+
@@ -193,7 +200,6 @@ function buildSections(){
  sections.push({id:"calendar",ic:"cal",title:"Islamic Calendar & Events",sub:"Hijri dates and occasion preferences",body:
   note("Hijri dates can vary by local moon sighting. Occasion reminders are a saved preference only and are not scheduled in the background.")+
   selectRow("hijriAdj","Hijri date adjustment","Shift displayed Hijri dates by one day if needed",[["-1","One day earlier"],["0","No adjustment"],["1","One day later"]],"settingsHijriAdjustmentV1")+
-  switchRow("occasions","Islamic occasion reminders","Preference only; not scheduled in the background yet","","settingsIslamicEventsV1")+
   saveButton("Save calendar preferences","calendar")+actions(button("Open Calendar","ghost","open-calendar"))});
  sections.push({id:"language",ic:"lang",title:"Language & Accessibility",sub:"Language and interface text",body:
   note("The language selector uses MOMIN's app-wide language service. Some screens may remain in English where translation coverage is not yet available.")+
@@ -307,6 +313,9 @@ function applyNotifications(){
  [["fajr","nFajr"],["dhuhr","nDhuhr"],["asr","nAsr"],["maghrib","nMaghrib"],["isha","nIsha"]].forEach(function(p){
   var el=document.getElementById("settingsNotify-"+p[0]);if(el)el.checked=!!draft[p[1]];
  });
+ var festivals=document.getElementById("settingsFestivalNotificationsV1");if(festivals)festivals.setAttribute("aria-checked",!!draft.festivals);
+ var admin=document.getElementById("settingsAdminNotificationsV1");if(admin)admin.setAttribute("aria-checked",!!draft.admin);
+ var sound=document.getElementById("settingsAdhanSound");if(sound)sound.value=draft.sound;
  var lead=document.getElementById("settingsReminderMinutesV1");if(lead)lead.value=String(draft.lead);
  if(typeof window.saveNotificationPrefsV1==="function"){window.saveNotificationPrefsV1();return true;}
  toast("Notification settings service is not available.");return false;
@@ -341,7 +350,6 @@ function applyLanguage(){
  return true;
 }
 function applyCalendar(){
- var events=document.getElementById("settingsIslamicEventsV1");if(events)events.checked=!!draft.occasions;
  var adj=document.getElementById("settingsHijriAdjustmentV1");if(adj)adj.value=draft.hijriAdj;
  if(typeof window.saveCalendarPrefsV1==="function"){window.saveCalendarPrefsV1();return true;}
  localStorage.setItem("noor-hijri-adjustment",draft.hijriAdj);localStorage.setItem("noor-islamic-event-reminders",draft.occasions?"true":"false");return true;

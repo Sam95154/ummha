@@ -2,6 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import "./momin-native-prayer-alarm.js";
+import "./momin-first-launch-permissions.js";
 
 const AUTH_REDIRECT = "com.momin.noorulislam://auth/callback";
 

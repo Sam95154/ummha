@@ -56,14 +56,14 @@ execFileSync("npx", [
 
 const indexPath = path.join(webDir, "index.html");
 let indexHtml = fs.readFileSync(indexPath, "utf8");
-const authScript = '<script src="./momin-auth-v1.js';
-if (!indexHtml.includes(authScript)) {
-  throw new Error("Could not find MOMIN auth script in the copied index.html.");
+const firstAppScript = '<script src="./noor-v5.js';
+if (!indexHtml.includes(firstAppScript)) {
+  throw new Error("Could not find MOMIN startup script in the copied index.html.");
 }
 if (!indexHtml.includes("momin-capacitor-bridge.js")) {
   indexHtml = indexHtml.replace(
-    authScript,
-    '<script src="./momin-capacitor-bridge.js?v=android-v1"></script>' + authScript
+    firstAppScript,
+    '<script src="./momin-capacitor-bridge.js?v=android-v2"></script>' + firstAppScript
   );
 }
 fs.writeFileSync(indexPath, indexHtml, "utf8");

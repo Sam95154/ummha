@@ -599,7 +599,11 @@ render();
   }
 
   if(page==="prayers")render();
-  startAutomaticLocationV6();
+  if(window.MominFirstLaunchPermissionsV1 && !window.MominFirstLaunchPermissionsV1.isComplete()){
+    window.addEventListener("momin:first-launch-permissions-complete",startAutomaticLocationV6,{once:true});
+  }else{
+    startAutomaticLocationV6();
+  }
 
 /* MOMIN_SETTINGS_SAVE_AND_INDIAN_TRANSLATIONS_V1 */
 var mominIndianLanguagesV6=[

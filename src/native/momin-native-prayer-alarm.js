@@ -96,7 +96,8 @@ function prefsFrom(input) {
     on,
     prayers: Array.isArray(p.pr) ? names.map((_,i)=>!!p.pr[i]) : names.map(n=>readOn("noor-notify-"+n,on)),
     lead: Math.max(0,Math.min(60,Number(p.lead === undefined ? read("noor-prayer-reminder-minutes","0") : p.lead)||0)),
-    sound: String(read("noor-adhan-sound","azan")||"azan").toLowerCase()
+    sound: String(read("noor-adhan-sound","azan")||"azan").toLowerCase(),
+    dates: readOn("noor-islamic-event-reminders", false)
   };
 }
 async function buildAlarms(prefs,loc) {
@@ -137,13 +138,44 @@ async function buildAlarms(prefs,loc) {
         playAzan:prefs.sound==="azan" || prefs.sound==="makkah",sound:prefs.sound
       });
     });
+    if (prefs.dates) {
+      const hijri = row.date && row.date.hijri;
+      const hijriDay = Number(hijri && hijri.day);
+      const hijriMonth = Number(hijri && hijri.month && hijri.month.number);
+      const hijriYear = String(hijri && hijri.year || "");
+      const occasions = {
+        "1-1":"Islamic New Year",
+        "1-10":"Day of Ashura",
+        "9-1":"Ramadan begins",
+        "10-1":"Eid al-Fitr",
+        "12-9":"Day of Arafah",
+        "12-10":"Eid al-Adha"
+      };
+      const occasion = occasions[hijriMonth + "-" + hijriDay];
+      if (occasion) {
+        const festivalAt = timeAt(iso, "07:00", loc.timezone);
+        if (Number.isFinite(festivalAt) && festivalAt > now + 5000) {
+          const safeName = occasion.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+          alarms.push({
+            id: iso + "-festival-" + safeName,
+            at: festivalAt,
+            prayer: "",
+            kind: "festival",
+            title: "MOMIN · " + occasion,
+            body: occasion + " — Islamic dates may vary by local moon sighting.",
+            playAzan: false,
+            sound: "system"
+          });
+        }
+      }
+    }
   });
   return alarms.sort((a,b)=>a.at-b.at);
 }
 async function scheduleFromPreferences(input,force=false) {
   if (!isNative) return {native:false,scheduled:0};
   const prefs=prefsFrom(input);
-  if (!prefs.on || !prefs.prayers.some(Boolean)) {
+  if (!prefs.on || (!prefs.prayers.some(Boolean) && !prefs.dates)) {
     await NativePrayer.cancel();
     lastSignature="";
     return {native:true,scheduled:0,paused:true};
@@ -169,6 +201,7 @@ if (isNative) {
   window.MominNativePrayerAlarm={
     isNative:true,
     getStatus:()=>NativePrayer.getStatus(),
+    requestLocationPermission:()=>NativePrayer.requestLocationPermission(),
     requestNotificationPermission:()=>NativePrayer.requestNotificationPermission(),
     openExactAlarmSettings:()=>NativePrayer.openExactAlarmSettings(),
     schedule:alarms=>NativePrayer.schedule({alarms}),
