@@ -331,6 +331,7 @@ function selectedAudiencePayload(){
  if(type==="individual"||type==="selected")filter.user_ids=selectedUsers.map(x=>x.id);
  if(type==="country")filter.countries=($("audienceCountries").value||"").split(",").map(x=>x.trim()).filter(Boolean);
  if(type==="recent")filter.days=Number($("recentDays").value)||7;
+ if(type==="device_type")filter.device_type=$("deviceType").value;
  return {type,filter};
 }
 function renderSelectedUsers(){
@@ -350,10 +351,10 @@ async function searchRecipients(term){
 function composerMarkup(){
  return '<div class="info-callout"><span>ⓘ</span><div><strong>App Announcements opt-in</strong><br>Only users who explicitly enable App Announcements in MOMIN Settings are eligible. This does not modify prayer reminders or target sensitive personal behaviour.</div></div>'+
  '<div class="section-grid composer-grid"><section class="card"><div class="card-title"><div><h3>1. Audience and delivery</h3><p>Choose who can receive the message.</p></div></div>'+
- '<label class="field-label" for="audienceType">Audience</label><select id="audienceType" class="field-input"><option value="all">All opted-in users</option><option value="individual">One individual user</option><option value="selected">Selected users</option><option value="country">Selected countries</option><option value="recent">Recently registered users</option></select>'+
+ '<label class="field-label" for="audienceType">Audience</label><select id="audienceType" class="field-input"><option value="all">All opted-in users</option><option value="individual">One individual user</option><option value="selected">Selected users</option><option value="country">Selected countries</option><option value="recent">Recently registered users</option><option value="push_enabled">Push-enabled devices</option><option value="device_type">Device type</option></select>'+
  '<div id="recipientSelector" class="hidden"><label class="field-label" for="recipientSearch">Find a user by name, email or ID</label><input id="recipientSearch" class="field-input" placeholder="Start typing…"><div id="recipientMatches" class="search-results"></div><div id="selectedUserChips" class="chip-row"></div></div>'+
  '<div id="countrySelector" class="hidden"><label class="field-label" for="audienceCountries">Countries (comma separated)</label><input id="audienceCountries" class="field-input" placeholder="India, UAE"><p class="muted tiny">Country targeting uses the location associated with the push-enabled device and opt-in profile.</p></div>'+
- '<div id="recentSelector" class="hidden"><label class="field-label" for="recentDays">Registered in last (days)</label><input id="recentDays" class="field-input" type="number" min="1" max="365" value="7"></div>'+
+ '<div id="recentSelector" class="hidden"><label class="field-label" for="recentDays">Registered in last (days)</label><input id="recentDays" class="field-input" type="number" min="1" max="365" value="7"></div><div id="deviceTypeSelector" class="hidden"><label class="field-label" for="deviceType">Registered device type</label><select id="deviceType" class="field-input"><option value="android">Android</option><option value="ios">iPhone / iPad</option><option value="web">Desktop / Web</option></select></div><p class="muted tiny">Language targeting is not available yet because MOMIN does not currently store a reliable account language field.</p>'+
  '<label class="field-label" for="channel">Delivery channel</label><select id="channel" class="field-input"><option value="push_and_in_app">Push + In-app inbox</option><option value="in_app">In-app inbox only</option><option value="push">Push only</option></select>'+
  '<label class="field-label" for="priority">Priority</label><select id="priority" class="field-input"><option value="normal">Normal</option><option value="high">High</option></select>'+
  '<label class="field-label" for="expiresAt">Optional expiry</label><input id="expiresAt" class="field-input" type="datetime-local">'+
@@ -371,7 +372,7 @@ function renderComposer(){
  selectedUsers=selectedUsers||[];uploadedImage=null;campaignId=null;
  $("pageContent").innerHTML=composerMarkup();
  $("backCampaigns").onclick=()=>navigate("notifications");
- $("audienceType").onchange=()=>{const t=$("audienceType").value;$("recipientSelector").classList.toggle("hidden",!["individual","selected"].includes(t));$("countrySelector").classList.toggle("hidden",t!=="country");$("recentSelector").classList.toggle("hidden",t!=="recent");$("audienceEstimate").textContent="Not estimated";};
+ $("audienceType").onchange=()=>{const t=$("audienceType").value;$("recipientSelector").classList.toggle("hidden",!["individual","selected"].includes(t));$("countrySelector").classList.toggle("hidden",t!=="country");$("recentSelector").classList.toggle("hidden",t!=="recent");$("deviceTypeSelector").classList.toggle("hidden",t!=="device_type");$("audienceEstimate").textContent="Not estimated";};
  $("recipientSearch").addEventListener("input",()=>{clearTimeout(userSearchTimer);userSearchTimer=setTimeout(()=>searchRecipients($("recipientSearch").value).catch(e=>toast(e.message)),350)});
  $("messageBody").addEventListener("input",()=>{$("messageCounter").textContent=$("messageBody").value.length+" / 180";$("previewBody").textContent=$("messageBody").value||"Your message preview will appear here."});
  $("messageTitle").addEventListener("input",()=>{$("previewTitle").textContent=$("messageTitle").value||"Notification title";$("campaignName").placeholder=$("messageTitle").value||"Campaign name"});
