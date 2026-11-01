@@ -107,9 +107,10 @@ if (fs.existsSync(homeModulePath)) {
   check(markerAt >= 0 && buttonSource.toLowerCase().includes("journey") && !buttonSource.includes("profile"),
     "Home fallback Journey tab routes to Journey, not Profile");
 }
-check(/momin-home-v3-active/.test(css) && /grid-template-areas/.test(css),
+const homeResponsiveCss = fs.existsSync(responsiveCssPath) ? fs.readFileSync(responsiveCssPath, "utf8") : "";
+check(/momin-home-v3-active/.test(homeResponsiveCss) && /grid-template-areas/.test(homeResponsiveCss),
   "Home dashboard has responsive tablet and desktop grid layouts");
-check(/\.tabs nav[\s\S]*?flex-direction:\s*column/i.test(css),
+check(/\.tabs nav[\s\S]*?flex-direction:\s*column/i.test(homeResponsiveCss),
   "Desktop Home navigation adapts into a vertical rail");
 if (fs.existsSync(shellPath)) {
   const shell = fs.readFileSync(shellPath, "utf8");
