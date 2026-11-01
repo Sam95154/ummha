@@ -305,12 +305,15 @@ async function renderUserDetail(userId){
  $("suspendThisUser").style.display=hasPermission("users.suspend")?"":"none";
  $("notifyThisUser").onclick=()=>{closeModal();selectedUsers=[{id:userId,name:u.display_name||u.email||userId}];navigate("create-notification")};
  $("suspendThisUser").onclick=()=>confirmUserStatus(userId,u.account_status!=="suspended");
- $("modalBody").querySelectorAll("[data-revoke-device]").forEach(b=>b.onclick=async()=>{
-   const id=b.dataset.revokeDevice;
-   showModal("Revoke device","<p>Revoke this MOMIN device and deactivate its push subscription? The device will be signed out when it next contacts MOMIN.</p><label class='field-label' for='revokeReason'>Reason</label><input id='revokeReason' class='field-input' maxlength='250' placeholder='Reason for revoking this device'>","Revoke device",async()=>{
-     const reason=$("revokeReason").value.trim();if(reason.length<3)throw new Error("Enter a reason.");
-     await api("users.revoke_device",{device_id:id,reason});toast("Device revoked.");closeModal();renderUserDetail(userId);
-   });
+ $("modalBody").querySelectorAll("[data-revoke-device]").forEach(b=>{
+   if(!hasPermission("users.devices")){b.style.display="none";return}
+   b.onclick=async()=>{
+     const id=b.dataset.revokeDevice;
+     showModal("Revoke device","<p>Revoke this MOMIN device and deactivate its push subscription? The device will be signed out when it next contacts MOMIN.</p><label class='field-label' for='revokeReason'>Reason</label><input id='revokeReason' class='field-input' maxlength='250' placeholder='Reason for revoking this device'>","Revoke device",async()=>{
+       const reason=$("revokeReason").value.trim();if(reason.length<3)throw new Error("Enter a reason.");
+       await api("users.revoke_device",{device_id:id,reason});toast("Device revoked.");closeModal();renderUserDetail(userId);
+     });
+   };
  });
 }
 function confirmUserStatus(userId,suspend){
@@ -446,11 +449,14 @@ async function renderTemplates(){
   const r=await api("notifications.templates.create",{name:$("tplName").value,category:$("tplCategory").value,title:$("tplTitle").value,message:$("tplBody").value,route:$("tplRoute").value});
   toast("Template created.");closeModal();renderTemplates();
  });
- $("pageContent").querySelectorAll("[data-use-template]").forEach(b=>b.onclick=()=>{const t=templates.find(x=>x.id===b.dataset.useTemplate);if(!t)return;selectedUsers=[];navigate("create-notification");setTimeout(()=>{$("campaignName").value=t.name;$("messageTitle").value=t.title;$("messageBody").value=t.body;$("previewTitle").textContent=t.title;$("previewBody").textContent=t.body;$("destination").value=t.route||"home";},100)});
+ $("pageContent").querySelectorAll("[data-use-template]").forEach(b=>{
+  if(!hasPermission("notifications.create")){b.style.display="none";return}
+  b.onclick=()=>{const t=templates.find(x=>x.id===b.dataset.useTemplate);if(!t)return;selectedUsers=[];navigate("create-notification");setTimeout(()=>{$("campaignName").value=t.name;$("messageTitle").value=t.title;$("messageBody").value=t.body;$("previewTitle").textContent=t.title;$("previewBody").textContent=t.body;$("destination").value=t.route||"home";},100)};
+ });
 }
 async function renderCampaignReport(id){
  const r=await api("notifications.report",{campaign_id:id}),c=r.campaign||{},rows=r.recipients||[];
- showModal("Campaign delivery report",'<div class="quick-stat-row"><span class="quick-stat">Recipients <strong>'+num(c.recipient_count)+'</strong></span><span class="quick-stat">In-app / user outcomes <strong>'+num(c.accepted_count)+'</strong></span><span class="quick-stat">Unsuccessful recipients <strong>'+num(c.failed_count)+'</strong></span><span class="quick-stat">Push accepted <strong>'+num((r.push_deliveries||[]).filter(x=>x.status==="accepted").length)+'</strong></span><span class="quick-stat">Push failed <strong>'+num((r.push_deliveries||[]).filter(x=>x.status==="failed").length)+'</strong></span></div><p style="margin:13px 0">'+badge(c.status)+' &nbsp; '+esc(c.title||"Campaign")+'</p><div class="table-wrap"><table class="audit-table"><thead><tr><th>User reference</th><th>Outcome</th><th>Time</th></tr></thead><tbody>'+rows.slice(0,100).map(x=>'<tr><td>'+esc(x.user_id.slice(0,8))+'…</td><td>'+badge(x.status)+'</td><td>'+fmtDate(x.created_at)+'</td></tr>').join("")+'</tbody></table></div><p class="muted tiny">Push “accepted” means the push provider accepted the request; it does not confirm the alert appeared on the device. In-app inbox creation is recorded separately.</p>',"Close",null);
+ showModal("Campaign delivery report",'<div class="quick-stat-row"><span class="quick-stat">Recipients <strong>'+num(c.recipient_count)+'</strong></span><span class="quick-stat">In-app / user outcomes <strong>'+num(c.accepted_count)+'</strong></span><span class="quick-stat">Unsuccessful recipients <strong>'+num(c.failed_count)+'</strong></span><span class="quick-stat">Push accepted <strong>'+num(((r.push_deliveries||[]).filter(x=>x.status==="accepted").length+(r.push_summary?.accepted||0)))+'</strong></span><span class="quick-stat">Push failed <strong>'+num(((r.push_deliveries||[]).filter(x=>x.status==="failed").length+(r.push_summary?.failed||0)))+'</strong></span></div><p style="margin:13px 0">'+badge(c.status)+' &nbsp; '+esc(c.title||"Campaign")+'</p><div class="table-wrap"><table class="audit-table"><thead><tr><th>User reference</th><th>Outcome</th><th>Time</th></tr></thead><tbody>'+rows.slice(0,100).map(x=>'<tr><td>'+esc(x.user_id.slice(0,8))+'…</td><td>'+badge(x.status)+'</td><td>'+fmtDate(x.created_at)+'</td></tr>').join("")+'</tbody></table></div><p class="muted tiny">Push “accepted” means the push provider accepted the request; it does not confirm the alert appeared on the device. In-app inbox creation is recorded separately.</p>',"Close",null);
 }
 async function renderApprovals(){
  const r=await api("approvals.list"),items=r.approvals||[];
