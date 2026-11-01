@@ -38,7 +38,7 @@ self.addEventListener("push", function(event) {
 self.addEventListener("notificationclick", function(event) {
   event.notification.close();
   var route = event.notification.data && event.notification.data.route || "home";
-  var allowed = ["home","prayers","quran","duas","calendar","notifications","settings","journey"];
+  var allowed = ["home","prayers","quran","duas","calendar","notifications","settings","journey","giving"];
   if (allowed.indexOf(route) < 0) route = "home";
   var target = new URL("/?mominPushRoute=" + encodeURIComponent(route), self.location.origin).href;
   event.waitUntil((async function() {
