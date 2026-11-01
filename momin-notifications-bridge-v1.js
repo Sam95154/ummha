@@ -101,6 +101,29 @@
       var at=item.sent_at||item.created_at||new Date().toISOString(),date=new Date(at),id=item.id||null;
       return {t:item.title||"MOMIN reminder",s:item.body||"",w:date.toLocaleDateString([],{month:"short",day:"numeric"}),i:item.icon_key||"b",at:at,route:item.route||"home",image:item.image_url||null,inboxId:id,unread:id?!readIds[String(id)]:true};
     });
+    /* Admin announcements are persisted per user in Supabase and are also shown
+       in the same MOMIN inbox, including when push permission is disabled. */
+    try{
+      var client=window.mominSupabase;
+      if(client&&client.auth){
+        var auth=await client.auth.getUser(),user=auth&&auth.data&&auth.data.user;
+        if(user){
+          var saved=await client.from("momin_user_notifications")
+            .select("id,title,message,route,image_url,read_at,created_at")
+            .eq("user_id",user.id).order("created_at",{ascending:false}).limit(50);
+          if(!saved.error){
+            (saved.data||[]).forEach(function(row){
+              var at=row.created_at||new Date().toISOString(),id="admin:"+row.id;
+              items.push({t:row.title||"MOMIN update",s:row.message||"",w:new Date(at).toLocaleDateString([],{month:"short",day:"numeric"}),
+                i:"b",at:at,route:row.route||"home",image:row.image_url||null,inboxId:id,
+                unread:!!row.read_at?false:!readIds[id],source:"admin"});
+            });
+          }else{console.warn("MOMIN admin inbox:",saved.error.message);}
+        }
+      }
+    }catch(error){console.warn("MOMIN admin inbox:",error&&error.message||error);}
+    items.sort(function(a,b){return new Date(b.at||0)-new Date(a.at||0);});
+    items=items.slice(0,100);
     put("noor-notification-inbox",JSON.stringify(items));try{window.dispatchEvent(new CustomEvent("momin:notifications-updated"))}catch(_){}return items;
   }
   async function disableBackgroundPush(){
@@ -130,7 +153,7 @@
     window.addEventListener("focus",refreshPushSubscriptionIfNeeded);
     document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshPushSubscriptionIfNeeded()});
   }
-  window.addEventListener("message",function(event){if(event.origin!==location.origin||!event.data||event.data.type!=="MOMIN_PUSH_OPEN")return;var route=String(event.data.route||"home");if(["home","prayers","quran","duas","calendar","notifications","settings","journey"].indexOf(route)<0)route="home";navigate(route)});
+  window.addEventListener("message",function(event){if(event.origin!==location.origin||!event.data||event.data.type!=="MOMIN_PUSH_OPEN")return;var route=String(event.data.route||"home");if(["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"].indexOf(route)<0)route="home";navigate(route)});
 
   function get(key,fallback){try{var v=localStorage.getItem(key);return v===null?fallback:v}catch(_){return fallback}}
   function put(key,value){try{localStorage.setItem(key,String(value));return true}catch(_){return false}}
@@ -361,14 +384,24 @@
     sendPushTest:sendPushTest,
     refreshInbox:refreshPushInbox,
     markInboxRead:function(id){
-      var items=readInbox(),found=false;
+      var key=String(id||""),items=readInbox(),found=false;
       items=items.map(function(item){
-        if(String(item&&item.inboxId||"")===String(id)){
+        if(String(item&&item.inboxId||"")===key){
           item.unread=false;item.read=true;found=true;
         }
         return item;
       });
       if(found){writeInbox(items);try{window.dispatchEvent(new CustomEvent("momin:notifications-updated"))}catch(_){}}
+      if(key.indexOf("admin:")===0&&window.mominSupabase){
+        var rowId=key.slice(6);
+        return window.mominSupabase.auth.getUser().then(function(auth){
+          var user=auth&&auth.data&&auth.data.user;
+          if(!user)return found;
+          return window.mominSupabase.from("momin_user_notifications")
+            .update({read_at:new Date().toISOString()}).eq("id",rowId).eq("user_id",user.id)
+            .then(function(result){if(result.error)console.warn("MOMIN notification read state:",result.error.message);return found;});
+        });
+      }
       return Promise.resolve(found);
     },
     disableBackgroundPush:disableBackgroundPush,
@@ -450,7 +483,7 @@
   };
   try{
     var query=new URL(location.href),route=query.searchParams.get("mominPushRoute");
-    if(route&&["home","prayers","quran","duas","calendar","notifications","settings","journey"].indexOf(route)>=0){
+    if(route&&["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"].indexOf(route)>=0){
       query.searchParams.delete("mominPushRoute");
       history.replaceState(history.state,"",query.pathname+query.search+query.hash);
       window.setTimeout(function(){navigate(route)},450);
