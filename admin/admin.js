@@ -137,25 +137,30 @@
     const m = state.dashboard.metrics || {};
     const cards = [
       ["Total users", m.total_users || 0], ["Active users", m.active_users || 0],
-      ["Inactive users", m.inactive_users || 0], ["New registrations", m.new_registrations || 0],
-      ["Notifications", m.notifications_sent || 0], ["Active campaigns", m.active_campaigns || 0],
-      ["Verified contributions", money(m.contributions_total || 0)], ["Open complaints", m.open_complaints || 0],
-      ["Resolved complaints", m.resolved_complaints || 0]
+      ["Inactive users", m.inactive_users || 0], ["New registrations · 30 days", m.new_registrations || 0],
+      ["Notifications sent", m.notifications_sent || 0], ["Notification read rate", (m.notification_read_rate || 0) + "%"],
+      ["Active campaigns", m.active_campaigns || 0], ["Verified contributions", money(m.contributions_total || 0)],
+      ["Open complaints", m.open_complaints || 0], ["Resolved complaints", m.resolved_complaints || 0]
     ];
     return heading("Dashboard", "Live overview of MOMIN administration") +
       '<div class="grid grid-4">' + cards.map(c => metric(c[0], c[1])).join("") + "</div>" +
-      '<div class="grid grid-2 mt"><section class="card"><h3>Complaint status</h3>' +
+      '<div class="grid grid-2 mt"><section class="card"><h3>New registrations · last 7 days</h3>' +
+      chart(state.dashboard.registrations_series || []) +
+      '</section><section class="card"><h3>Verified giving by fund</h3>' +
+      chart((state.dashboard.giving_by_fund || []).map(x => ({ label: x.label + " · " + money(x.value), value: x.value }))) +
+      '</section><section class="card"><h3>Complaint status</h3>' +
       chart((state.dashboard.complaint_status || []).map(x => ({ label: x.status, value: x.count }))) +
       '</section><section class="card"><h3>Giving campaigns</h3>' +
-      (state.dashboard.campaigns || []).slice(0, 6).map(c => '<div class="status-row"><span>' + escapeHtml(c.name) +
-        '</span>' + badge(c.status) + "</div>").join("") + "</section>" +
-      '<section class="card"><h3>Recent registrations</h3>' +
+      ((state.dashboard.campaigns || []).slice(0, 6).map(c => '<div class="status-row"><span>' + escapeHtml(c.name) +
+        '<br><small class="muted">' + money(c.received_amount || 0, c.currency) + ' of ' + money(c.target_amount, c.currency) +
+        '</small></span>' + badge(c.status) + "</div><div class=\"progress mt\"><i style=\"width:" + (c.progress || 0) + '%"></i></div>').join("") || '<p class="muted">No campaigns created yet.</p>') +
+      '</section><section class="card"><h3>Recent registrations</h3>' +
       table(["User ID","Name","Registered"], (state.dashboard.recent_users || []).map(u =>
         "<tr><td>" + escapeHtml(u.public_user_id || "—") + "</td><td>" + escapeHtml(u.display_name || "MOMIN User") +
         "</td><td>" + date(u.created_at) + "</td></tr>")) + "</section>" +
-      '<section class="card"><h3>Account overview</h3><p class="muted">Statistics are calculated from current MOMIN backend records. No demonstration figures are substituted.</p>' +
-      '<p>All registered users: <b>' + escapeHtml(m.total_users || 0) + "</b></p><p>Active accounts: <b>" +
-      escapeHtml(m.active_users || 0) + "</b></p></section></div>";
+      '<section class="card"><h3>System overview</h3><p class="muted">Statistics are calculated from current MOMIN backend records. Only verified contributions count toward Giving totals.</p>' +
+      '<p>Registered users: <b>' + escapeHtml(m.total_users || 0) + "</b></p><p>Active accounts: <b>" +
+      escapeHtml(m.active_users || 0) + "</b></p><p>Notifications read: <b>" + escapeHtml(m.notification_read_rate || 0) + "%</b></p></section></div>";
   }
   function renderUsers() {
     const rows = state.users.map(u => '<tr><td><b>' + escapeHtml(u.user_id) + '</b></td><td>' + escapeHtml(u.name) +
