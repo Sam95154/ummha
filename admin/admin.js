@@ -223,6 +223,8 @@ function navigate(page){
  $("workspace").classList.remove("mobile-nav-open");
  $("quickMenu").classList.add("hidden");
  setPageHeader(page);
+ if($("newNotification"))$("newNotification").onclick=()=>navigate("create-notification");
+ if($("backNotifications"))$("backNotifications").onclick=()=>navigate("notifications");
  const handlers={
  dashboard:renderDashboard,users:()=>renderUsers("all"),"active-users":()=>renderUsers("active"),
  suspended:()=>renderUsers("suspended"),devices:()=>renderUsers("all",true),
@@ -242,7 +244,7 @@ function renderError(error){
 function renderMetric(label,value,foot,symbol){
  return '<div class="card metric-card"><div class="metric-top"><span>'+esc(label)+'</span>'+icon(symbol)+'</div><span class="metric-value">'+esc(value==null?"—":value)+'</span><div class="metric-foot">'+esc(foot||"From live MOMIN records")+'</div></div>';
 }
-function renderDashboard(){
+async function renderDashboard(){
  const r=await api("dashboard"),m=r.metrics||{};
  $("pageContent").innerHTML='<div class="info-callout"><span>●</span><div><strong>Live MOMIN records</strong><br>Dashboard values are taken from the current Supabase records. Activity and engagement analytics are limited to the data currently collected by MOMIN.</div></div>'+
  '<div class="metric-grid">'+
@@ -367,8 +369,8 @@ function renderComposer(){
   try{uploadedImage=await api("notifications.upload_image",{mime_type:file.type,base64:data});$("imageStatus").textContent="Image uploaded. It will be included in the notification."}
   catch(e){uploadedImage=null;$("imageStatus").textContent=e.message;toast(e.message)}
  };
- $("saveNotificationDraft").onclick=()=>saveDraft(false);
- $("scheduleNotification").onclick=()=>saveDraft(true);
+ $("saveNotificationDraft").onclick=()=>saveDraft(false).catch(e=>toast(e.message));
+ $("scheduleNotification").onclick=()=>saveDraft(true).catch(e=>toast(e.message));
  $("campaignName").value="";$("messageTitle").value="";$("messageBody").value="";
  if(selectedUsers.length){$("audienceType").value=selectedUsers.length===1?"individual":"selected";$("recipientSelector").classList.remove("hidden");renderSelectedUsers()}
  const two=new Date(Date.now()+2*60000);$("scheduleAt").value=two.getFullYear()+"-"+String(two.getMonth()+1).padStart(2,"0")+"-"+String(two.getDate()).padStart(2,"0")+"T"+String(two.getHours()).padStart(2,"0")+":"+String(two.getMinutes()).padStart(2,"0");
@@ -458,10 +460,8 @@ function renderNavigationEvents(){
  $("profileMenu").onclick=()=>showModal("Administrator session",'<p><strong>'+esc(staff.display_name||"MOMIN Admin")+'</strong></p><p class="muted">'+esc(staff.role)+'</p><p class="muted tiny">Your access is protected by Supabase authentication and two-step verification.</p>',"Sign out",async()=>{await client.auth.signOut({scope:"local"});session=null;staff=null;permissions=[];closeModal();showLogin("You have signed out of MOMIN Admin.")});
  document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).classList.add("hidden"));
  $("modalOverlay").addEventListener("click",e=>{if(e.target===$("modalOverlay"))closeModal()});
- $("mfaPreview").onclick=()=>{};
  $("togglePassword").onclick=()=>{$("demoPassword").type=$("demoPassword").type==="password"?"text":"password"};
  $("demoLoginForm").addEventListener("submit",signIn);
- $("mfaBack").addEventListener("click",()=>client.auth.signOut({scope:"local"}).then(()=>showLogin()));
  $("mfaBackDashboard").onclick=()=>loadAdminSession().catch(renderError);
  $("quickCreate").setAttribute("aria-haspopup","menu");
  document.addEventListener("keydown",e=>{
