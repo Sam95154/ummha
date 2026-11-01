@@ -112,32 +112,66 @@ async function getAuthUsers(page = 1, perPage = 100) {
   });
 }
 async function dashboard() {
-  const [{ count: totalUsers }, { count: activeUsers }, { count: notifications }, { count: openComplaints },
-    { count: resolvedComplaints }, { data: campaigns }, { data: contributions }] = await Promise.all([
+  const monthAgo = new Date(Date.now() - 30 * 86400000);
+  const weekAgo = new Date(Date.now() - 7 * 86400000);
+  const [{ count: totalUsers }, { count: activeUsers }, { count: notifications },
+    { count: openComplaints }, { count: resolvedComplaints }, { data: campaigns },
+    { data: contributions }, { count: newRegistrationCount }, { data: weeklyProfiles },
+    { count: inboxCount }, { count: inboxReadCount }, { data: complaintRows },
+    { data: recentProfiles }] = await Promise.all([
     db.from("momin_profiles").select("user_id", { count: "exact", head: true }),
     db.from("momin_profiles").select("user_id", { count: "exact", head: true }).eq("account_status", "Active"),
     db.from("momin_admin_notifications").select("id", { count: "exact", head: true }),
     db.from("momin_complaints").select("id", { count: "exact", head: true }).in("status", ["Open", "Pending", "In Progress"]),
     db.from("momin_complaints").select("id", { count: "exact", head: true }).eq("status", "Resolved"),
     db.from("momin_giving_campaigns").select("id,name,category,target_amount,currency,status,created_at"),
-    db.from("momin_contributions").select("amount,currency,payment_status"),
+    db.from("momin_contributions").select("campaign_id,fund_category,amount,currency,payment_status"),
+    db.from("momin_profiles").select("user_id", { count: "exact", head: true }).gte("created_at", monthAgo.toISOString()),
+    db.from("momin_profiles").select("created_at").gte("created_at", weekAgo.toISOString()).order("created_at", { ascending: true }).limit(5000),
+    db.from("momin_user_notifications").select("id", { count: "exact", head: true }),
+    db.from("momin_user_notifications").select("id", { count: "exact", head: true }).not("read_at", "is", null),
+    db.from("momin_complaints").select("status"),
+    db.from("momin_profiles").select("user_id,public_user_id,display_name,created_at").order("created_at", { ascending: false }).limit(8),
   ]);
-  const { data: complaintRows } = await db.from("momin_complaints").select("status");
   const verified = (contributions || []).filter(x => x.payment_status === "verified");
   const amount = verified.reduce((sum, x) => sum + Number(x.amount || 0), 0);
-  const monthAgo = Date.now() - 30 * 86400000;
-  const { data: recentProfiles } = await db.from("momin_profiles").select("user_id,public_user_id,display_name,created_at").gte("created_at", new Date(monthAgo).toISOString()).order("created_at", { ascending: false }).limit(8);
+  const sevenDays = Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(Date.now() - (6 - i) * 86400000);
+    return day.toISOString().slice(0, 10);
+  });
+  const registrationsByDay = new Map(sevenDays.map(day => [day, 0]));
+  for (const row of weeklyProfiles || []) {
+    if (!row.created_at) continue;
+    const day = new Date(row.created_at).toISOString().slice(0, 10);
+    if (registrationsByDay.has(day)) registrationsByDay.set(day, registrationsByDay.get(day) + 1);
+  }
+  const givingByFund = ["Zakat", "Sadaqah", "Charity"].map(category => ({
+    label: category,
+    value: verified.filter(x => x.fund_category === category).reduce((sum, x) => sum + Number(x.amount || 0), 0),
+  }));
+  const campaignSummary = (campaigns || []).map(c => {
+    const campaignTx = verified.filter(x => x.campaign_id === c.id);
+    const received = campaignTx.reduce((sum, x) => sum + Number(x.amount || 0), 0);
+    return { ...c, received_amount: received, contribution_count: campaignTx.length,
+      progress: c.target_amount ? Math.min(100, Math.round(received / Number(c.target_amount) * 100)) : 0 };
+  });
+  const readRate = (inboxCount || 0) > 0 ? Math.round((inboxReadCount || 0) / inboxCount * 100) : 0;
   return {
     metrics: {
       total_users: totalUsers || 0, active_users: activeUsers || 0,
       inactive_users: Math.max(0, (totalUsers || 0) - (activeUsers || 0)),
-      new_registrations: (recentProfiles || []).length,
-      notifications_sent: notifications || 0,
-      active_campaigns: (campaigns || []).filter(x => x.status === "Active").length,
+      new_registrations: newRegistrationCount || 0,
+      notifications_sent: notifications || 0, notification_read_rate: readRate,
+      active_campaigns: campaignSummary.filter(x => x.status === "Active").length,
       contributions_total: amount,
       open_complaints: openComplaints || 0, resolved_complaints: resolvedComplaints || 0,
     },
-    campaigns: campaigns || [],
+    registrations_series: sevenDays.map(day => ({
+      label: new Date(day + "T00:00:00Z").toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" }),
+      value: registrationsByDay.get(day) || 0,
+    })),
+    giving_by_fund: givingByFund,
+    campaigns: campaignSummary,
     complaint_status: ["Open", "Pending", "In Progress", "Resolved", "Closed"].map(status => ({
       status, count: (complaintRows || []).filter(x => x.status === status).length,
     })),
