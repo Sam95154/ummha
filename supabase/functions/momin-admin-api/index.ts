@@ -9,8 +9,8 @@ const db = createClient(SUPABASE_URL, SERVICE_KEY, {
 
 const ALLOWED_ORIGINS = new Set([
   "https://momin-admin-panel.onrender.com",
-  "https://momin-responsive-layout.onrender.com",
   "http://localhost:8000",
+  "http://127.0.0.1:4173",
   "http://127.0.0.1:8000",
 ]);
 const encoder = new TextEncoder();
