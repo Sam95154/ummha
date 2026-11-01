@@ -226,7 +226,7 @@ test.describe("MOMIN authenticated app", () => {
       await page.setViewportSize({ width: size.width, height: size.height });
       const metrics = await app.evaluate((element) => {
         const main = element.querySelector(":scope > main");
-        const tabs = element.querySelector(".tabs");
+        const tabs = document.querySelector("#view > .tabs");
         const nav = tabs && tabs.querySelector("nav");
         return {
           width: Math.round(element.getBoundingClientRect().width),
