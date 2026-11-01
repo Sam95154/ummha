@@ -47,7 +47,7 @@ function toast(message,title){
 }
 function showModal(title,body,confirmLabel,callback,opts){
  $("modalTitle").textContent=title;$("modalBody").innerHTML=body||"";
- $("modalConfirm").textContent=confirmLabel||"Save demo draft";
+ $("modalConfirm").textContent=confirmLabel||"Confirm action";
  $("modalConfirm").disabled=false;
  $("modalConfirm").onclick=async()=>{
    if(callback){$("modalConfirm").disabled=true;try{await callback()}catch(e){toast(e.message||"Action failed");$("modalConfirm").disabled=false}}
@@ -123,9 +123,11 @@ async function checkMfa(){
  const {data:factors,error:factorError}=await client.auth.mfa.listFactors();
  if(factorError)throw factorError;
  const verified=(factors.totp||[]).filter(x=>x.status==="verified");
- if(verified.length){await challengeMfa(verified[0]);return true}
+ if(verified.length){await challengeMfa(verified[0]);return false}
+ const pending=(factors.totp||[]).filter(x=>x.status!=="verified");
+ for(const factor of pending){try{await client.auth.mfa.unenroll({factorId:factor.id})}catch(_){}}
  await enrollMfa();
- return true;
+ return false;
 }
 async function enrollMfa(){
  const {data,error}=await client.auth.mfa.enroll({factorType:"totp",friendlyName:"MOMIN Admin authenticator"});
@@ -173,7 +175,8 @@ async function finishAuthentication(){
  if(!profile.data||profile.data.profile_completed!==true){
   location.replace("/profile-complete.html?next="+encodeURIComponent("/admin/"));return;
  }
- await checkMfa();
+ const mfaComplete=await checkMfa();
+ if(!mfaComplete)return;
  const s=await client.auth.getSession();session=s.data.session;
  await loadAdminSession();
 }
