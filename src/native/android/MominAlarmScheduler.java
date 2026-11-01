@@ -63,8 +63,22 @@ public final class MominAlarmScheduler {
             PendingIntent pending=PendingIntent.getBroadcast(context,requestCode(id),update,
                 PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
             try {
-                if(Build.VERSION.SDK_INT>=23) manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,at,pending);
-                else manager.setExact(AlarmManager.RTC_WAKEUP,at,pending);
+                if ("prayer".equalsIgnoreCase(item.optString("kind", "prayer"))) {
+                    // Prayer-time alerts are the critical user-requested event.
+                    // Alarm-clock alarms remain exact through Doze and provide the
+                    // exemption needed to start the Azan media foreground service.
+                    Intent show = new Intent(context, MainActivity.class);
+                    show.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    PendingIntent showIntent = PendingIntent.getActivity(context, 7701, show,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                    manager.setAlarmClock(new AlarmManager.AlarmClockInfo(at, showIntent), pending);
+                } else if(Build.VERSION.SDK_INT>=23) {
+                    // Advance reminders are best-effort and do not hold up the
+                    // actual prayer-time alarm if the phone is in deep Doze.
+                    manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,at,pending);
+                } else {
+                    manager.setExact(AlarmManager.RTC_WAKEUP,at,pending);
+                }
             } catch(SecurityException error) { android.util.Log.e("MOMIN-Alarms","Exact alarm permission missing",error); }
         }
     }

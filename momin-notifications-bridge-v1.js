@@ -294,16 +294,25 @@
       if(!prefs.pr[i])return;
       var prayerMin=minutes(data.timings[pair[1]]||data.timings[pair[1].toLowerCase()]);
       if(prayerMin===null)return;
-      var target=(prayerMin-prefs.lead+1440)%1440;
-      var elapsed=(nowMin-target+1440)%1440;
-      var sentKey="noor-prayer-reminder-sent-"+keyDay+"-"+pair[0];
-      if(elapsed>1||get(sentKey,"")==="true")return;
-      var body=prefs.lead?pair[1]+" is coming up in "+prefs.lead+" minutes.":"It is time for "+pair[1]+".";
-      if(!showNotification(prefs.lead?"MOMIN · "+pair[1]+" reminder":"MOMIN · "+pair[1]+" time",body,"momin-prayer-"+keyDay+"-"+pair[0],ICONS[pair[1]]))return;
-      put(sentKey,"true");
-      var sound=get("noor-adhan-sound","azan");
-      if(sound==="azan")playAzan();
-      else if(sound==="chime")playChime();
+      var reminderKey="noor-prayer-reminder-sent-"+keyDay+"-"+pair[0];
+      var timeKey="noor-prayer-time-sent-"+keyDay+"-"+pair[0];
+      if(prefs.lead>0){
+        var reminderTarget=(prayerMin-prefs.lead+1440)%1440;
+        var reminderElapsed=(nowMin-reminderTarget+1440)%1440;
+        if(reminderElapsed<=1&&get(reminderKey,"")!=="true"){
+          var reminderBody=pair[1]+" is coming up in "+prefs.lead+" minutes.";
+          if(showNotification("MOMIN · "+pair[1]+" reminder",reminderBody,"momin-prayer-reminder-"+keyDay+"-"+pair[0],ICONS[pair[1]]))put(reminderKey,"true");
+        }
+      }
+      var prayerElapsed=(nowMin-prayerMin+1440)%1440;
+      if(prayerElapsed<=1&&get(timeKey,"")!=="true"){
+        var prayerBody="It is time for "+pair[1]+".";
+        if(!showNotification("MOMIN · "+pair[1]+" time",prayerBody,"momin-prayer-time-"+keyDay+"-"+pair[0],ICONS[pair[1]]))return;
+        put(timeKey,"true");
+        var sound=get("noor-adhan-sound","azan");
+        if(sound==="azan")playAzan();
+        else if(sound==="chime")playChime();
+      }
     });
     checkUpdateReminders(prefs,data,now,keyDay,nowMin);
   }
