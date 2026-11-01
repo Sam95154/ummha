@@ -226,7 +226,7 @@ function navigate(page){
  if($("backNotifications"))$("backNotifications").onclick=()=>navigate("notifications");
  const handlers={
  dashboard:renderDashboard,users:()=>renderUsers("all"),"active-users":()=>renderUsers("active"),
- suspended:()=>renderUsers("suspended"),devices:()=>renderUsers("all",true),
+ suspended:()=>renderUsers("suspended"),devices:renderDevices,
  notifications:()=>renderCampaigns("all"),scheduled:()=>renderCampaigns("scheduled"),
  announcements:()=>renderCampaigns("all"),"delivery-reports":()=>renderCampaigns("reports"),
  "create-notification":()=>renderComposer(),templates:()=>renderTemplates(),
@@ -291,6 +291,26 @@ async function exportUsersCSV(){
   const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download="momin-users-page-"+usersPage+".csv";link.click();URL.revokeObjectURL(link.href);
   toast("CSV export downloaded for the current filtered page.");
  }catch(e){toast(e.message||"Export failed")}
+}
+let devicesPage=1,deviceSearchTimer=null;
+async function renderDevices(){
+ const page=devicesPage,perPage=50;
+ const r=await api("devices.list",{page,per_page:perPage,search:$("deviceSearch")?.value||"",status:$("deviceStatus")?.value||"all"});
+ const rows=r.devices||[];
+ $("pageContent").innerHTML='<div class="card"><div class="card-title"><div><h3>Registered MOMIN devices</h3><p>Device access, last-seen state and announcement push readiness.</p></div><span class="phase-badge">DEVICE PERMISSION REQUIRED</span></div><div class="audit-toolbar"><input class="filter-input" id="deviceSearch" type="search" placeholder="Search user, email, device or ID…" value="'+esc($("deviceSearch")?.value||"")+'"><div style="display:flex;gap:8px"><select id="deviceStatus" class="filter-select"><option value="all">All device records</option><option value="active">Active</option><option value="revoked">Revoked</option></select><button class="btn btn-secondary" id="refreshDevices">Refresh</button></div></div><div class="table-wrap"><table class="audit-table"><thead><tr><th>User</th><th>Device</th><th>Type</th><th>First seen</th><th>Last seen</th><th>Current</th><th>Push</th><th>App announcements</th><th>Status</th><th></th></tr></thead><tbody>'+
+ (rows.length?rows.map(d=>'<tr><td><strong>'+esc(d.display_name)+'</strong><div class="muted tiny">'+esc(d.email||d.user_id.slice(0,8))+'</div></td><td>'+esc(d.device_name||"Device")+'</td><td>'+esc(d.device_type)+'</td><td>'+fmtDate(d.first_seen_at)+'</td><td>'+fmtDate(d.last_seen_at)+'</td><td>'+badge(d.is_current?"current":"registered")+'</td><td>'+badge(d.push_enabled?"enabled":"off")+'</td><td>'+badge(d.announcements_enabled?"opted in":"opted out")+'</td><td>'+badge(d.account_status)+'</td><td>'+(d.revoked_at?"":'<button class="btn btn-danger btn-small" data-revoke-device="'+esc(d.id)+'">Revoke</button>')+'</td></tr>').join(""):'<tr><td colspan="10"><div class="module-placeholder"><div><div class="placeholder-icon">▣</div><h2>No devices found</h2><p>No device records match these filters.</p></div></div></td></tr>')+
+ '</tbody></table></div><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px"><span class="muted tiny">Page '+page+' · '+rows.length+' device records · '+num(r.total)+' total records</span><div style="display:flex;gap:7px"><button id="devicePrev" class="btn btn-secondary btn-small" '+(page<=1?"disabled":"")+'>Previous</button><button id="deviceNext" class="btn btn-secondary btn-small" '+(!r.has_more?"disabled":"")+'>Next</button></div></div></div>';
+ const search=$("deviceSearch"),status=$("deviceStatus");if(status)status.value=$("deviceStatus")?.value||"all";
+ if(search)search.addEventListener("input",()=>{clearTimeout(deviceSearchTimer);devicesPage=1;deviceSearchTimer=setTimeout(()=>renderDevices().catch(renderError),350)});
+ if(status)status.addEventListener("change",()=>{devicesPage=1;renderDevices().catch(renderError)});
+ $("refreshDevices").onclick=()=>renderDevices();
+ $("devicePrev").onclick=()=>{if(devicesPage>1){devicesPage--;renderDevices().catch(renderError)}};
+ $("deviceNext").onclick=()=>{if(r.has_more){devicesPage++;renderDevices().catch(renderError)}};
+ $("pageContent").querySelectorAll("[data-revoke-device]").forEach(b=>b.onclick=()=>showModal("Revoke registered device",'<p>Disable this device and its associated push subscription.</p><label class="field-label" for="deviceReason">Reason (required)</label><textarea id="deviceReason" class="field-input" rows="3" placeholder="Enter the reason"></textarea>',"Revoke device",async()=>{
+  const reason=$("deviceReason").value.trim();if(reason.length<3)throw new Error("Enter a reason.");
+  await api("users.revoke_device",{device_id:b.dataset.revokeDevice,reason});
+  toast("Device revoked.");closeModal();renderDevices();
+ }));
 }
 async function renderUserDetail(userId){
  const r=await api("users.detail",{user_id:userId}),u=r.user||{};
