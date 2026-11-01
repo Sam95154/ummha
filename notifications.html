@@ -228,7 +228,7 @@ var LEADS=[0,5,10,15,30];
 function fmt(m){m=((m%1440)+1440)%1440;var h=Math.floor(m/60),mm=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+(mm<10?"0":"")+mm+" "+ap}
 function bridge(){try{return window.parent!==window&&window.parent.MominNotificationsBridgeV1||null}catch(e){return null}}
 var prefs={on:true,lead:0,pr:[1,1,1,1,1],jumuah:1,adhkar:0,dates:1};
-var inbox=[],tt,pushReady=false;
+var inbox=[],tt,pushReady=false,nativeStatus=null;
 function ls(key,fallback){try{var v=localStorage.getItem(key);return v===null?fallback:v}catch(e){return fallback}}
 function parseMinute(value){var m=String(value||"").match(/(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):null}
 function refreshNativeNotificationStatus(){
@@ -236,10 +236,11 @@ function refreshNativeNotificationStatus(){
   try{
     var api=window.parent.MominNativePrayerAlarm;
     api.getStatus().then(function(status){
+      nativeStatus=status;
       var b=bridge(),snap=b&&b.snapshot?b.snapshot():null;
       pushReady=!!(snap&&snap.pushEnabled&&status.notificationsEnabled&&status.exactAlarmAllowed);
       hero();
-    }).catch(function(){pushReady=false;hero()});
+    }).catch(function(){nativeStatus=null;pushReady=false;hero()});
   }catch(_){pushReady=false;hero()}
 }
 function syncFromBridge(){
@@ -287,11 +288,21 @@ function live(){return isNativePrayerApp()?(prefs.on&&pushReady):(perm()==="gran
 
 /* hero */
 function hero(){
-  var p=perm(),on=live(),h=$("hero");h.classList.toggle("on",on);
-  var st=$("st"),acts=$("acts");st.className="st"+(p==="denied"||p==="unsupported"?" bad":on?"":" off");
-  var txt={unsupported:["Unavailable","Notifications aren’t supported here","This browser can’t receive background push notifications. Install MOMIN as an app or use a supported browser."],denied:["Blocked","Notifications are blocked","Allow notifications for MOMIN in your browser or phone settings, then enable them again."],default:["Off","Reminders are off","Allow notifications to enable server-scheduled alerts, including while MOMIN is closed."],granted:on?["On","Background reminders are on","MOMIN will send reminders "+(prefs.lead?prefs.lead+" minutes before":"at the time of")+" each selected prayer, even when the app is closed."]:["Not connected","Finish enabling background reminders","Tap Turn on reminders to register this device for closed-app push delivery."]}[p];
+  var p=perm(),on=live(),native=isNativePrayerApp(),h=$("hero");h.classList.toggle("on",on);
+  var st=$("st"),acts=$("acts");
+  var txt;
+  if(native){
+    if(nativeStatus&&!nativeStatus.notificationsEnabled)txt=["Blocked","MOMIN notifications are disabled","Allow notifications for MOMIN in Android Settings, then return here and enable reminders."];
+    else if(nativeStatus&&!nativeStatus.exactAlarmAllowed)txt=["Permission needed","Enable Alarms & reminders","Android requires this special access for precise prayer-time alerts. Tap Enable reminders and grant the access."];
+    else if(on)txt=["On","Android prayer alarms are enabled","MOMIN has scheduled a separate advance reminder and an exact alarm at each selected prayer time. The full Makkah Azan plays only at the actual prayer time when selected."];
+    else txt=["Off","Android prayer alarms are off","Enable reminders to schedule local prayer alerts and optional Makkah Azan playback on this device."];
+    st.className="st"+(!nativeStatus||!nativeStatus.notificationsEnabled||!nativeStatus.exactAlarmAllowed?" bad":on?"":" off");
+  }else{
+    txt={unsupported:["Unavailable","Notifications aren’t supported here","This browser can’t receive background push notifications. Install MOMIN as an app or use a supported browser."],denied:["Blocked","Notifications are blocked","Allow notifications for MOMIN in your browser or phone settings, then enable them again."],default:["Off","Reminders are off","Allow notifications to enable browser push alerts. Delivery depends on browser support, permissions and network."],granted:on?["On","Background reminders are on","MOMIN will send browser push reminders at the selected prayer times, even when the app is closed, subject to network and phone power settings."]:["Not connected","Finish enabling background reminders","Tap Turn on reminders to register this device for closed-app browser push delivery."]}[p];
+    st.className="st"+(p==="denied"||p==="unsupported"?" bad":on?"":" off");
+  }
   st.textContent=txt[0];$("hh").textContent=txt[1];$("hp").textContent=txt[2];
-  acts.innerHTML=p==="default"||(p==="granted"&&!pushReady)?'<button class="btn main" id="ask" type="button">'+(p==="granted"?"Enable background reminders":"Turn on reminders")+'</button>':p==="granted"&&pushReady?'<button class="btn main" id="test" type="button">Send a test</button><button class="btn" id="pause" type="button">'+(prefs.on?"Pause":"Resume")+"</button>":"";
+  acts.innerHTML=(native?(on?'<button class="btn main" id="test" type="button">Send a test</button><button class="btn" id="pause" type="button">Pause</button>':'<button class="btn main" id="ask" type="button">Enable reminders</button>'):(p==="default"||(p==="granted"&&!pushReady))?'<button class="btn main" id="ask" type="button">'+(p==="granted"?"Enable background reminders":"Turn on reminders")+'</button>':p==="granted"&&pushReady?'<button class="btn main" id="test" type="button">Send a test</button><button class="btn" id="pause" type="button">'+(prefs.on?"Pause":"Resume")+"</button>":"");
   if($("ask"))$("ask").onclick=ask;if($("test"))$("test").onclick=test;if($("pause"))$("pause").onclick=function(){prefs.on=!prefs.on;save();hero();tick()};
 }
 function ask(){
@@ -312,7 +323,7 @@ function test(){
   var b=bridge();
   if(!b||!b.sendPushTest){toast("MOMIN push service is not available.");return}
   b.sendPushTest().then(function(){
-    syncFromBridge();recent();hero();tick();toast("Background push test sent to this device.");
+    syncFromBridge();recent();hero();tick();toast(isNativePrayerApp()?"Android test notification was sent.":"Background push test sent to this device.");
   }).catch(function(error){
     toast(error&&error.message?error.message:"Could not send a push test.");
   });
