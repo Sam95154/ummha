@@ -6,6 +6,15 @@ const userId = "11111111-2222-4333-8444-555555555555";
 function makeState() {
   return {
     calls: [],
+    complaint: {
+      id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      ticket_id: "MOM-C-ABC123",
+      user_id: userId, user_name: "Aisha Rahman", user_public_id: "MOM-ABC1234567",
+      category: "Notifications", subject: "Push alerts missing",
+      description: "Notifications have not arrived for two days.",
+      priority: "Normal", status: "Open",
+      created_at: "2026-10-31T08:00:00Z", updated_at: "2026-10-31T08:00:00Z"
+    },
     user: {
       id: userId, user_id: "MOM-ABC1234567", name: "Aisha Rahman",
       email: "aisha@example.test", phone: "+91 90000 00001",
@@ -63,11 +72,27 @@ async function mockAdminApi(page, state) {
       case "campaigns":
         data = { campaigns: [] };
         break;
+      case "save_campaign":
+        data = { success: true, id: "campaign-test-id" };
+        break;
+      case "campaign_status":
+        data = { success: true };
+        break;
       case "contributions":
         data = { contributions: [] };
         break;
       case "complaints":
-        data = { complaints: [] };
+        data = { complaints: [state.complaint] };
+        break;
+      case "complaint_detail":
+        data = { complaint: state.complaint, replies: [] };
+        break;
+      case "update_complaint":
+        state.complaint = { ...state.complaint, status: body.status };
+        data = { success: true };
+        break;
+      case "change_password":
+        data = { success: true };
         break;
       case "me":
         data = { admin: { login_id: "owner", display_name: "MOMIN Owner", force_password_change: false } };
@@ -131,6 +156,59 @@ test.describe("MOMIN Admin Panel", () => {
     expect(sent).toBeTruthy();
     expect(sent.body.title).toBe("Jumu'ah Mubarak");
     expect(sent.body.image_url).toBeNull();
+  });
+
+  test("Admin can create a Giving campaign as a Draft", async ({ page }) => {
+    const state = makeState();
+    await login(page, state);
+    await page.getByRole("button", { name: "Giving Management" }).click();
+    await expect(page.getByRole("heading", { name: "Giving Management" })).toBeVisible();
+    await page.locator(".tabs").getByRole("button", { name: "Create campaign" }).click();
+    const form = page.locator('form[data-form="campaign"]');
+    await form.locator('[name="name"]').fill("Community Water Project");
+    await form.locator('[name="category"]').selectOption("Sadaqah");
+    await form.locator('[name="target_amount"]').fill("250000");
+    await form.locator('[name="currency"]').selectOption("INR");
+    await form.locator('[name="status"]').selectOption("Draft");
+    await form.getByRole("button", { name: "Save campaign" }).click();
+    await expect(page.getByRole("heading", { name: "Giving Management" })).toBeVisible();
+    const saved = state.calls.find(x => x.action === "save_campaign");
+    expect(saved).toBeTruthy();
+    expect(saved.body.name).toBe("Community Water Project");
+    expect(saved.body.category).toBe("Sadaqah");
+    expect(saved.body.status).toBe("Draft");
+  });
+
+  test("Admin can respond to a complaint and change its status", async ({ page }) => {
+    const state = makeState();
+    await login(page, state);
+    await page.getByRole("button", { name: "Complaints" }).click();
+    await expect(page.getByText("MOM-C-ABC123")).toBeVisible();
+    await page.locator('tr[data-open="complaint"]').click();
+    await expect(page.getByRole("heading", { name: "MOM-C-ABC123 · Push alerts missing" })).toBeVisible();
+    const form = page.locator('#modal-root form[data-form="complaint-update"]');
+    await form.locator('[name="status"]').selectOption("In Progress");
+    await form.locator('[name="message"]').fill("We are investigating the notification delivery issue.");
+    await form.getByRole("button", { name: "Save update" }).click();
+    const update = state.calls.find(x => x.action === "update_complaint");
+    expect(update).toBeTruthy();
+    expect(update.body.status).toBe("In Progress");
+    expect(update.body.message).toContain("investigating");
+  });
+
+  test("Admin profile can change the current password", async ({ page }) => {
+    const state = makeState();
+    await login(page, state);
+    await page.getByRole("button", { name: "Admin Profile" }).click();
+    const form = page.locator('form[data-form="password"]');
+    await form.locator('[name="current_password"]').fill("OldPassword!123");
+    await form.locator('[name="new_password"]').fill("NewPassword!456");
+    await form.locator('[name="confirm_password"]').fill("NewPassword!456");
+    await form.getByRole("button", { name: "Update password" }).click();
+    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    const update = state.calls.find(x => x.action === "change_password");
+    expect(update).toBeTruthy();
+    expect(update.body.new_password).toBe("NewPassword!456");
   });
 
   test("Admin login and shell remain within phone, tablet and desktop viewport widths", async ({ page }) => {
