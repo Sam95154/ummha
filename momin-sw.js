@@ -25,6 +25,7 @@ self.addEventListener("push", function(event) {
     icon: "/momin-mark.svg?v=islamic-logo-v3",
     badge: "/momin-mark.svg?v=islamic-logo-v3",
     image: payload.image_url || payload.image || undefined,
+    actions: payload.action_label ? [{ action: "open", title: String(payload.action_label).slice(0,24) }] : [],
     tag: String(payload.tag || "momin-reminder"),
     renotify: false,
     requireInteraction: false,
