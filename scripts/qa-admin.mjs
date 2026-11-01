@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { transform } from "esbuild";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let checks = 0;
@@ -22,6 +23,7 @@ const userModule = read("momin-giving-complaints-v1.js");
 const index = read("index.html");
 const bridge = read("momin-notifications-bridge-v1.js");
 const serviceWorker = read("momin-sw.js");
+const authBridge = read("momin-auth-v1.js");
 
 check(html.includes("./admin.css") && html.includes("./admin.js"), "Admin entry page loads its stylesheet and application script");
 check(/viewport/i.test(html), "Admin page declares responsive viewport");
@@ -50,8 +52,33 @@ check(userModule.includes("momin-complaint-attachments") && userModule.includes(
 check(index.includes("momin-giving-complaints-v1.js"), "Main MOMIN app loads the Giving and complaint module");
 check(bridge.includes("momin_user_notifications") && bridge.includes("markInboxRead"), "Admin announcements are connected to the existing User notification inbox");
 check(serviceWorker.includes('"complaints"'), "Push service worker accepts the Complaints destination");
+check(migration.includes("momin_public_giving_totals"), "User Giving progress uses a privacy-safe aggregate view");
+check(migration.includes("add column if not exists phone text"), "Migration stores optional Auth phone contact details");
+check(migration.includes("existing_public_id") && migration.includes("existing_status"), "Profile upserts preserve permanent User ID and account status");
+check(api.includes("account_status", api.indexOf("async function activeRecipientIds")), "Notification sends filter recipient accounts by active status");
+check(api.includes("Image contents do not match"), "Admin media upload validates file signatures");
+check(api.includes("momin_admin_notification_stats"), "Notification history reads inbox read statistics");
+check(authBridge.includes("account_status") && authBridge.includes("phone:user.phone"), "User Auth bridge syncs account status and phone contact details");
+check(userModule.includes("createSignedUrl"), "Private complaint attachments use time-limited signed URLs");
+check(api.includes("createSignedUrl"), "Admin complaint detail issues time-limited signed attachment URLs");
+
 check(!/as\s+\$\s*\n/i.test(migration), "Migration contains no malformed anonymous dollar-quote block");
 
+for (const [label, source, loader] of [
+  ["Admin frontend JavaScript", js, "js"],
+  ["Admin Edge Function TypeScript", api, "ts"],
+  ["MOMIN User Giving/Complaints module", userModule, "js"],
+  ["MOMIN Auth bridge", authBridge, "js"],
+  ["MOMIN notification bridge", bridge, "js"],
+  ["MOMIN service worker", serviceWorker, "js"],
+]) {
+  try {
+    await transform(source, { loader, target: "es2022", format: "esm" });
+    check(true, label + " parses successfully");
+  } catch (error) {
+    check(false, label + " syntax validation: " + (error && error.message ? error.message : String(error)));
+  }
+}
 const syntax = spawnSync(process.execPath, ["--check", path.join(root, "admin/admin.js")], { encoding: "utf8" });
 check(syntax.status === 0, "Admin JavaScript passes Node syntax validation" + (syntax.stderr ? ": " + syntax.stderr.trim() : ""));
 
