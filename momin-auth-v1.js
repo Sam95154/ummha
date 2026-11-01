@@ -49,6 +49,7 @@
       user_id:user.id,
       display_name:userName(user),
       email:user.email||null,
+      phone:user.phone||null,
       avatar_url:meta.avatar_url||meta.picture||meta.photo_url||null,
       auth_provider:providerFor(user),
       email_verified:!!user.email_confirmed_at,
