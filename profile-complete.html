@@ -140,7 +140,7 @@ var root=document.documentElement;
 var client=window.mominSupabase||(window.supabase&&window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}));
 if(!client){show("Sign-in service could not load. Refresh and try again.","error");return}
 window.mominSupabase=client;
-var session=null,user=null,profile=null,selectedFile=null,redirecting=false;
+var session=null,user=null,profile=null,selectedFile=null,uploadedAvatarPath=null,redirecting=false;
 function show(text,type){var el=$("message");el.textContent=text;el.className="notice show "+(type||"info")}
 function hide(){var el=$("message");el.textContent="";el.className="notice"}
 function safeNext(){
@@ -150,7 +150,7 @@ function safeNext(){
 function goApp(){if(redirecting)return;redirecting=true;location.replace(safeNext())}
 function verified(u){
  var provider=u&&u.app_metadata&&u.app_metadata.provider;
- return !!(u&&(u.email_confirmed_at||u.confirmed_at||(u.user_metadata&&u.user_metadata.email_verified===true)||(provider==="google"&&u.email)));
+ return !!(u&&(u.email_confirmed_at||u.confirmed_at||(u.user_metadata&&u.user_metadata.email_verified===true)));
 }
 function nameFrom(u){
  var m=u&&u.user_metadata||{};
@@ -214,6 +214,7 @@ async function uploadAvatar(){
  var path=user.id+"/profile-"+Date.now()+"."+ext;
  var result=await client.storage.from("avatars").upload(path,selectedFile,{upsert:true,contentType:selectedFile.type,cacheControl:"3600"});
  if(result.error)throw result.error;
+ uploadedAvatarPath=path;
  return client.storage.from("avatars").getPublicUrl(path).data.publicUrl;
 }
 async function saveProfile(){
@@ -231,7 +232,7 @@ async function saveProfile(){
    user_id:user.id,display_name:name,email:user.email||null,
    avatar_url:avatar||null,auth_provider:(user.app_metadata&&user.app_metadata.provider)||"email",
    email_verified:verified(user),birthday:dob,gender:gender,
-   profile_image_path:selectedFile?user.id+"/profile-"+ "":(profile&&profile.profile_image_path)||null,
+   profile_image_path:uploadedAvatarPath||(profile&&profile.profile_image_path)||null,
    profile_completed:true,profile_completed_at:new Date().toISOString(),updated_at:new Date().toISOString()
   };
   var result=await client.from("momin_profiles").upsert(data,{onConflict:"user_id"});
