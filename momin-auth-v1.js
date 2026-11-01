@@ -149,6 +149,11 @@
     syncInFlight=true;
     try{
       await syncProfile(user);
+      var accountState=await supabase.from("momin_profiles").select("account_status").eq("user_id",user.id).maybeSingle();
+      if(!accountState.error&&accountState.data&&accountState.data.account_status==="Inactive"){
+        await supabase.auth.signOut({scope:"local"});
+        throw new Error("This MOMIN account is inactive. Please contact MOMIN support.");
+      }
       await inspectCurrentDevice(user,session);
       var devices=await profileApi.getDevices();
       var result=await supabase.from("momin_devices").select("id,device_key,device_name,last_seen_at,is_current,revoked_at")
