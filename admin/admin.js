@@ -62,13 +62,8 @@ function hideAuth(){
 function showLogin(message){
  $("workspace").classList.add("hidden");$("mfaScreen").classList.add("hidden");$("loginScreen").classList.remove("hidden");
  $("loginTitle").textContent="Welcome back";
- $("loginDescription").textContent=message||"Sign in with your authorized MOMIN administrator account. Two-step verification is required.";
+ $("loginDescription").textContent=message||"Sign in with your dedicated MOMIN administrator email and password.";
  $("demoEmail").value="";$("demoPassword").value="";
- if(!$("googleSigninBtn")){
-  const b=document.createElement("button");b.id="googleSigninBtn";b.className="btn btn-secondary btn-block";b.type="button";b.textContent="Continue with Google";
-  $("demoLoginForm").insertAdjacentElement("afterend",b);
-  b.addEventListener("click",googleSignIn);
- }
  if($("forgotPasswordBtn"))$("forgotPasswordBtn").onclick=forgotPassword;
 }
 function showMfa(title,copy,content){
@@ -87,16 +82,6 @@ async function api(action,payload){
 function hasPermission(key){
  return staff&&staff.role==="founder" || permissions.includes("*") || permissions.includes(key);
 }
-async function googleSignIn(){
- if(authBusy)return;authBusy=true;
- try{
-  sessionStorage.setItem("momin-admin-oauth-return","1");
-  const {data,error}=await client.auth.signInWithOAuth({provider:"google",options:{redirectTo:location.origin+"/?mominAdminReturn=1",queryParams:{access_type:"offline",prompt:"select_account"}}});
-  if(error)throw error;
-  if(data&&data.url)location.href=data.url;
- }catch(e){sessionStorage.removeItem("momin-admin-oauth-return");toast(e.message||"Google sign-in could not start.");}
- finally{authBusy=false}
-}
 async function forgotPassword(){
  const email=$("demoEmail").value.trim();
  if(!email){toast("Enter your administrator email address first.");$("demoEmail").focus();return}
@@ -114,76 +99,28 @@ async function signIn(event){
   if(error)throw error;
   session=data.session;await finishAuthentication();
  }catch(e){toast(e.message||"Sign-in failed.");}
- finally{authBusy=false;button.disabled=false;button.textContent="Sign in securely"}
-}
-async function checkMfa(){
- const {data,error}=await client.auth.mfa.getAuthenticatorAssuranceLevel();
- if(error)throw error;
- if(data.currentLevel==="aal2")return true;
- const {data:factors,error:factorError}=await client.auth.mfa.listFactors();
- if(factorError)throw factorError;
- const verified=(factors.totp||[]).filter(x=>x.status==="verified");
- if(verified.length){await challengeMfa(verified[0]);return false}
- const pending=(factors.totp||[]).filter(x=>x.status!=="verified");
- for(const factor of pending){try{await client.auth.mfa.unenroll({factorId:factor.id})}catch(_){}}
- await enrollMfa();
- return false;
-}
-async function enrollMfa(){
- const {data,error}=await client.auth.mfa.enroll({factorType:"totp",friendlyName:"MOMIN Admin authenticator"});
- if(error)throw error;
- const factorId=data.id;
- const qr=data.totp&&data.totp.qr_code||"";
- const secret=data.totp&&data.totp.secret||"";
- showMfa("Set up your authenticator","Scan this QR code with Google Authenticator, Microsoft Authenticator, 1Password or another TOTP app, then enter its six-digit code.",'<div class="mfa-qr" style="display:grid;place-items:center;background:#fff;border-radius:14px;padding:12px;margin:20px auto;max-width:230px"><img alt="Authenticator QR code" src="'+esc(qr)+'" style="width:100%;height:auto"></div><div class="card" style="margin-bottom:15px"><div class="eyebrow">MANUAL SETUP KEY</div><strong style="display:block;word-break:break-all;color:var(--gold-hi);margin-top:6px">'+esc(secret)+'</strong><p class="muted tiny" style="margin-top:8px">Keep this key private. Do not share it.</p></div><label class="field-label" for="mfaCode">Six-digit code</label><input class="field-input" id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"><p class="muted tiny" id="mfaError"></p><button class="btn btn-primary btn-block" id="verifyMfa">Verify authenticator</button>');
- $("verifyMfa").onclick=async()=>{
-  const code=$("mfaCode").value.replace(/\s/g,"");
-  if(!/^\d{6}$/.test(code)){$("mfaError").textContent="Enter the current six-digit code.";return}
-  $("verifyMfa").disabled=true;
-  try{
-   const challenge=await client.auth.mfa.challenge({factorId});if(challenge.error)throw challenge.error;
-   const verify=await client.auth.mfa.verify({factorId,challengeId:challenge.data.id,code});
-   if(verify.error)throw verify.error;
-   const assurance=await client.auth.mfa.getAuthenticatorAssuranceLevel();
-   if(assurance.error||assurance.data.currentLevel!=="aal2")throw new Error("Authenticator verification did not reach the required security level. Try again.");
-   const s=await client.auth.getSession();session=s.data.session;await loadAdminSession();
-  }catch(e){$("mfaError").textContent=e.message||"Verification failed.";$("verifyMfa").disabled=false}
- };
- $("mfaCode").focus();
-}
-async function challengeMfa(factor){
- showMfa("Two-step verification","Enter the current six-digit code from your registered authenticator app.",'<label class="field-label" for="mfaCode">Authenticator code</label><input class="field-input" id="mfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"><p class="muted tiny" id="mfaError"></p><button class="btn btn-primary btn-block" id="verifyMfa">Verify and continue</button>');
- $("verifyMfa").onclick=async()=>{
-  const value=$("mfaCode").value.replace(/\s/g,"");if(!/^\d{6}$/.test(value)){$("mfaError").textContent="Enter the six-digit code.";return}
-  $("verifyMfa").disabled=true;
-  try{
-   const challenge=await client.auth.mfa.challenge({factorId:factor.id});if(challenge.error)throw challenge.error;
-   const verified=await client.auth.mfa.verify({factorId:factor.id,challengeId:challenge.data.id,code:value});if(verified.error)throw verified.error;
-   const assurance=await client.auth.mfa.getAuthenticatorAssuranceLevel();
-   if(assurance.error||assurance.data.currentLevel!=="aal2")throw new Error("Two-step verification is not complete.");
-   const s=await client.auth.getSession();session=s.data.session;await loadAdminSession();
-  }catch(e){$("mfaError").textContent=e.message||"Verification failed.";$("verifyMfa").disabled=false}
- };
- $("mfaCode").focus();
+ finally{authBusy=false;button.disabled=false;button.textContent="Sign in"}
 }
 async function finishAuthentication(){
  if(authFlowPromise)return authFlowPromise;
  authFlowPromise=(async function(){
- const user=session&&session.user;if(!user)throw new Error("No authenticated session was returned.");
- if(!user.email_confirmed_at){await client.auth.signOut({scope:"local"});throw new Error("Verify your email address before accessing Admin.");
- }
- const profile=await client.from("momin_profiles").select("profile_completed").eq("user_id",user.id).maybeSingle();
- if(profile.error)throw profile.error;
- if(!profile.data||profile.data.profile_completed!==true){
-  location.replace("/profile-complete.html?next="+encodeURIComponent("/admin/"));return;
- }
- const preflight=await api("preflight");
- if(!preflight||!preflight.staff||preflight.staff.status==="suspended")throw new Error("This account is not an active MOMIN administrator.");
- const mfaComplete=await checkMfa();
- if(!mfaComplete)return;
- const s=await client.auth.getSession();session=s.data.session;
- await loadAdminSession();
-
+  const user=session&&session.user;
+  if(!user)throw new Error("No authenticated session was returned.");
+  if(!user.email_confirmed_at){
+   await client.auth.signOut({scope:"local"});
+   throw new Error("Verify your administrator email before accessing Admin.");
+  }
+  let preflight;
+  try{preflight=await api("preflight");}
+  catch(e){await client.auth.signOut({scope:"local"});throw e;}
+  if(!preflight||!preflight.staff||preflight.staff.status!=="active"){
+   await client.auth.signOut({scope:"local"});
+   throw new Error("This account is not an active MOMIN administrator.");
+  }
+  const current=await client.auth.getSession();
+  session=current.data&&current.data.session;
+  if(!session)throw new Error("Your session expired. Sign in again.");
+  await loadAdminSession();
  })();
  try{return await authFlowPromise}
  finally{authFlowPromise=null}
