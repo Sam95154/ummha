@@ -157,7 +157,7 @@ test.describe("MOMIN authenticated app", () => {
     await openAuthenticatedApp(page);
 
     const routes = [
-      "home", "prayers", "quran", "qibla", "duas", "giving",
+      "home", "prayers", "quran", "qibla", "duas", "giving", "complaints",
       "tasbeeh", "calendar", "inspiration", "settings",
       "profile", "notifications", "founder", "mosques", "journey"
     ];
