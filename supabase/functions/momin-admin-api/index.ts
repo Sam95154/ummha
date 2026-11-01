@@ -179,15 +179,33 @@ async function dashboard() {
   };
 }
 async function listUsers(body: Record<string, unknown>) {
-  const page = Math.max(1, Number(body.page || 1));
-  const query = String(body.q || "").toLowerCase().trim();
+  const page = Math.max(1, Math.min(10000, Number(body.page || 1)));
+  const pageSize = 50;
+  const query = String(body.q || "").trim().slice(0, 100);
   const status = String(body.status || "all");
-  const users = await getAuthUsers(page, 100);
-  const filtered = users.filter(u =>
-    (status === "all" || u.status.toLowerCase() === status.toLowerCase()) &&
-    (!query || [u.user_id, u.name, u.email, u.phone, u.id].join(" ").toLowerCase().includes(query))
-  );
-  return { users: filtered, page, page_size: 100 };
+  let request = db.from("momin_profiles")
+    .select("user_id,public_user_id,display_name,email,account_status,created_at,avatar_url", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range((page - 1) * pageSize, page * pageSize - 1);
+  if (status === "Active" || status === "Inactive") request = request.eq("account_status", status);
+  if (query) {
+    const safe = query.replace(/[^\\p{L}\\p{N}@._+\\-\\s]/gu, "").trim().split(/\\s+/).filter(Boolean).join("%");
+    if (safe) request = request.or("public_user_id.ilike.%"+safe+"%,display_name.ilike.%"+safe+"%,email.ilike.%"+safe+"%");
+  }
+  const { data, error, count } = await request;
+  if (error) throw error;
+  const users = (data || []).map(p => ({
+    id: p.user_id,
+    user_id: p.public_user_id,
+    name: p.display_name || p.email?.split("@")[0] || "MOMIN User",
+    email: p.email || "",
+    phone: "",
+    registered_at: p.created_at,
+    last_sign_in_at: null,
+    status: p.account_status || "Active",
+    avatar_url: p.avatar_url || null,
+  }));
+  return { users, page, page_size: pageSize, total: count || 0, has_more: page * pageSize < (count || 0) };
 }
 async function updateUser(body: Record<string, unknown>, adminId: string) {
   const id = String(body.id || "");
