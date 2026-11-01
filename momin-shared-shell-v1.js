@@ -486,13 +486,13 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
   function ensureStyle(){
     if(document.getElementById(STYLE_ID))return;
     var style=document.createElement("style");style.id=STYLE_ID;
-  style.textContent=css+
-    'body.momin-app-shell-active.momin-founder-route-v3{height:100dvh!important;overflow:hidden!important}'+
-    'body.momin-app-shell-active.momin-founder-route-v3 .layout{display:block!important;width:100%!important;height:calc(100dvh - var(--momin-header-height))!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}'+
-    'body.momin-app-shell-active.momin-founder-route-v3 .layout>main{display:block!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}'+
-    'body.momin-app-shell-active.momin-founder-route-v3 #view.content{display:block!important;width:100%!important;max-width:none!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}'+
-    'body.momin-app-shell-active.momin-founder-route-v3 #momin-founder-frame-v3{display:block!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;background:#0f0d0a}';
-  document.head.appendChild(style);
+    style.textContent=css+
+      'body.momin-app-shell-active.momin-founder-route-v3{height:auto!important;min-height:100dvh!important;overflow-x:hidden!important;overflow-y:auto!important}'+
+      'body.momin-app-shell-active.momin-founder-route-v3 .layout{display:block!important;width:100%!important;height:auto!important;min-height:calc(100dvh - var(--momin-header-height))!important;margin:0!important;padding:0!important;overflow:visible!important}'+
+      'body.momin-app-shell-active.momin-founder-route-v3 .layout>main{display:block!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important}'+
+      'body.momin-app-shell-active.momin-founder-route-v3 #view.content{display:block!important;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important}'+
+      'body.momin-app-shell-active.momin-founder-route-v3 #momin-founder-frame-v3{display:block!important;width:100%!important;height:100vh;min-height:100vh!important;margin:0!important;padding:0!important;border:0!important;overflow:hidden!important;background:#0f0d0a}';
+    document.head.appendChild(style);
   }
   function ensureComponents(){
     var layout=document.querySelector(".layout");if(!layout)return;
@@ -521,15 +521,44 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
       var doc=frame.contentDocument;
       if(!doc)return;
       doc.documentElement.classList.add("momin-founder-embedded");
-      if(doc.getElementById("momin-shared-founder-v1-style"))return;
-      var style=doc.createElement("style");
-      style.id="momin-shared-founder-v1-style";
-      style.textContent=
-        'html.momin-founder-embedded body{padding-top:0!important;padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))!important}'+
-        'html.momin-founder-embedded .app{padding-bottom:0!important}'+
-        'html.momin-founder-embedded .app>.bar,html.momin-founder-embedded .tabs{display:none!important}'+
-        'html.momin-founder-embedded .app>main{padding-top:0!important}';
-      doc.head.appendChild(style);
+      if(!doc.getElementById("momin-shared-founder-v1-style")){
+        var embeddedStyle=doc.createElement("style");
+        embeddedStyle.id="momin-shared-founder-v1-style";
+        embeddedStyle.textContent=
+          'html.momin-founder-embedded,html.momin-founder-embedded body{height:auto!important;min-height:100dvh!important;overflow-x:hidden!important;overflow-y:hidden!important}'+
+          'html.momin-founder-embedded body{padding-top:0!important;padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))!important}'+
+          'html.momin-founder-embedded .app{height:auto!important;min-height:100dvh!important;padding-bottom:0!important;width:100%!important;max-width:480px!important}'+
+          'html.momin-founder-embedded .app>.bar,html.momin-founder-embedded .tabs{display:none!important}'+
+          'html.momin-founder-embedded .app>main{height:auto!important;min-height:0!important;padding-top:0!important;overflow:visible!important}'+
+          'html.momin-founder-embedded .app>main>.hero{margin-top:12px}'+
+          'html.momin-founder-embedded .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}';
+        doc.head.appendChild(embeddedStyle);
+      }
+      var resizeFounder=function(){
+        try{
+          var innerDoc=frame.contentDocument;
+          if(!innerDoc||!innerDoc.documentElement)return;
+          var body=innerDoc.body,root=innerDoc.documentElement;
+          var height=Math.max(root.scrollHeight||0,root.offsetHeight||0,body?(body.scrollHeight||0):0,body?(body.offsetHeight||0):0,window.innerHeight||0);
+          frame.style.height=Math.ceil(height)+"px";
+        }catch(_){}
+      };
+      if(!frame.__mominFounderResizeBound){
+        frame.__mominFounderResizeBound=true;
+        frame.addEventListener("load",function(){window.setTimeout(resizeFounder,0);window.setTimeout(resizeFounder,250);window.setTimeout(resizeFounder,900)});
+        window.addEventListener("resize",resizeFounder,{passive:true});
+        if(window.ResizeObserver){
+          var sizeObserver=new ResizeObserver(function(){resizeFounder()});
+          sizeObserver.observe(doc.documentElement);
+          if(doc.body)sizeObserver.observe(doc.body);
+          frame.__mominFounderResizeObserver=sizeObserver;
+        }
+        if(doc.fonts&&doc.fonts.ready)doc.fonts.ready.then(resizeFounder).catch(function(){});
+        Array.prototype.forEach.call(doc.images||[],function(img){if(!img.complete)img.addEventListener("load",resizeFounder,{once:true})});
+      }
+      resizeFounder();
+      window.setTimeout(resizeFounder,100);
+      window.setTimeout(resizeFounder,500);
     }catch(_){}
   }
   function sync(){
