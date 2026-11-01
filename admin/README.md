@@ -1,24 +1,49 @@
-# MOMIN Admin Control Centre — Phase 1
+# MOMIN Admin Control Centre — Phase 2
 
-Isolated, static Admin Control Centre foundation preview.
+Separate administration route: `/admin/`
 
-## Included
-- Separate `/admin/` route and design system.
-- Responsive sidebar with all specification navigation groups.
-- Demo login and MFA design previews only.
-- Dashboard with 13 labelled demonstration metrics, illustrative charts, activity, distributions, approvals and quick actions.
-- Role catalogue and proposed permission matrix.
-- Audit-log preview with local search/filter.
-- System Health, staff, approvals, security and future-module design previews.
-- Search, grouped navigation, modal previews, responsive layout and demo-only actions.
+## Connected in Phase 2
 
-## Safety boundary
-This is a UI-only Phase 1 preview. It does not authenticate administrators, connect to Supabase, access real users, send notifications, create campaigns, modify content, process payments or change production configuration. The login form is not a security boundary. Do not enter real credentials.
+- Supabase Auth sign-in with Google or email/password.
+- Email verification and required profile completion before admin access.
+- TOTP authenticator enrollment and challenge; admin Edge Function requires an AAL2 session.
+- Server-validated staff membership and permission keys; Founder bootstrap is server-side only.
+- User list, search, filters, pagination, masked email for roles without PII, current profile status, provider, last sign-in, devices and announcement opt-in.
+- Individual user detail, device revocation, account suspension/reactivation with reason and audit record.
+- Notification templates and campaigns, individual/selected/all opted-in audience, country, recent users, push-enabled and Android/iOS/Web device targeting.
+- Notification image upload (JPG/PNG/WebP, max 2 MB), live mobile preview, destination, action label, test to the administrator's current push device, save draft, schedule and send-now workflow.
+- App Announcements preference in the user Notifications page, explicitly separate from prayer reminders and defaulted off.
+- In-app campaign inbox and push deliveries, per-recipient reports, scheduled campaigns, expiry, approval for broadcasts above 1,000 recipients.
+- Scheduled campaign processing added to the existing once-per-minute push scheduler without replacing prayer reminder processing.
+- Server-side RLS-denied client access for admin tables, service-role only access, immutable audit rows.
 
-No existing MOMIN application files or Supabase objects are modified by Phase 1.
+## Important boundaries
 
-## Preview
-Open `/admin/` from the repository root in a static web server.
+- No broadcast was sent during deployment or testing.
+- Campaigns are created as drafts and only queued after an explicit administrator action. Future campaigns are processed at the scheduled time.
+- Campaign targeting re-checks App Announcements opt-in at delivery. Prayer reminders are not treated as announcement consent.
+- Push provider acceptance is not a confirmed device delivery.
+- Language audience targeting is not enabled because the current MOMIN profile schema does not contain a reliable language field.
+- Giving/Zakat/Finance, Content Studio, CMS, Support, Moderation, Mosque/Learning modules remain planned phases. The navigation is present, but those pages are not yet production controls.
+- No service-role key is placed in the browser. Admin operations go through the `momin-admin-api` Edge Function.
+- The Admin Panel uses the existing authenticated MOMIN identity. Only an account present in `admin_staff` and with an active status is admitted. TOTP AAL2 is required.
 
-## Next phase
-After Founder review, proceed to the separately approved secured admin authentication, founder bootstrap, MFA, RLS, server-enforced permissions and audit logging phase. Then connect User Management and Notification Centre.
+## Supabase resources
+
+- Edge Function: `momin-admin-api` (JWT verification enabled)
+- Existing Edge Function extended: `momin-push-register`
+- Existing Edge Function extended: `momin-push-scheduler`
+- New tables include `admin_staff`, `admin_role_permissions`, `admin_audit_logs`, `admin_approvals`, `admin_notification_campaigns`, `admin_notification_recipients`, `admin_notification_templates`, `admin_notification_inbox`, `admin_notification_push_deliveries`.
+- All admin tables have RLS enabled, deny-all policies for anon/authenticated, and service-role grants only.
+
+## Founder first login
+
+1. Open `/admin/`.
+2. Sign in using the existing Founder MOMIN account.
+3. Complete profile setup first if MOMIN requests it.
+4. Enroll an authenticator app on first admin entry and verify the current six-digit TOTP.
+5. Only after the server returns the active Founder role and AAL2 assurance will the dashboard open.
+
+## Deployment
+
+This directory is static content served by the existing Render static site. No build command is required. Keep this Admin Panel isolated from the user-facing MOMIN application.
