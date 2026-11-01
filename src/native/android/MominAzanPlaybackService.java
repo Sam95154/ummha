@@ -84,6 +84,12 @@ public class MominAzanPlaybackService extends Service {
     private void releasePlayer() {
         if(player!=null){try{if(player.isPlaying())player.stop();}catch(Exception ignored){}try{player.release();}catch(Exception ignored){}player=null;}
     }
-    @Override public void onDestroy(){releasePlayer();super.onDestroy();}
+    @Override public void onDestroy(){
+        releasePlayer();
+        if(Build.VERSION.SDK_INT>=24)stopForeground(STOP_FOREGROUND_REMOVE);else stopForeground(true);
+        NotificationManager manager=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        if(manager!=null)manager.cancel(NOTIFICATION_ID);
+        super.onDestroy();
+    }
     @Override public IBinder onBind(Intent intent){return null;}
 }

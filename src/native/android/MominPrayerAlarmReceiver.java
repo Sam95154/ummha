@@ -16,8 +16,19 @@ public class MominPrayerAlarmReceiver extends BroadcastReceiver {
     @Override public void onReceive(Context context,Intent intent) {
         String title=intent.getStringExtra("title"), body=intent.getStringExtra("body");
         String prayer=intent.getStringExtra("prayer"), sound=intent.getStringExtra("sound");
+        NotificationManager notificationManager=(NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if(notificationManager==null || !notificationManager.areNotificationsEnabled()) {
+            android.util.Log.w("MOMIN-Alarms","Prayer alert skipped because notifications are disabled.");
+            return;
+        }
         if(intent.getBooleanExtra("playAzan",false)) {
-            MominAzanPlaybackService.start(context,prayer==null?"Prayer":prayer);
+            try {
+                MominAzanPlaybackService.start(context,prayer==null?"Prayer":prayer);
+            } catch(Exception error) {
+                android.util.Log.e("MOMIN-Azan","Background Azan service could not start",error);
+                showNotification(context,title==null?"MOMIN prayer time":title,
+                    "It is time for "+(prayer==null?"prayer":prayer)+". Open MOMIN to play the Azan.", "system");
+            }
         } else {
             showNotification(context,title==null?"MOMIN prayer reminder":title,
                 body==null?"A prayer time is approaching.":body,sound==null?"system":sound);
