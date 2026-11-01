@@ -214,6 +214,25 @@ as 'BEGIN IF current_user NOT IN (''service_role'', ''postgres'', ''supabase_adm
 drop trigger if exists momin_protect_admin_profile_fields on public.momin_profiles;
 create trigger momin_protect_admin_profile_fields before insert or update on public.momin_profiles for each row execute function public.momin_protect_admin_profile_fields();
 
+-- Ensure every existing authenticated MOMIN account has one stable profile/User ID.
+insert into public.momin_profiles
+  (user_id, display_name, email, avatar_url, auth_provider, email_verified, updated_at)
+select
+  u.id,
+  coalesce(
+    nullif(trim(u.raw_user_meta_data->>'display_name'), ''),
+    nullif(trim(u.raw_user_meta_data->>'full_name'), ''),
+    nullif(split_part(coalesce(u.email, ''), '@', 1), ''),
+    'MOMIN User'
+  ),
+  u.email,
+  coalesce(u.raw_user_meta_data->>'avatar_url', u.raw_user_meta_data->>'picture'),
+  coalesce(u.raw_app_meta_data->>'provider', 'email'),
+  (u.email_confirmed_at is not null),
+  now()
+from auth.users u
+on conflict (user_id) do nothing;
+
 grant select on public.momin_giving_campaigns to authenticated;
 grant select on public.momin_contributions to authenticated;
 grant select, insert on public.momin_complaints to authenticated;
