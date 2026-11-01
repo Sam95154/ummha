@@ -563,9 +563,20 @@
         await api("campaign_status", { id: el.dataset.id, status: el.dataset.status });
         toast("Campaign status updated."); return await goto("giving");
       }
+      if (action === "search-complaint-user") {
+        const input = document.getElementById("complaint-user-search");
+        const result = await api("users", { q: input ? input.value.trim() : "", status: "all", page: 1 });
+        const select = document.querySelector('#modal-root select[name="user_id"]');
+        if (select) select.innerHTML = (result.users || []).map(u =>
+          '<option value="' + escapeHtml(u.id) + '">' + escapeHtml(u.user_id + " · " + u.name) + "</option>"
+        ).join("");
+        return;
+      }
       if (action === "new-complaint") {
         const users = await api("users", { q: "", status: "all" });
         showModal('<h2>Create complaint for a user</h2><form data-form="create-complaint">' +
+          '<div class="field"><label for="complaint-user-search">Find user by name, User ID, or email</label><div class="toolbar">' +
+          '<input class="control" id="complaint-user-search" placeholder="Search MOMIN users"><button type="button" class="btn" data-action="search-complaint-user">Search</button></div></div>' +
           selectField("MOMIN user","user_id",(users.users || []).map(u=>({value:u.id,label:u.user_id+" · "+u.name})),"",true) +
           selectField("Category","category",["Login","Notifications","Giving","Quran","Prayer Times","Account","Other"].map(x=>({value:x,label:x})),"Other",true) +
           selectField("Priority","priority",["Low","Normal","High"].map(x=>({value:x,label:x})),"Normal") +
