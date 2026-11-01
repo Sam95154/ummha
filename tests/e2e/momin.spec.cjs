@@ -146,7 +146,7 @@ test.describe("MOMIN authenticated app", () => {
       await nav.locator('button[data-shell-route="' + route + '"]').click();
       await expect.poll(() => page.evaluate(() => window.MominSharedShellV1.currentRoute())).toBe(route);
       await expect(nav.locator('button[data-shell-route="' + route + '"]')).toHaveAttribute("aria-current", "page");
-      await expect(page.locator("#view")).not.toBeEmpty();
+      expect(await page.locator("#view").evaluate((element) => element.childElementCount)).toBeGreaterThan(0);
     }
     expect(pageErrors, "Uncaught browser errors while using the main tabs").toEqual([]);
   });
@@ -208,6 +208,44 @@ test.describe("MOMIN authenticated app", () => {
         "Home page overflow at " + size.width + "px: " + JSON.stringify(metrics)
       ).toBeLessThanOrEqual(1);
       await expect(page.locator("#momin-shared-bottom-nav-v1")).toBeVisible();
+    }
+  });
+
+  test("adapts the same Home experience to phone, tablet and desktop", async ({ page }) => {
+    await openAuthenticatedApp(page);
+    await page.evaluate(() => window.go("home"));
+    await expect(page.locator("body")).toHaveClass(/momin-home-v3-active/);
+    const app = page.locator("#view > .app");
+    await expect(app).toBeVisible();
+    const layouts = [
+      { width: 390, height: 844, mode: "phone" },
+      { width: 820, height: 1180, mode: "tablet" },
+      { width: 1440, height: 900, mode: "desktop" }
+    ];
+    for (const size of layouts) {
+      await page.setViewportSize({ width: size.width, height: size.height });
+      const metrics = await app.evaluate((element) => {
+        const main = element.querySelector(":scope > main");
+        const tabs = element.querySelector(".tabs");
+        const nav = tabs && tabs.querySelector("nav");
+        return {
+          width: Math.round(element.getBoundingClientRect().width),
+          columns: getComputedStyle(main).gridTemplateColumns,
+          navPosition: tabs ? getComputedStyle(tabs).position : "",
+          navDirection: nav ? getComputedStyle(nav).flexDirection : ""
+        };
+      });
+      if (size.mode === "phone") {
+        expect(metrics.width, "Phone Home should retain its compact canvas").toBeLessThanOrEqual(480);
+        expect(metrics.navPosition, "Phone navigation stays at the bottom").toBe("fixed");
+      } else {
+        expect(metrics.width, size.mode + " Home should expand beyond the phone canvas").toBeGreaterThan(480);
+        expect(metrics.columns.split(" ").length, size.mode + " Home should use a two-column dashboard").toBe(2);
+      }
+      if (size.mode === "desktop") {
+        expect(metrics.navPosition, "Desktop navigation becomes a persistent side rail").toBe("fixed");
+        expect(metrics.navDirection, "Desktop navigation stacks vertically").toBe("column");
+      }
     }
   });
 

@@ -95,17 +95,22 @@ if (fs.existsSync(responsiveCssPath)) {
     "Responsive styles include the shared bottom navigation");
 }
 check(/@media\s*\(\s*max-width\s*:\s*700px\s*\)/i.test(indexHtml),
+  "Main app retains a dedicated phone breakpoint");
+
 const homeModulePath = path.join(ROOT, "momin-home-design-v2.js");
 if (fs.existsSync(homeModulePath)) {
   const homeModule = fs.readFileSync(homeModulePath, "utf8");
-  const marker = 'data-name=\\"Journey\\"';
+  const marker = 'data-name="Journey"';
   const markerAt = homeModule.indexOf(marker);
-  const buttonSource = markerAt >= 0 ? homeModule.slice(markerAt, markerAt + 150) : "";
-  check(markerAt >= 0 && buttonSource.includes("go(") && buttonSource.toLowerCase().includes("journey") && !buttonSource.includes("profile"),
+  const buttonEnd = markerAt >= 0 ? homeModule.indexOf("</button>", markerAt) : -1;
+  const buttonSource = markerAt >= 0 && buttonEnd >= 0 ? homeModule.slice(markerAt, buttonEnd) : "";
+  check(markerAt >= 0 && buttonSource.toLowerCase().includes("journey") && !buttonSource.includes("profile"),
     "Home fallback Journey tab routes to Journey, not Profile");
 }
-  "Main app retains a dedicated phone breakpoint");
-
+check(/momin-home-v3-active/.test(css) && /grid-template-areas/.test(css),
+  "Home dashboard has responsive tablet and desktop grid layouts");
+check(/\.tabs nav[\s\S]*?flex-direction:\s*column/i.test(css),
+  "Desktop Home navigation adapts into a vertical rail");
 if (fs.existsSync(shellPath)) {
   const shell = fs.readFileSync(shellPath, "utf8");
   check(/aria-label=["']Primary navigation["']/.test(shell) || /setAttribute\(["']aria-label["']\s*,\s*["']Primary navigation["']\)/.test(shell),

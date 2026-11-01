@@ -134,13 +134,13 @@ function build(){
     '<section class="card rise" style="--d:3" aria-labelledby="trkH"><div class="head"><div><h3 id="trkH">Prayer tracker</h3><p>Your daily salah progress</p></div><span class="badge" id="badge">'+count+' of 5</span></div>'+
     '<div class="bar2" aria-hidden="true"><i id="prog" style="width:'+(count/5*100)+'%"></i></div><ul class="rows" id="rows">'+trackerMarkup(state)+'</ul>'+
     '<p class="note" id="note">'+(count===5?'All five prayed today. Alhamdulillah.':count===0?'Tap the box beside a prayer once you have prayed it.':(5-count)+' to go today. Keep going.')+'</p></section>'+
-    '<div class="sec rise" style="--d:4"><h3>Features</h3><a href="#settings" id="featSet" onclick="event.preventDefault();go(\'settings\')">Settings <span>→</span></a></div>'+
-    '<div class="railwrap rise" style="--d:4"><div class="rail" id="rail">'+featureMarkup()+'</div></div>'+
-    '<div class="sec rise" style="--d:5"><h3>Continue Quran</h3><a href="#quran" onclick="event.preventDefault();go(\'quran\')">Open <span>→</span></a></div>'+
+    '<div class="sec rise home-features-title" style="--d:4"><h3>Features</h3><a href="#settings" id="featSet" onclick="event.preventDefault();go(\'settings\')">Settings <span>→</span></a></div>'+
+    '<div class="railwrap rise home-features" style="--d:4"><div class="rail" id="rail">'+featureMarkup()+'</div></div>'+
+    '<div class="sec rise home-quran-title" style="--d:5"><h3>Continue Quran</h3><a href="#quran" onclick="event.preventDefault();go(\'quran\')">Open <span>→</span></a></div>'+
     '<section class="quran rise" style="--d:5" id="quranResume" role="button" tabindex="0" onclick="go(\'quran\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();go(\'quran\')}">'+
     '<div class="ar" aria-hidden="true">ف</div><div class="tx"><b id="quranTitle">'+esc(quran.title)+'</b><span id="quranDetail">'+esc(quran.detail)+'</span></div>'+
     '<button class="pill" type="button" onclick="event.stopPropagation();go(\'quran\')">Read →</button></section>'+
-    '<div class="sec rise" style="--d:6"><h3>Daily reflection</h3><a href="#reflection" onclick="event.preventDefault();go(\'inspiration\')">Open <span>→</span></a></div>'+
+    '<div class="sec rise home-reflection-title" style="--d:6"><h3>Daily reflection</h3><a href="#reflection" onclick="event.preventDefault();go(\'inspiration\')">Open <span>→</span></a></div>'+
     '<section class="reflect rise" style="--d:6"><p class="verse-ar" lang="ar" dir="rtl">فَإِنَّ مَعَ الْعُسْرِ يُسْرًا</p>'+
     '<p class="verse">“For indeed, with hardship comes ease.”</p><p class="ref">Ash-Sharh · 94:5</p>'+
     '<div class="cal"><div class="top"><div><small>YOUR DATES</small><h4>Hijri calendar</h4><div class="hd" id="hijriCal">'+esc(hijri)+'</div></div>'+

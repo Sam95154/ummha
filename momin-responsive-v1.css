@@ -763,3 +763,147 @@
     max-width: 520px;
   }
 }
+
+
+/* MOMIN Home V3 — one adaptive interface for phone, tablet and desktop.
+   These selectors intentionally target only the redesigned Home route. */
+@media (min-width: 601px) and (max-width: 1024px) {
+  html body.momin-home-v3-active {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+    padding-bottom: 136px !important;
+    min-height: 100vh;
+  }
+  html body.momin-home-v3-active .app {
+    width: 100% !important;
+    max-width: 900px !important;
+    min-width: 0;
+    margin: 0 auto !important;
+  }
+  html body.momin-home-v3-active .app > main { display: block; min-width: 0; }
+  html body.momin-home-v3-active .bar { margin-inline: -16px; padding: 16px 22px; }
+  html body.momin-home-v3-active .hero { min-height: 360px; padding: 30px 28px 26px; }
+  html body.momin-home-v3-active .card { padding: 24px 26px 16px; }
+  html body.momin-home-v3-active .tabs nav { width: min(100%, 860px); max-width: 860px; }
+}
+@media (min-width: 760px) and (max-width: 1024px) {
+  html body.momin-home-v3-active .app > main {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+    grid-template-areas:
+      "welcome welcome"
+      "hero tracker"
+      "features-title features-title"
+      "features features"
+      "quran-title reflection-title"
+      "quran reflection";
+    column-gap: 20px;
+    row-gap: 0;
+    align-items: start;
+  }
+  html body.momin-home-v3-active .app > main > .greet { grid-area: welcome; }
+  html body.momin-home-v3-active .app > main > .hero { grid-area: hero; margin-top: 22px; }
+  html body.momin-home-v3-active .app > main > .card { grid-area: tracker; margin-top: 22px; }
+  html body.momin-home-v3-active .home-features-title { grid-area: features-title; }
+  html body.momin-home-v3-active .home-features { grid-area: features; min-width: 0; }
+  html body.momin-home-v3-active .home-quran-title { grid-area: quran-title; }
+  html body.momin-home-v3-active #quranResume { grid-area: quran; min-width: 0; }
+  html body.momin-home-v3-active .home-reflection-title { grid-area: reflection-title; }
+  html body.momin-home-v3-active .reflect { grid-area: reflection; min-width: 0; }
+  html body.momin-home-v3-active .home-features .tile { width: 128px; height: 132px; }
+}
+@media (min-width: 1025px) {
+  html body.momin-home-v3-active {
+    padding-left: 132px !important;
+    padding-right: 40px !important;
+    padding-bottom: 44px !important;
+    min-height: 100vh;
+  }
+  html body.momin-home-v3-active .app {
+    width: 100% !important;
+    max-width: 1440px !important;
+    min-width: 0;
+    margin: 0 auto !important;
+  }
+  html body.momin-home-v3-active .app > main {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+    grid-template-areas:
+      "welcome welcome"
+      "hero tracker"
+      "features-title features-title"
+      "features features"
+      "quran-title reflection-title"
+      "quran reflection";
+    column-gap: 28px;
+    row-gap: 0;
+    align-items: start;
+  }
+  html body.momin-home-v3-active .app > main > .greet { grid-area: welcome; }
+  html body.momin-home-v3-active .app > main > .hero {
+    grid-area: hero;
+    min-height: 410px;
+    margin-top: 24px;
+    padding: 34px 32px 28px;
+  }
+  html body.momin-home-v3-active .app > main > .card {
+    grid-area: tracker;
+    margin-top: 24px;
+    padding: 26px 28px 18px;
+  }
+  html body.momin-home-v3-active .home-features-title { grid-area: features-title; }
+  html body.momin-home-v3-active .home-features { grid-area: features; min-width: 0; }
+  html body.momin-home-v3-active .home-quran-title { grid-area: quran-title; }
+  html body.momin-home-v3-active #quranResume { grid-area: quran; min-width: 0; }
+  html body.momin-home-v3-active .home-reflection-title { grid-area: reflection-title; }
+  html body.momin-home-v3-active .reflect { grid-area: reflection; min-width: 0; }
+  html body.momin-home-v3-active .bar {
+    margin-inline: 0 !important;
+    padding: 18px 24px;
+    border-radius: 0 0 24px 24px;
+  }
+  html body.momin-home-v3-active .home-features .tile { width: 146px; height: 146px; }
+  html body.momin-home-v3-active .tabs {
+    position: fixed !important;
+    top: 50% !important;
+    left: 22px !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 88px;
+    padding: 0;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  html body.momin-home-v3-active .tabs nav {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 8px;
+    gap: 8px;
+  }
+  html body.momin-home-v3-active .tabs .ind { display: none !important; }
+  html body.momin-home-v3-active .tabs .tab {
+    width: 100%;
+    min-height: 68px;
+    padding: 12px 6px;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    gap: 6px;
+    font-size: 11px;
+  }
+  html body.momin-home-v3-active .tabs .tab[aria-current="page"] {
+    background: var(--gold-soft);
+    color: var(--gold);
+    border-color: var(--gold-bright);
+  }
+}
+@media (min-width: 1440px) {
+  html body.momin-home-v3-active .app > main { column-gap: 36px; }
+  html body.momin-home-v3-active .app > main > .hero,
+  html body.momin-home-v3-active .app > main > .card,
+  html body.momin-home-v3-active .reflect,
+  html body.momin-home-v3-active #quranResume { border-radius: 30px; }
+}
