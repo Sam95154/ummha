@@ -311,7 +311,6 @@ async function sendNotification(body: Record<string, unknown>, adminId: string) 
       .in("user_id", userBatch).eq("is_active", true);
     if (subError) throw subError;
     for (const row of subscriptions || []) {
-    if (!recipientSet.has(row.user_id)) continue;
     const eventKey = "admin:" + campaign.id + ":" + row.id;
     let status = "failed", errorText: string | null = null;
     if (server) {
@@ -394,7 +393,7 @@ async function saveCampaign(body: Record<string, unknown>, adminId: string) {
     image_url: normalizeAdminMediaUrl(body.image_url),
     target_amount: target, currency, starts_at: body.starts_at || null, ends_at: body.ends_at || null,
     donation_instructions: String(body.donation_instructions || "").slice(0, 2000),
-    status: ["Draft", "Active"].includes(String(body.status)) ? String(body.status) : "Draft",
+    status: ["Draft", "Active", "Paused", "Completed"].includes(String(body.status)) ? String(body.status) : "Draft",
     updated_at: new Date().toISOString(),
   };
   const result = id
