@@ -232,9 +232,19 @@ var supabaseClient=window.mominSupabase||window.supabase.createClient(SUPABASE_U
 window.mominSupabase=supabaseClient;
 function nextPath(){
   var next=new URLSearchParams(location.search).get("next")||"/";
-  try{var u=new URL(next,location.origin);return u.origin===location.origin?u.pathname+u.search+u.hash:"/";}
-  catch(e){return "/";}
+  try{
+    var u=new URL(next,location.origin);
+    if(u.origin!==location.origin)return "/";
+    var path=u.pathname+u.search+u.hash;
+    if(u.pathname==="/profile-complete.html"){
+      var nested=new URLSearchParams(u.search).get("next")||"/";
+      var n=new URL(nested,location.origin);
+      return n.origin===location.origin&&n.pathname!=="/profile-complete.html"?(n.pathname+n.search+n.hash):"/";
+    }
+    return path;
+  }catch(e){return "/";}
 }
+function profilePath(){return "/profile-complete.html?next="+encodeURIComponent(nextPath())}
 function showMessage(message,type){
   var el=$("authMsg");el.textContent=message;el.className="auth-msg show "+(type||"info");
 }
@@ -264,7 +274,7 @@ function bad(id,eid,msg){
 function finish(t,p){
   $("dt").textContent=t;$("dp").textContent=p;
   document.body.classList.add("ok");
-  setTimeout(function(){location.replace(nextPath());},650);
+  setTimeout(function(){location.replace(profilePath());},650);
 }
 var okMail=function(v){return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)};
 $("mail").onclick=function(){
@@ -295,7 +305,7 @@ $("g").onclick=async function(){
     var result=await supabaseClient.auth.signInWithOAuth({
       provider:"google",
       options:{
-        redirectTo:location.origin+nextPath(),
+        redirectTo:location.origin+profilePath(),
         queryParams:{access_type:"offline",prompt:"select_account"}
       }
     });
@@ -321,7 +331,7 @@ $("form").onsubmit=async function(event){
         password:password,
         options:{
           data:{full_name:fullName,name:fullName},
-          emailRedirectTo:location.origin+nextPath()
+          emailRedirectTo:location.origin+profilePath()
         }
       });
       if(signUp.error)throw signUp.error;
@@ -369,7 +379,7 @@ for(var k=0;k<55;k++){
 setMode("in");
 if(new URLSearchParams(location.search).get("provider")==="google")$("g").click();
 supabaseClient.auth.getSession().then(function(result){
-  if(result.data&&result.data.session)location.replace(nextPath());
+  if(result.data&&result.data.session)location.replace(profilePath());
 }).catch(function(error){
   console.warn("MOMIN auth session check:",error);
 });
