@@ -6,7 +6,7 @@
   const root = document.getElementById("root");
   const state = {
     token: null, admin: null, page: "login", theme: localStorage.getItem("momin-admin-theme") || "dark",
-    busy: false, error: "", toastTimer: null, menu: false, tab: "create",
+    busy: false, error: "", toastTimer: null, menu: false, notifTab: "create", givingTab: "campaigns",
     dashboard: null, users: [], userQuery: "", userStatus: "all", notifications: [],
     campaigns: [], contributions: [], complaints: [], profile: null, selectedComplaint: null,
     notificationImage: null, campaignImage: null
@@ -173,7 +173,7 @@
       '<p class="hint">User IDs are permanent identifiers. Editing a display name never changes the User ID.</p></section>';
   }
   function renderNotifications() {
-    if (state.tab === "history") {
+    if (state.notifTab === "history") {
       const rows = state.notifications.map(n => "<tr><td>" + escapeHtml(n.title) + "</td><td>" + escapeHtml(n.audience_type) +
         "</td><td>" + date(n.created_at) + "</td><td>" + (n.image_url ? "Image" : "Text only") + "</td><td>" +
         badge(n.status) + "</td><td>" + escapeHtml(n.recipient_count || 0) + "</td><td>" + escapeHtml(n.sent_count || 0) + "</td></tr>");
@@ -202,7 +202,7 @@
       '<small>' + escapeHtml(c.progress || 0) + '%</small></td><td>' + badge(c.status) + '</td><td>' +
       '<button class="btn small" data-action="campaign-status" data-id="' + escapeHtml(c.id) + '" data-status="' +
       (c.status === "Active" ? "Paused" : "Active") + '">' + (c.status === "Active" ? "Pause" : "Activate") + "</button></td></tr>");
-    if (state.tab === "contributions") {
+    if (state.givingTab === "contributions") {
       const tx = state.contributions.map(c => "<tr><td>" + escapeHtml(c.transaction_ref) + "</td><td>" +
         escapeHtml(c.user_public_id || "Anonymous") + "</td><td>" + escapeHtml(c.user_name) + "</td><td>" +
         escapeHtml(c.fund_category) + "</td><td>" + money(c.amount,c.currency) + "</td><td>" +
@@ -211,7 +211,7 @@
         '<div class="tabs"><button data-action="giving-tab" data-tab="campaigns">Campaigns</button><button data-action="giving-tab" data-tab="create">Create campaign</button><button class="active" data-action="giving-tab" data-tab="contributions">Contributions</button></div>' +
         '<section class="card">' + table(["Transaction","User ID","Contributor","Fund","Amount","Payment","Receipt"], tx) + "</section>";
     }
-    if (state.tab === "create") return heading("Giving Management", "Create and publish a Zakat, Sadaqah, or Charity campaign") +
+    if (state.givingTab === "create") return heading("Giving Management", "Create and publish a Zakat, Sadaqah, or Charity campaign") +
       '<div class="tabs"><button data-action="giving-tab" data-tab="campaigns">Campaigns</button><button class="active" data-action="giving-tab" data-tab="create">Create campaign</button><button data-action="giving-tab" data-tab="contributions">Contributions</button></div>' +
       '<div class="split"><section class="card"><form data-form="campaign">' +
       field("Campaign name","name","","text",true,'maxlength="120"') +
@@ -309,7 +309,7 @@
         state.users = users.users || []; state.notifications = history.notifications || [];
       }
       if (page === "giving") {
-        if (state.tab === "contributions") state.contributions = (await api("contributions")).contributions || [];
+        if (state.givingTab === "contributions") state.contributions = (await api("contributions")).contributions || [];
         else state.campaigns = (await api("campaigns")).campaigns || [];
       }
       if (page === "complaints") state.complaints = (await api("complaints")).complaints || [];
@@ -389,7 +389,7 @@
       route: data.get("route"), user_ids: selected, image_url: imageUrl
     });
     toast("Notification processed. " + result.recipient_count + " user inbox record(s); push sent to " + result.push_sent + " device(s).");
-    state.tab = "history"; await goto("notif");
+    state.notifTab = "history"; await goto("notif");
   }
   async function saveCampaign(form) {
     const data = new FormData(form);
@@ -403,7 +403,7 @@
       status: data.get("status"), image_url: imageUrl
     });
     toast("Campaign saved.");
-    state.tab = "campaigns"; await goto("giving");
+    state.givingTab = "campaigns"; await goto("giving");
   }
   function updateNotificationPreview(form) {
     const title = form.elements.title?.value || "Notification title";
@@ -480,8 +480,8 @@
         await api("set_user_status", { id: el.dataset.id, status: el.dataset.status });
         toast("User status changed."); return await goto("users");
       }
-      if (action === "notif-tab") { state.tab = el.dataset.tab; return await goto("notif"); }
-      if (action === "giving-tab") { state.tab = el.dataset.tab; return await goto("giving"); }
+      if (action === "notif-tab") { state.notifTab = el.dataset.tab; return await goto("notif"); }
+      if (action === "giving-tab") { state.givingTab = el.dataset.tab; return await goto("giving"); }
       if (action === "campaign-status") {
         if (!confirm("Set campaign status to " + el.dataset.status + "?")) return;
         await api("campaign_status", { id: el.dataset.id, status: el.dataset.status });
@@ -500,17 +500,30 @@
       }
     } catch (error) { toast(error.message, true); }
   });
-  document.getElementById("modal-root").addEventListener("submit", async event => {
-    const form = event.target.closest('form[data-form="create-complaint"]');
+  const modalRoot = document.getElementById("modal-root");
+  modalRoot.addEventListener("click", event => {
+    const close = event.target.closest('[data-action="modal-close"]');
+    if (close && (event.target === close || close.classList.contains("btn"))) closeModal();
+  });
+  modalRoot.addEventListener("submit", async event => {
+    const form = event.target.closest("form[data-form]");
     if (!form) return;
     event.preventDefault();
     try {
-      const result = await api("create_complaint", {
-        user_id: form.elements.user_id.value, category: form.elements.category.value,
-        priority: form.elements.priority.value, subject: form.elements.subject.value.trim(),
-        description: form.elements.description.value.trim()
-      });
-      closeModal(); toast("Complaint created: " + result.ticket_id); await goto("complaints");
+      if (form.dataset.form === "create-complaint") {
+        const result = await api("create_complaint", {
+          user_id: form.elements.user_id.value, category: form.elements.category.value,
+          priority: form.elements.priority.value, subject: form.elements.subject.value.trim(),
+          description: form.elements.description.value.trim()
+        });
+        closeModal(); toast("Complaint created: " + result.ticket_id); await goto("complaints");
+      } else if (form.dataset.form === "edit-user") {
+        await api("update_user", { id: form.dataset.id, name: form.elements.name.value.trim() });
+        closeModal(); toast("User name updated. Permanent User ID unchanged."); await goto("users");
+      } else if (form.dataset.form === "complaint-update") {
+        await api("update_complaint", { id: form.dataset.id, status: form.elements.status.value, message: form.elements.message.value.trim() });
+        closeModal(); toast("Complaint updated. The user inbox was notified."); await goto("complaints");
+      }
     } catch (error) { toast(error.message, true); }
   });
   // Never persist the Admin bearer token in localStorage/sessionStorage.
