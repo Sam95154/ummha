@@ -38,22 +38,22 @@
 
   /* Shared app shell: override the 480px cap injected by the shared-shell module. */
   html body.momin-app-shell-active #view.content {
-    display: block !important;
-    width: calc(100% - 40px) !important;
-    max-width: 720px !important;
-    min-width: 0 !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    padding: 22px 0 154px !important;
-    overflow: visible !important;
+    display: block;
+    width: calc(100% - 40px);
+    max-width: 720px;
+    min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 22px 0 154px;
+    overflow: visible;
   }
 
   html body.momin-app-shell-active #view.content .app {
-    width: 100% !important;
-    max-width: 720px !important;
-    min-width: 0 !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    width: 100%;
+    max-width: 720px;
+    min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   html body.momin-app-shell-active .momin-shell-header__inner {
@@ -68,8 +68,8 @@
   html body.momin-app-shell-active #view.content:has(.momin-founder-page),
   html body.momin-app-shell-active #view.content:has(.momin-terms-page),
   html body.momin-app-shell-active #view.content:has(.momin-privacy-page) {
-    width: calc(100% - 40px) !important;
-    max-width: 760px !important;
+    width: calc(100% - 40px);
+    max-width: 760px;
   }
 
   html body .quran-reader,
@@ -120,16 +120,16 @@
   }
 
   html body.momin-founder-embedded .app {
-    width: 100% !important;
-    max-width: 760px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    width: 100%;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   html body.momin-duas-embedded .app,
   html body.momin-inspiration-embedded .app {
     width: 100%;
-    max-width: 760px !important;
+    max-width: 760px;
     margin-left: auto;
     margin-right: auto;
   }
@@ -142,10 +142,10 @@
   }
 
   html body.momin-journey-embedded .wrap {
-    width: 100% !important;
-    max-width: 720px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    width: 100%;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   html body.momin-prayer-embedded .wrap {
@@ -160,6 +160,12 @@
     max-width: 720px;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  /* Login keeps its full-viewport canvas and its own sign-in composition. */
+  html body .page:has(.panel) {
+    width: 100%;
+    max-width: none;
   }
 
   /* Keep the four-tab shared navigation; float it centrally on larger screens. */
@@ -217,6 +223,13 @@
     min-width: 0;
   }
 
+  html body .app .list,
+  html body .app .rows {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
+  }
+
   html body .grid > *,
   html body .quickgrid > *,
   html body .qv-juz-grid > *,
@@ -224,7 +237,9 @@
   html body .qv-recents > *,
   html body .qv-stats > *,
   html body .kpis > *,
-  html body .duo > * {
+  html body .duo > *,
+  html body .app .list > *,
+  html body .app .rows > * {
     min-width: 0;
   }
 
@@ -360,22 +375,22 @@
   }
 
   html body.momin-app-shell-active #view.content {
-    display: block !important;
-    width: calc(100% - 72px) !important;
-    max-width: 1100px !important;
-    min-width: 0 !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    padding: 28px 0 160px !important;
-    overflow: visible !important;
+    display: block;
+    width: calc(100% - 72px);
+    max-width: 1100px;
+    min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 28px 0 160px;
+    overflow: visible;
   }
 
   html body.momin-app-shell-active #view.content .app {
-    width: 100% !important;
-    max-width: 1100px !important;
-    min-width: 0 !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    width: 100%;
+    max-width: 1100px;
+    min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   html body.momin-app-shell-active .momin-shell-header__inner {
@@ -389,8 +404,8 @@
   html body.momin-app-shell-active #view.content:has(.momin-founder-page),
   html body.momin-app-shell-active #view.content:has(.momin-terms-page),
   html body.momin-app-shell-active #view.content:has(.momin-privacy-page) {
-    width: calc(100% - 72px) !important;
-    max-width: 760px !important;
+    width: calc(100% - 72px);
+    max-width: 760px;
   }
 
   html body .quran-reader,
@@ -440,16 +455,16 @@
   }
 
   html body.momin-founder-embedded .app {
-    width: 100% !important;
-    max-width: 760px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    width: 100%;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   html body.momin-duas-embedded .app,
   html body.momin-inspiration-embedded .app {
     width: 100%;
-    max-width: 760px !important;
+    max-width: 760px;
     margin-left: auto;
     margin-right: auto;
   }
@@ -462,10 +477,10 @@
   }
 
   html body.momin-journey-embedded .wrap {
-    width: 100% !important;
-    max-width: 1100px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    width: 100%;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   html body.momin-prayer-embedded .wrap {
@@ -480,6 +495,12 @@
     max-width: 1100px;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  /* Login keeps its full-viewport canvas and its own sign-in composition. */
+  html body .page:has(.panel) {
+    width: 100%;
+    max-width: none;
   }
 
   /* The original sidebar stays hidden; the shared four-tab bar remains the only app navigation. */
@@ -538,10 +559,17 @@
   }
 
   html body .qv-recents,
-  html body .duo {
+  html body .duo,
+  html body .app .list,
+  html body .app .rows {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     min-width: 0;
+  }
+
+  html body .app .list,
+  html body .app .rows {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   html body .grid > *,
@@ -551,7 +579,9 @@
   html body .qv-recents > *,
   html body .qv-stats > *,
   html body .kpis > *,
-  html body .duo > * {
+  html body .duo > *,
+  html body .app .list > *,
+  html body .app .rows > * {
     min-width: 0;
   }
 
@@ -655,12 +685,12 @@
 /* Large desktop: 1440px and wider */
 @media (min-width: 1440px) {
   html body.momin-app-shell-active #view.content {
-    width: calc(100% - 96px) !important;
-    max-width: 1200px !important;
+    width: calc(100% - 96px);
+    max-width: 1200px;
   }
 
   html body.momin-app-shell-active #view.content .app {
-    max-width: 1200px !important;
+    max-width: 1200px;
   }
 
   html body.momin-app-shell-active .momin-shell-header__inner {
@@ -669,13 +699,12 @@
   }
 
   html body .app,
-  html body .wrap,
-  html body .page {
+  html body .wrap {
     max-width: 1200px;
   }
 
   html body.momin-journey-embedded .wrap {
-    max-width: 1200px !important;
+    max-width: 1200px;
   }
 
   html body.momin-prayer-embedded .wrap {
@@ -707,7 +736,7 @@
   html body.momin-app-shell-active #view.content:has(.momin-founder-page),
   html body.momin-app-shell-active #view.content:has(.momin-terms-page),
   html body.momin-app-shell-active #view.content:has(.momin-privacy-page) {
-    width: calc(100% - 96px) !important;
+    width: calc(100% - 96px);
   }
 
   html body #momin-shared-bottom-nav-v1 {
