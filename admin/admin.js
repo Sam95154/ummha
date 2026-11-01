@@ -396,10 +396,11 @@
   }
   async function saveCampaign(form) {
     const data = new FormData(form);
-    let imageUrl = null;
+    let imageUrl = data.get("existing_image_url") || null;
     const image = data.get("image");
     if (image instanceof File && image.size) imageUrl = (await upload(image, "giving")).public_url;
     await api("save_campaign", {
+      id: data.get("id") || null,
       name: data.get("name"), category: data.get("category"), description: data.get("description"),
       target_amount: data.get("target_amount"), currency: data.get("currency"), starts_at: data.get("starts_at") || null,
       ends_at: data.get("ends_at") || null, donation_instructions: data.get("donation_instructions"),
@@ -485,6 +486,13 @@
       }
       if (action === "notif-tab") { state.notifTab = el.dataset.tab; return await goto("notif"); }
       if (action === "giving-tab") { state.givingTab = el.dataset.tab; return await goto("giving"); }
+      if (action === "edit-campaign") {
+        state.editCampaign = state.campaigns.find(x => x.id === el.dataset.id) || null;
+        state.givingTab = "create"; return await goto("giving");
+      }
+      if (action === "cancel-campaign-edit") {
+        state.editCampaign = null; state.givingTab = "campaigns"; return await goto("giving");
+      }
       if (action === "campaign-status") {
         if (!confirm("Set campaign status to " + el.dataset.status + "?")) return;
         await api("campaign_status", { id: el.dataset.id, status: el.dataset.status });
