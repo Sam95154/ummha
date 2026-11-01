@@ -245,6 +245,40 @@ async function loadVapidServer() {
   const vapidKeys = await webpush.importVapidKeys(data.vapid_keys);
   return webpush.ApplicationServer.new({ contactInformation: "mailto:support@noor-ul-islam-dua.onrender.com", vapidKeys });
 }
+function normalizeAdminMediaUrl(value: unknown) {
+  if (value == null || value === "") return null;
+  if (typeof value !== "string") throw new Error("Invalid media URL.");
+  const prefix = SUPABASE_URL.replace(/\\/$/, "") + "/storage/v1/object/public/momin-admin-media/";
+  if (!value.startsWith(prefix) || value.length > 2048) throw new Error("Media must be uploaded to MOMIN Admin storage.");
+  return value;
+}
+async function activeRecipientIds(audience: string, ids: string[]) {
+  const unique = [...new Set(ids)];
+  if (audience !== "all") {
+    if (!unique.length || (audience === "individual" && unique.length !== 1)) throw new Error("Select the intended MOMIN user or users.");
+    if (unique.some(id => !/^[0-9a-f-]{36}$/i.test(id))) throw new Error("Invalid selected User ID.");
+    const active = new Set<string>();
+    for (let i = 0; i < unique.length; i += 500) {
+      const { data, error } = await db.from("momin_profiles").select("user_id")
+        .eq("account_status", "Active").in("user_id", unique.slice(i, i + 500));
+      if (error) throw error;
+      (data || []).forEach(row => active.add(row.user_id));
+    }
+    if (active.size !== unique.length) throw new Error("One or more selected MOMIN accounts are inactive or unavailable.");
+    return unique;
+  }
+  const recipients: string[] = [];
+  const pageSize = 500;
+  for (let offset = 0; offset < 500000; offset += pageSize) {
+    const { data, error } = await db.from("momin_profiles").select("user_id")
+      .eq("account_status", "Active").order("created_at", { ascending: true }).range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    const batch = data || [];
+    recipients.push(...batch.map(row => row.user_id));
+    if (batch.length < pageSize) break;
+  }
+  return recipients;
+}
 async function sendNotification(body: Record<string, unknown>, adminId: string) {
   const title = String(body.title || "").trim();
   const message = String(body.message || "").trim();
@@ -254,18 +288,9 @@ async function sendNotification(body: Record<string, unknown>, adminId: string) 
   if (!validText(title, 1, 80) || !validText(message, 1, 1000)) throw new Error("Enter a title and message.");
   if (!["all", "selected", "individual"].includes(audience)) throw new Error("Invalid audience.");
   if (audience !== "all" && (ids.length === 0 || (audience === "individual" && ids.length !== 1))) throw new Error("Select the intended MOMIN user or users.");
-  let recipients: string[];
-  if (audience === "all") {
-    recipients = [];
-    for (let page = 1; page <= 100; page++) {
-      const { data, error } = await db.auth.admin.listUsers({ page, perPage: 1000 });
-      if (error) throw error;
-      recipients.push(...(data.users || []).map(u => u.id));
-      if ((data.users || []).length < 1000) break;
-    }
-  } else recipients = [...new Set(ids)];
-  if (!recipients.length) throw new Error("No eligible MOMIN users were found.");
-  const imageUrl = typeof body.image_url === "string" ? body.image_url : null;
+  const recipients = await activeRecipientIds(audience, ids);
+  if (!recipients.length) throw new Error("No active MOMIN users were found.");
+  const imageUrl = normalizeAdminMediaUrl(body.image_url);
   const { data: campaign, error: campaignError } = await db.from("momin_admin_notifications").insert({
     title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
     recipient_count: recipients.length, created_by: adminId,
@@ -279,12 +304,13 @@ async function sendNotification(body: Record<string, unknown>, adminId: string) 
   let sent = 0, failed = 0;
   let server: webpush.ApplicationServer | null = null;
   try { server = await loadVapidServer(); } catch (_) { server = null; }
-  const { data: subscriptions, error: subError } = await db.from("momin_push_subscriptions")
-    .select("id,user_id,device_key,subscription,is_active")
-    .in("user_id", recipients).eq("is_active", true);
-  if (subError) throw subError;
-  const recipientSet = new Set(recipients);
-  for (const row of subscriptions || []) {
+  for (let start = 0; start < recipients.length; start += 100) {
+    const userBatch = recipients.slice(start, start + 100);
+    const { data: subscriptions, error: subError } = await db.from("momin_push_subscriptions")
+      .select("id,user_id,device_key,subscription,is_active")
+      .in("user_id", userBatch).eq("is_active", true);
+    if (subError) throw subError;
+    for (const row of subscriptions || []) {
     if (!recipientSet.has(row.user_id)) continue;
     const eventKey = "admin:" + campaign.id + ":" + row.id;
     let status = "failed", errorText: string | null = null;
@@ -306,6 +332,7 @@ async function sendNotification(body: Record<string, unknown>, adminId: string) 
       sent_at: status === "sent" ? new Date().toISOString() : null,
       error: errorText,
     });
+    }
   }
   const overall = failed === 0 ? "sent" : sent > 0 ? "partial" : "failed";
   await db.from("momin_admin_notifications").update({
@@ -324,9 +351,17 @@ async function uploadMedia(request: Request, session: { adminId: string }) {
   const mime = file.type.toLowerCase();
   const extensions: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
   if (!extensions[mime]) throw new Error("Only JPG, PNG, or WebP images are supported.");
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const isJpeg = mime === "image/jpeg" && bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  const isPng = mime === "image/png" && bytes.length >= 8 &&
+    bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 &&
+    bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
+  const isWebp = mime === "image/webp" && bytes.length >= 12 &&
+    String.fromCharCode(...bytes.slice(0,4)) === "RIFF" && String.fromCharCode(...bytes.slice(8,12)) === "WEBP";
+  if (!(isJpeg || isPng || isWebp)) throw new Error("Image contents do not match the selected JPG, PNG, or WebP file type.");
   const folder = kind === "giving" ? "giving" : "notifications";
   const path = folder + "/" + new Date().toISOString().slice(0, 10) + "/" + crypto.randomUUID() + "." + extensions[mime];
-  const { error } = await db.storage.from("momin-admin-media").upload(path, await file.arrayBuffer(), {
+  const { error } = await db.storage.from("momin-admin-media").upload(path, bytes, {
     contentType: mime, upsert: false, cacheControl: "3600",
   });
   if (error) throw error;
@@ -356,7 +391,7 @@ async function saveCampaign(body: Record<string, unknown>, adminId: string) {
   }
   const payload = {
     name, category, description: String(body.description || "").slice(0, 5000),
-    image_url: typeof body.image_url === "string" ? body.image_url : null,
+    image_url: normalizeAdminMediaUrl(body.image_url),
     target_amount: target, currency, starts_at: body.starts_at || null, ends_at: body.ends_at || null,
     donation_instructions: String(body.donation_instructions || "").slice(0, 2000),
     status: ["Draft", "Active"].includes(String(body.status)) ? String(body.status) : "Draft",
@@ -556,7 +591,17 @@ Deno.serve(async (request: Request) => {
       case "notifications_history": {
         const { data, error } = await db.from("momin_admin_notifications").select("*").order("created_at", { ascending: false }).limit(200);
         if (error) throw error;
-        return reply({ notifications: data || [] }, 200, origin);
+        const ids = (data || []).map(x => x.id);
+        const stats = ids.length ? await db.from("momin_admin_notification_stats")
+          .select("notification_id,recipient_count,read_count").in("notification_id", ids) : { data: [], error: null };
+        if (stats.error) throw stats.error;
+        const byId = new Map((stats.data || []).map(x => [x.notification_id, x]));
+        return reply({ notifications: (data || []).map(x => {
+          const stat = byId.get(x.id);
+          const recipients = stat?.recipient_count ?? x.recipient_count ?? 0;
+          const read = stat?.read_count ?? 0;
+          return { ...x, read_count: read, read_rate: recipients ? Math.round(read / recipients * 100) : 0 };
+        }) }, 200, origin);
       }
       case "send_notification": return reply(await sendNotification(body, session.adminId), 200, origin);
       case "campaigns": return reply({ campaigns: await listCampaigns() }, 200, origin);
