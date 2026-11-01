@@ -40,7 +40,7 @@ const routeGroups={
  users:"USER OPERATIONS","active-users":"USER OPERATIONS",devices:"USER OPERATIONS","user-support":"USER OPERATIONS",suspended:"USER OPERATIONS",
  notifications:"COMMUNICATION","create-notification":"COMMUNICATION",templates:"COMMUNICATION",scheduled:"COMMUNICATION","delivery-reports":"COMMUNICATION",announcements:"COMMUNICATION"
 };
-let client=null,session=null,staff=null,permissions=[],currentPage="dashboard",pageCache={},campaignId=null,uploadedImage=null,selectedUsers=[],userSearchTimer=null,authBusy=false,apiBusy=false,searchIndex=0,searchItems=[],usersPage=1,currentUsersStatus="all",authFlowPromise=null;
+let client=null,session=null,staff=null,permissions=[],previewMode=false,currentPage="dashboard",pageCache={},campaignId=null,uploadedImage=null,selectedUsers=[],userSearchTimer=null,authBusy=false,apiBusy=false,searchIndex=0,searchItems=[],usersPage=1,currentUsersStatus="all",authFlowPromise=null;
 function toast(message,title){
  const n=document.createElement("div");n.className="toast";n.innerHTML=title?'<strong>'+esc(title)+'</strong>'+esc(message):esc(message);
  $("toastRegion").appendChild(n);window.setTimeout(()=>n.remove(),4800);
@@ -57,16 +57,18 @@ function showModal(title,body,confirmLabel,callback,opts){
 }
 function closeModal(){ $("modalOverlay").classList.add("hidden"); }
 function hideAuth(){
- $("loginScreen").classList.add("hidden");$("workspace").classList.remove("hidden");
+ const login=$("loginScreen");if(login)login.remove();$("workspace").classList.remove("hidden");
 }
-function showLogin(message){
- $("workspace").classList.add("hidden");$("loginScreen").classList.remove("hidden");
- $("loginTitle").textContent="Welcome back";
- $("loginDescription").textContent=message||"Sign in with your dedicated MOMIN administrator email and password.";
- $("demoEmail").value="";$("demoPassword").value="";
- if($("forgotPasswordBtn"))$("forgotPasswordBtn").onclick=forgotPassword;
+function showLogin(message){showAdminPreview(message);}
+function showAdminPreview(message){
+ previewMode=true;session=null;staff={display_name:"Admin Preview",role:"preview"};permissions=[];
+ const login=$("loginScreen");if(login)login.remove();
+ $("workspace").classList.remove("hidden");
+ $("demoBanner").innerHTML='<span class="demo-dot"></span><strong>ADMIN PREVIEW</strong><span>'+esc(message||"Workspace layout preview. Live records and privileged actions remain locked until administrator access is enabled.")+'</span>';
+ renderNavigation();navigate("dashboard");
 }
 async function api(action,payload){
+ if(previewMode)throw new Error("Live admin data and actions are locked in preview mode.");
  if(!session){const r=await client.auth.getSession();session=r.data&&r.data.session;if(!session)throw new Error("Your session expired. Sign in again.");}
  const response=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+session.access_token},body:JSON.stringify(Object.assign({action},payload||{}))});
  let data={};try{data=await response.json()}catch(_){}
@@ -74,6 +76,7 @@ async function api(action,payload){
  return data;
 }
 function hasPermission(key){
+ if(previewMode)return false;
  return staff&&staff.role==="founder" || permissions.includes("*") || permissions.includes(key);
 }
 async function forgotPassword(){
@@ -128,7 +131,7 @@ function renderNavigation(){
  document.querySelectorAll(".nav-item").forEach(el=>{
   const p=el.dataset.page;
   const permission=requiredPermissionForPage(p);
-  const visible=!permission||hasPermission(permission);
+  const visible=previewMode||!permission||hasPermission(permission);
   el.style.display=visible?"flex":"none";
   if(!visible)el.setAttribute("aria-hidden","true");else el.removeAttribute("aria-hidden");
  });
@@ -155,6 +158,21 @@ function setPageHeader(page){
  if(page==="notifications"||page==="scheduled"||page==="announcements")$("pageActions").innerHTML='<button class="btn btn-primary" id="newNotification">＋ Create Notification</button>';
  if(page==="create-notification")$("pageActions").innerHTML='<button class="btn btn-secondary" id="backNotifications">← Campaigns</button>';
 }
+function renderPreviewPage(page){
+ const title=pageMeta(page)[1];
+ if(page==="dashboard"){
+  $("pageContent").innerHTML='<div class="info-callout"><span>◈</span><div><strong>Admin workspace preview</strong><br>This is the restored Admin Control Centre layout. User records, analytics, notifications and account controls will load only after secure admin access is developed.</div></div>'+
+  '<div class="metric-grid">'+
+  renderMetric("Registered users","—","Locked until admin access is enabled","♙")+
+  renderMetric("Verified accounts","—","Live data is not loaded in preview","✓")+
+  renderMetric("Active devices","—","Live data is not loaded in preview","▣")+
+  renderMetric("Notification campaigns","—","Live data is not loaded in preview","♧")+
+  '</div><div class="dashboard-grid two"><section class="card"><div class="card-title"><div><h3>Admin modules</h3><p>Workspace navigation is available for planning.</p></div><span class="phase-badge">PREVIEW</span></div><div class="feature-list" style="grid-template-columns:1fr 1fr"><button class="feature-tile" data-nav="users"><strong>♙ User Management</strong><small>Preview module</small></button><button class="feature-tile" data-nav="notifications"><strong>♧ Notifications</strong><small>Preview module</small></button><button class="feature-tile" data-nav="content"><strong>▤ Content</strong><small>Preview module</small></button><button class="feature-tile" data-nav="analytics"><strong>▥ Analytics</strong><small>Preview module</small></button></div></section><section class="card"><div class="card-title"><div><h3>Access status</h3><p>Administrator backend is not exposed.</p></div></div><p class="muted">The admin login screen has been removed as requested. This preview does not retrieve private records or permit changes. Secure access will be reintroduced when the admin authentication flow is developed.</p></section></div>';
+  bindPageNavigation();return;
+ }
+ $("pageContent").innerHTML='<div class="card module-placeholder"><div><div class="placeholder-icon">✧</div><span class="phase-badge">ADMIN PREVIEW</span><h2>'+esc(title)+'</h2><p>This section is visible for layout planning. Live data and privileged actions remain locked until administrator authentication is developed.</p><button class="btn btn-secondary" data-nav="dashboard">Return to Dashboard</button></div></div>';
+ bindPageNavigation();
+}
 function navigate(page){
  if(!routes.some(x=>x[0]===page))page="dashboard";
  currentPage=page;
@@ -163,6 +181,7 @@ function navigate(page){
  $("workspace").classList.remove("mobile-nav-open");
  $("quickMenu").classList.add("hidden");
  setPageHeader(page);
+ if(previewMode){renderPreviewPage(page);return;}
  if($("exportUsers"))$("exportUsers").onclick=exportUsersCSV;
  if($("newNotification")){$("newNotification").style.display=hasPermission("notifications.create")?"":"none";$("newNotification").onclick=()=>navigate("create-notification");}
  if($("backNotifications"))$("backNotifications").onclick=()=>navigate("notifications");
@@ -461,11 +480,11 @@ function renderNavigationEvents(){
  $("quickMenu").querySelectorAll("[data-quick]").forEach(b=>b.onclick=()=>{const q=b.dataset.quick;navigate(q==="Notification"?"create-notification":q==="Staff invitation"?"staff":q==="Content"?"content":q==="Announcement"?"announcements":"create-campaign")});
  $("globalSearchButton").onclick=openSearch;
  $("adminBell").onclick=()=>navigate(hasPermission("notifications.approve")?"approvals":(hasPermission("notifications.view")?"notifications":"dashboard"));
- $("profileMenu").onclick=()=>showModal("Administrator session",'<p><strong>'+esc(staff.display_name||"MOMIN Admin")+'</strong></p><p class="muted">'+esc(staff.role)+'</p><p class="muted tiny">Your access uses a separate administrator session and server-checked role permissions.</p>',"Sign out",async()=>{await client.auth.signOut({scope:"local"});session=null;staff=null;permissions=[];closeModal();showLogin("You have signed out of MOMIN Admin.")});
+ $("profileMenu").onclick=()=>{if(previewMode){toast("Admin preview only. Live data and actions remain locked.");return;}showModal("Administrator session",'<p><strong>'+esc(staff.display_name||"MOMIN Admin")+'</strong></p><p class="muted">'+esc(staff.role)+'</p><p class="muted tiny">Your access uses a separate administrator session and server-checked role permissions.</p>',"Sign out",async()=>{await client.auth.signOut({scope:"local"});session=null;staff=null;permissions=[];closeModal();showLogin("You have signed out of MOMIN Admin.")})};
  document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).classList.add("hidden"));
  $("modalOverlay").addEventListener("click",e=>{if(e.target===$("modalOverlay"))closeModal()});
- $("togglePassword").onclick=()=>{$("demoPassword").type=$("demoPassword").type==="password"?"text":"password"};
- $("demoLoginForm").addEventListener("submit",signIn);
+ if($("togglePassword"))$("togglePassword").onclick=()=>{$("demoPassword").type=$("demoPassword").type==="password"?"text":"password"};
+ if($("demoLoginForm"))$("demoLoginForm").addEventListener("submit",signIn);
  $("quickCreate").setAttribute("aria-haspopup","menu");
  document.addEventListener("keydown",e=>{
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openSearch()}
@@ -485,9 +504,9 @@ function renderSearchResults(){
 }
 function renderErrorPage(e){console.error(e);renderError(e)}
 async function start(){
- if(!window.supabase||!window.supabase.createClient){showLogin("The secure sign-in library could not load. Refresh this page and try again.");return}
- client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"momin-admin-auth-v1"}});
  renderNavigationEvents();
+ if(!window.supabase||!window.supabase.createClient){showAdminPreview("Workspace preview. Secure admin services are not connected.");return}
+ client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"momin-admin-auth-v1"}});
  try{
   const r=await client.auth.getSession();session=r.data&&r.data.session;
   if(!session){showLogin();return}
