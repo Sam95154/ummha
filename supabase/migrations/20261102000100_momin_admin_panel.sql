@@ -4,6 +4,9 @@ begin;
 
 alter table public.momin_profiles
   add column if not exists public_user_id text;
+alter table public.momin_profiles
+  add column if not exists account_status text not null default 'Active'
+  check (account_status in ('Active','Inactive'));
 
 update public.momin_profiles
 set public_user_id = 'MOM-' || upper(substr(replace(user_id::text, '-', ''), 1, 10))
@@ -133,7 +136,7 @@ create index if not exists momin_contributions_fund_idx on public.momin_contribu
 
 create table if not exists public.momin_complaints (
   id uuid primary key default gen_random_uuid(),
-  ticket_id text not null unique,
+  ticket_id text not null unique default ('MOM-C-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10))),
   user_id uuid not null references auth.users(id) on delete cascade,
   category text not null,
   subject text not null check (char_length(subject) between 2 and 120),
