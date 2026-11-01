@@ -47,6 +47,20 @@ if (Capacitor.isNativePlatform()) {
       if (result.error) throw result.error;
 
       try { await Browser.close(); } catch (_) {}
+
+      if (window.location.pathname.endsWith("/login.html")) {
+        const requestedNext = new URLSearchParams(window.location.search).get("next") || "/";
+        let safeNext = "/";
+        try {
+          const destination = new URL(requestedNext, window.location.origin);
+          if (destination.origin === window.location.origin &&
+              destination.pathname !== "/profile-complete.html") {
+            safeNext = destination.pathname + destination.search + destination.hash;
+          }
+        } catch (_) {}
+        const profileUrl = "/profile-complete.html?next=" + encodeURIComponent(safeNext);
+        window.location.replace(profileUrl);
+      }
     } catch (error) {
       console.error("MOMIN native sign-in:", error);
       try { await Browser.close(); } catch (_) {}
