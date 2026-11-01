@@ -200,6 +200,7 @@
       '</td><td>' + money(c.target_amount, c.currency) + '</td><td>' + money(c.received_amount, c.currency) +
       '</td><td><div class="progress" style="min-width:90px"><i style="width:' + (c.progress || 0) + '%"></i></div>' +
       '<small>' + escapeHtml(c.progress || 0) + '%</small></td><td>' + badge(c.status) + '</td><td>' +
+      '<button class="btn small" data-action="edit-campaign" data-id="' + escapeHtml(c.id) + '">Edit</button> ' +
       '<button class="btn small" data-action="campaign-status" data-id="' + escapeHtml(c.id) + '" data-status="' +
       (c.status === "Active" ? "Paused" : "Active") + '">' + (c.status === "Active" ? "Pause" : "Activate") + "</button></td></tr>");
     if (state.givingTab === "contributions") {
