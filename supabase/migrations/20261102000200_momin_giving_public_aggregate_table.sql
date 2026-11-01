@@ -14,6 +14,7 @@ create table if not exists public.momin_giving_totals_public (
 alter table public.momin_giving_totals_public enable row level security;
 grant select on public.momin_giving_totals_public to authenticated;
 grant all on public.momin_giving_totals_public to service_role;
+drop policy if exists users_read_public_giving_totals_v2 on public.momin_giving_totals_public;
 create policy users_read_public_giving_totals_v2
   on public.momin_giving_totals_public for select to authenticated using (true);
 
@@ -54,6 +55,7 @@ begin
 end;
 $func$;
 
+drop trigger if exists momin_refresh_giving_totals_public on public.momin_contributions;
 create trigger momin_refresh_giving_totals_public
 after insert or update or delete on public.momin_contributions
 for each row execute function public.momin_refresh_giving_totals_public();
