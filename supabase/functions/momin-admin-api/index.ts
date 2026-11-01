@@ -189,7 +189,7 @@ async function listUsers(body: Record<string, unknown>) {
     .range((page - 1) * pageSize, page * pageSize - 1);
   if (status === "Active" || status === "Inactive") request = request.eq("account_status", status);
   if (query) {
-    const safe = query.replace(/[^\\p{L}\\p{N}@._+\\-\\s]/gu, "").trim().split(/\\s+/).filter(Boolean).join("%");
+    const safe = query.replace(/[^\p{L}\p{N}@._+\-\s]/gu, "").trim().split(/\s+/).filter(Boolean).join("%");
     if (safe) request = request.or("public_user_id.ilike.%"+safe+"%,display_name.ilike.%"+safe+"%,email.ilike.%"+safe+"%");
   }
   const { data, error, count } = await request;
