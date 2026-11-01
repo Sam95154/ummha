@@ -9,12 +9,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./admin.css?v=phase1-1">
+  <link rel="stylesheet" href="./admin.css?v=phase2-2">
 </head>
 <body>
   <div id="adminApp" class="admin-app">
     <div id="demoBanner" class="demo-banner"><span class="demo-dot"></span><strong>SECURE ADMIN</strong><span>Privileged actions are role-controlled, MFA-protected and audit-logged.</span></div>
-    <div id="loginScreen" class="login-screen" aria-label="Admin login preview">
+    <div id="loginScreen" class="login-screen" aria-label="Secure administrator sign-in">
       <div class="login-orbit orbit-one"></div><div class="login-orbit orbit-two"></div>
       <div class="login-card">
         <div class="login-brand"><img class="brand-symbol" src="../momin-mark.svg?v=islamic-logo-v3" alt="MOMIN logo"><div><div class="brand-name">MOMIN</div><div class="brand-sub">ADMIN CONTROL CENTRE</div></div></div>
@@ -35,7 +35,7 @@
       <div class="login-footer">MOMIN · Built for responsible administration</div>
     </div>
 
-    <div id="mfaScreen" class="mfa-screen hidden" aria-label="MFA preview">
+    <div id="mfaScreen" class="mfa-screen hidden" aria-label="Authenticator verification">
       <div class="login-card mfa-card">
         <button class="back-link" id="backToLogin">← Back to login</button>
         <img class="brand-symbol large" src="../momin-mark.svg?v=islamic-logo-v3" alt="MOMIN logo">
@@ -43,15 +43,15 @@
         <h1>Two-step verification</h1>
         <p class="muted">Use your authenticator app to verify your identity before opening the Admin Control Centre.</p>
         <div class="otp-row" aria-label="Six digit code preview"><input maxlength="1" inputmode="numeric" value="•" aria-label="Digit 1"><input maxlength="1" inputmode="numeric" value="•" aria-label="Digit 2"><input maxlength="1" inputmode="numeric" value="•" aria-label="Digit 3"><input maxlength="1" inputmode="numeric" value="•" aria-label="Digit 4"><input maxlength="1" inputmode="numeric" value="•" aria-label="Digit 5"><input maxlength="1" inputmode="numeric" value="•" aria-label="Digit 6"></div>
-        <button class="btn btn-primary btn-block" id="mfaBackDashboard" type="button">Continue preview</button>
-        <p class="muted tiny">MFA is not active in this prototype.</p>
+        <button class="btn btn-primary btn-block" id="mfaBackDashboard" type="button">Continue</button>
+        <p class="muted tiny">Authenticator verification is required before admin access.</p>
       </div>
     </div>
 
     <div id="workspace" class="workspace hidden">
       <div id="sidebarScrim" class="sidebar-scrim"></div>
       <aside id="sidebar" class="sidebar" aria-label="Admin navigation">
-        <div class="sidebar-brand"><img class="brand-symbol small" src="../momin-mark.svg?v=islamic-logo-v3" alt="MOMIN logo"><div class="brand-copy"><strong>MOMIN</strong><span>ADMIN CONTROL CENTRE</span><small>Founder workspace</small></div><button id="collapseSidebar" class="collapse-btn" aria-label="Collapse sidebar">‹</button></div>
+        <div class="sidebar-brand"><img class="brand-symbol small" src="../momin-mark.svg?v=islamic-logo-v3" alt="MOMIN logo"><div class="brand-copy"><strong>MOMIN</strong><span>ADMIN CONTROL CENTRE</span><small>Administrator workspace</small></div><button id="collapseSidebar" class="collapse-btn" aria-label="Collapse sidebar">‹</button></div>
         <div class="sidebar-scroll">
           <div class="nav-group"><button type="button" class="nav-heading nav-group-toggle" aria-expanded="true">OVERVIEW</button><button class="nav-item active" data-page="dashboard"><span class="nav-icon">◫</span><span class="nav-label">Dashboard</span></button></div>
           <div class="nav-group"><button type="button" class="nav-heading nav-group-toggle" aria-expanded="true">USER OPERATIONS</button>
@@ -131,7 +131,7 @@
             <button class="nav-item" data-page="settings"><span class="nav-icon">⚙</span><span class="nav-label">Admin Settings</span></button>
           </div>
         </div>
-        <div class="sidebar-bottom"><div class="preview-user"><div class="avatar">F</div><div class="brand-copy"><strong>Founder preview</strong><span>Demo workspace</span></div><span class="status-dot"></span></div></div>
+        <div class="sidebar-bottom"><div class="preview-user"><div class="avatar">F</div><div class="brand-copy"><strong>Signed-in admin</strong><span>Role-protected session</span></div><span class="status-dot"></span></div></div>
       </aside>
 
       <main class="main-shell">
@@ -144,7 +144,7 @@
         <div class="workspace-content">
           <div class="page-topline"><div><div class="eyebrow" id="pageEyebrow">OVERVIEW</div><h1 id="pageTitle">Dashboard</h1><p id="pageSubtitle">Founder overview of the MOMIN ecosystem.</p></div><div class="page-actions" id="pageActions"><div class="select-wrap"><select id="dateRange" aria-label="Dashboard date range"><option>Last 30 days</option><option>Today</option><option>Last 7 days</option><option>Last 90 days</option><option>This year</option><option>Custom range</option></select></div><button class="btn btn-secondary" id="compareButton">Compare</button></div></div>
           <div id="pageContent" aria-live="polite"></div>
-          <footer class="workspace-footer"><span>MOMIN Admin Control Centre</span><span>Phase 1 · Foundation preview · <span class="footer-demo">Demonstration data</span></span></footer>
+          <footer class="workspace-footer"><span>MOMIN Admin Control Centre</span><span>Phase 2 · Connected users and notifications · <span class="footer-demo">Some modules remain planned</span></span></footer>
         </div>
       </main>
     </div>
@@ -152,10 +152,10 @@
     <div id="searchOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="searchTitle">
       <div class="search-dialog"><div class="search-dialog-top"><span>⌕</span><input id="globalSearchInput" type="search" placeholder="Search pages, users, campaigns…" autocomplete="off"><kbd>ESC</kbd><button class="icon-btn" data-close="searchOverlay" aria-label="Close search">×</button></div><div class="search-dialog-body"><div id="searchTitle" class="eyebrow">QUICK NAVIGATION</div><div id="searchResults" class="search-results"></div></div><div class="search-hint">↑ ↓ Navigate <span>↵ Open page</span> <span>ESC Close</span></div></div>
     </div>
-    <div id="modalOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-card"><div class="modal-head"><div><div class="eyebrow">DEMO WORKSPACE</div><h2 id="modalTitle">Preview action</h2></div><button class="icon-btn" data-close="modalOverlay" aria-label="Close dialog">×</button></div><div id="modalBody" class="modal-body"></div><div class="modal-foot"><button class="btn btn-secondary" data-close="modalOverlay">Close</button><button class="btn btn-primary" id="modalConfirm">Save demo draft</button></div></div></div>
+    <div id="modalOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-card"><div class="modal-head"><div><div class="eyebrow">MOMIN ADMIN ACTION</div><h2 id="modalTitle">Confirm action</h2></div><button class="icon-btn" data-close="modalOverlay" aria-label="Close dialog">×</button></div><div id="modalBody" class="modal-body"></div><div class="modal-foot"><button class="btn btn-secondary" data-close="modalOverlay">Close</button><button class="btn btn-primary" id="modalConfirm">Confirm</button></div></div></div>
     <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./admin.js?v=phase2-1" defer></script>
+  <script src="./admin.js?v=phase2-2" defer></script>
 </body>
 </html>
