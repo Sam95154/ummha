@@ -16,6 +16,17 @@ function makeState() {
 async function mockAdminApi(page, state) {
   await page.route(API, async route => {
     const req = route.request();
+    if (req.method() === "OPTIONS") {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "http://127.0.0.1:4173",
+          "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type",
+          "Access-Control-Allow-Methods": "POST, OPTIONS"
+        }
+      });
+      return;
+    }
     const body = req.postDataJSON ? (req.postDataJSON() || {}) : {};
     state.calls.push({ action: body.action, body });
     let data = {};
@@ -70,7 +81,7 @@ async function mockAdminApi(page, state) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      headers: { "Access-Control-Allow-Origin": "http://127.0.0.1:4173", "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type" },
+      headers: { "Access-Control-Allow-Origin": "http://127.0.0.1:4173", "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" },
       body: JSON.stringify(data)
     });
   });
