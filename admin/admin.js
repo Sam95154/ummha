@@ -40,7 +40,7 @@ const routeGroups={
  users:"USER OPERATIONS","active-users":"USER OPERATIONS",devices:"USER OPERATIONS","user-support":"USER OPERATIONS",suspended:"USER OPERATIONS",
  notifications:"COMMUNICATION","create-notification":"COMMUNICATION",templates:"COMMUNICATION",scheduled:"COMMUNICATION","delivery-reports":"COMMUNICATION",announcements:"COMMUNICATION"
 };
-let client=null,session=null,staff=null,permissions=[],currentPage="dashboard",pageCache={},campaignId=null,uploadedImage=null,selectedUsers=[],userSearchTimer=null,authBusy=false,apiBusy=false,searchIndex=0,searchItems=[];
+let client=null,session=null,staff=null,permissions=[],currentPage="dashboard",pageCache={},campaignId=null,uploadedImage=null,selectedUsers=[],userSearchTimer=null,authBusy=false,apiBusy=false,searchIndex=0,searchItems=[],usersPage=1,currentUsersStatus="all";
 function toast(message,title){
  const n=document.createElement("div");n.className="toast";n.innerHTML=title?'<strong>'+esc(title)+'</strong>'+esc(message):esc(message);
  $("toastRegion").appendChild(n);window.setTimeout(()=>n.remove(),4800);
@@ -223,6 +223,7 @@ function navigate(page){
  $("workspace").classList.remove("mobile-nav-open");
  $("quickMenu").classList.add("hidden");
  setPageHeader(page);
+ if($("exportUsers"))$("exportUsers").onclick=exportUsersCSV;
  if($("newNotification"))$("newNotification").onclick=()=>navigate("create-notification");
  if($("backNotifications"))$("backNotifications").onclick=()=>navigate("notifications");
  const handlers={
@@ -249,6 +250,8 @@ async function renderDashboard(){
  $("pageContent").innerHTML='<div class="info-callout"><span>●</span><div><strong>Live MOMIN records</strong><br>Dashboard values are taken from the current Supabase records. Activity and engagement analytics are limited to the data currently collected by MOMIN.</div></div>'+
  '<div class="metric-grid">'+
  renderMetric("Registered users",num(m.registered_users),"MOMIN profiles","♙")+
+ renderMetric("Verified accounts",num(m.verified_accounts),"Verified email records","✓")+
+ renderMetric("Completed profiles",num(m.completed_profiles),"Required onboarding complete","◉")+
  renderMetric("New registrations today",num(m.new_registrations_today),"Created since midnight","＋")+
  renderMetric("Devices active in 24h",num(m.active_devices_24h),"Devices with recent activity","▣")+
  renderMetric("Registered devices",num(m.registered_devices),"All recorded devices","▤")+
@@ -266,17 +269,31 @@ async function renderDashboard(){
  bindPageNavigation();
 }
 async function renderUsers(status,deviceOnly){
- const page=1,perPage=50;
+ currentUsersStatus=status||"all";const page=usersPage,perPage=50;
  const r=await api("users.list",{page,per_page:perPage,status:status==="all"?"":status,search:$("userSearch")?.value||""});
  const users=r.users||[];
  $("pageContent").innerHTML='<div class="card"><div class="audit-toolbar"><div class="quick-stat-row"><span class="quick-stat">Users matched <strong>'+num(r.total)+'</strong></span><span class="quick-stat">PII '+(r.pii_masked?"masked":"authorized")+'</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="userSearch" class="filter-input" type="search" placeholder="Search name, email or user ID…" value="'+esc($("userSearch")?.value||"")+'"><select id="userStatus" class="filter-select"><option value="all">All accounts</option><option value="active">Active</option><option value="suspended">Suspended</option><option value="verified">Verified email</option><option value="unverified">Unverified email</option></select><button class="btn btn-secondary" id="refreshUsers">Refresh</button></div></div><div class="table-wrap"><table class="audit-table"><thead><tr><th>User</th><th>Email</th><th>Provider</th><th>Last sign in</th><th>Verified</th><th>Profile</th><th>Devices</th><th>Push devices</th><th>App announcements</th><th>Status</th><th></th></tr></thead><tbody>'+
  (users.length?users.map(u=>'<tr><td><div style="display:flex;align-items:center;gap:8px">'+(u.avatar_url?'<img src="'+esc(u.avatar_url)+'" alt="" style="width:27px;height:27px;border-radius:50%;object-fit:cover">':'<span class="avatar" style="width:27px;height:27px">'+esc((u.display_name||"U").charAt(0).toUpperCase())+'</span>')+'<span><strong>'+esc(u.display_name||"—")+'</strong><div class="muted tiny">'+esc(u.user_id.slice(0,8))+'…</div></span></div></td><td>'+esc(u.email||"Hidden")+'</td><td>'+esc(u.auth_provider||"—")+'</td><td>'+fmtDate(u.last_sign_in_at)+'</td><td>'+badge(u.email_verified?"verified":"unverified")+'</td><td>'+badge(u.profile_completed?"complete":"incomplete")+'</td><td>'+num(u.device_count)+'</td><td>'+num(u.push_device_count)+'</td><td>'+badge(u.announcements_enabled?"opted in":"opted out")+'</td><td>'+badge(u.account_status)+'</td><td><button class="btn btn-secondary btn-small" data-user-detail="'+esc(u.user_id)+'">View</button></td></tr>').join(""):'<tr><td colspan="9"><div class="module-placeholder"><div><div class="placeholder-icon">♙</div><h2>No users found</h2><p>No accounts match the selected filter.</p></div></div></td></tr>')+
  '</tbody></table></div><div class="muted tiny" style="margin-top:12px">Showing '+users.length+' of '+num(r.total)+' currently indexed accounts. More than 1,000 accounts will be paginated in a later refinement.</div></div>';
  const inp=$("userSearch"),sel=$("userStatus");if(sel)sel.value=status||"all";
- if(inp)inp.addEventListener("input",()=>{clearTimeout(userSearchTimer);userSearchTimer=setTimeout(()=>renderUsers(sel.value,deviceOnly).catch(renderError),350)});
- if(sel)sel.addEventListener("change",()=>renderUsers(sel.value,deviceOnly).catch(renderError));
+ if(inp)inp.addEventListener("input",()=>{clearTimeout(userSearchTimer);usersPage=1;userSearchTimer=setTimeout(()=>renderUsers(sel.value,deviceOnly).catch(renderError),350)});
+ if(sel)sel.addEventListener("change",()=>{usersPage=1;renderUsers(sel.value,deviceOnly).catch(renderError)});
  $("refreshUsers").onclick=()=>renderUsers(sel.value,deviceOnly);
+ $("usersPrev").onclick=()=>{if(usersPage>1){usersPage--;renderUsers(sel.value,deviceOnly).catch(renderError)}};
+ $("usersNext").onclick=()=>{if(r.has_more){usersPage++;renderUsers(sel.value,deviceOnly).catch(renderError)}};
  $("pageContent").querySelectorAll("[data-user-detail]").forEach(b=>b.addEventListener("click",()=>renderUserDetail(b.dataset.userDetail)));
+}
+async function exportUsersCSV(){
+ try{
+  const query=$("userSearch")?.value||"";
+  const status=$("userStatus")?.value||currentUsersStatus;
+  const data=await api("users.list",{page:usersPage,per_page:100,search:query,status:status==="all"?"":status});
+  const fields=["user_id","display_name","email","auth_provider","email_verified","profile_completed","last_sign_in_at","account_status","device_count","push_device_count","announcements_enabled"];
+  const rows=[fields.join(",")].concat((data.users||[]).map(row=>fields.map(k=>'"'+String(row[k]??"").replace(/"/g,'""')+'"').join(",")));
+  const blob=new Blob(["\uFEFF"+rows.join("\r\n")],{type:"text/csv;charset=utf-8"});
+  const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download="momin-users-page-"+usersPage+".csv";link.click();URL.revokeObjectURL(link.href);
+  toast("CSV export downloaded for the current filtered page.");
+ }catch(e){toast(e.message||"Export failed")}
 }
 async function renderUserDetail(userId){
  const r=await api("users.detail",{user_id:userId}),u=r.user||{};
