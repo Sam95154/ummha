@@ -74,7 +74,12 @@
   }
   async function sendPushTest(){if(get("momin-push-enabled","false")!=="true")await enableBackgroundPush(currentPushPreferences());await pushApi("test",{});try{await refreshPushInbox()}catch(_){}return true}
   async function refreshPushInbox(){
-    var result=await pushApi("inbox",{}),items=(result.data&&result.data.items||[]).map(function(item){var at=item.sent_at||item.created_at||new Date().toISOString(),date=new Date(at);return {t:item.title||"MOMIN reminder",s:item.body||"",w:date.toLocaleDateString([],{month:"short",day:"numeric"}),i:item.icon_key||"b",at:at,route:item.route||"home",image:item.image_url||null,inboxId:item.id||null,unread:item.inbox_status!=="read"}});
+    var previous=readInbox(),readIds={};
+    previous.forEach(function(item){if(item&&item.inboxId&&item.unread===false)readIds[String(item.inboxId)]=true;});
+    var result=await pushApi("inbox",{}),items=(result.data&&result.data.items||[]).map(function(item){
+      var at=item.sent_at||item.created_at||new Date().toISOString(),date=new Date(at),id=item.id||null;
+      return {t:item.title||"MOMIN reminder",s:item.body||"",w:date.toLocaleDateString([],{month:"short",day:"numeric"}),i:item.icon_key||"b",at:at,route:item.route||"home",image:item.image_url||null,inboxId:id,unread:id?!readIds[String(id)]:true};
+    });
     put("noor-notification-inbox",JSON.stringify(items));try{window.dispatchEvent(new CustomEvent("momin:notifications-updated"))}catch(_){}return items;
   }
   async function disableBackgroundPush(){
@@ -314,7 +319,17 @@
     syncPushPreferences:syncPushPreferences,
     sendPushTest:sendPushTest,
     refreshInbox:refreshPushInbox,
-    markInboxRead:function(id){return pushApi("mark_read",{inbox_id:id})},
+    markInboxRead:function(id){
+      var items=readInbox(),found=false;
+      items=items.map(function(item){
+        if(String(item&&item.inboxId||"")===String(id)){
+          item.unread=false;item.read=true;found=true;
+        }
+        return item;
+      });
+      if(found){writeInbox(items);try{window.dispatchEvent(new CustomEvent("momin:notifications-updated"))}catch(_){}}
+      return Promise.resolve(found);
+    },
     disableBackgroundPush:disableBackgroundPush,
     sendTest:function(){
       return requestPermission().then(function(permission){
