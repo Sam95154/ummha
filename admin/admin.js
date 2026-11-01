@@ -372,7 +372,7 @@ function composerMarkup(){
  '<label class="field-label" for="destination">Open destination when tapped</label><select id="destination" class="field-input"><option value="home">Home</option><option value="prayers">Prayer Times</option><option value="quran">Quran</option><option value="duas">Duas</option><option value="calendar">Islamic Calendar</option><option value="notifications">Notifications</option><option value="journey">Journey</option><option value="giving">Giving</option></select>'+
  '<label class="field-label" for="actionLabel">Optional action label</label><input id="actionLabel" class="field-input" maxlength="40" placeholder="Read more">'+
  '</section></div><section class="card" style="margin-top:14px"><div class="card-title"><div><h3>3. Schedule and preview</h3><p>Review the message before submitting.</p></div><span class="phase-badge">NO AUTO-SEND</span></div><div class="section-grid"><div><label class="field-label" for="scheduleAt">Send date and time</label><input id="scheduleAt" class="field-input" type="datetime-local"><p class="muted tiny">The scheduler processes due campaigns once per minute. “Send now” queues for the next scheduler run.</p><div class="quick-stat-row"><span class="quick-stat">Eligible audience <strong id="audienceEstimate">Not estimated</strong></span></div></div><div class="notification-preview"><div class="eyebrow">MOBILE PREVIEW</div><div class="phone-preview"><div class="phone-top">MOMIN · now</div><div id="previewImage" class="phone-image hidden"></div><strong id="previewTitle">Notification title</strong><p id="previewBody">Your message preview will appear here.</p><span class="phone-route" id="previewRoute">Home</span></div></div></div></section>'+
- '<div class="composer-actions"><button class="btn btn-secondary" id="backCampaigns">Cancel</button><button class="btn btn-secondary" id="testMyDevice">Test to my device</button><button class="btn btn-secondary" id="saveNotificationDraft">Save draft</button><button class="btn btn-primary" id="scheduleNotification">Review audience & schedule</button></div>';
+ '<div class="composer-actions"><button class="btn btn-secondary" id="backCampaigns">Cancel</button><button class="btn btn-secondary" id="testMyDevice">Test to my device</button><button class="btn btn-secondary" id="saveNotificationDraft">Save draft</button><button class="btn btn-secondary" id="scheduleNotification">Review & schedule</button><button class="btn btn-primary" id="sendNotificationNow">Send now</button></div>';
 }
 function renderComposer(){
  selectedUsers=selectedUsers||[];uploadedImage=null;campaignId=null;
@@ -395,6 +395,7 @@ function renderComposer(){
  };
  $("saveNotificationDraft").onclick=()=>saveDraft(false).catch(e=>toast(e.message));
  $("scheduleNotification").onclick=()=>saveDraft(true).catch(e=>toast(e.message));
+ $("sendNotificationNow").onclick=()=>{const when=new Date(Date.now()+2*60000);$("scheduleAt").value=when.getFullYear()+"-"+String(when.getMonth()+1).padStart(2,"0")+"-"+String(when.getDate()).padStart(2,"0")+"T"+String(when.getHours()).padStart(2,"0")+":"+String(when.getMinutes()).padStart(2,"0");saveDraft(true).catch(e=>toast(e.message))};
  $("testMyDevice").onclick=async()=>{
   const key=localStorage.getItem("momin-device-key-v1");
   if(!key){toast("Open MOMIN on this device and enable background notifications first.");return}
@@ -420,13 +421,16 @@ async function saveDraft(schedule){
  if(audience.type==="individual"&&audience.filter.user_ids.length!==1)throw new Error("Choose exactly one user for an individual notification.");
  const scheduledValue=$("scheduleAt").value;if(schedule&&!scheduledValue)throw new Error("Select the schedule date and time.");
  const scheduledAt=scheduledValue?new Date(scheduledValue).toISOString():null;
+ const expiryValue=$("expiresAt").value;
+ const expiresAt=expiryValue?new Date(expiryValue).toISOString():null;
  if(schedule&&new Date(scheduledAt).getTime()<Date.now()-30000)throw new Error("Choose a future schedule time.");
+ if(expiresAt&&scheduledAt&&new Date(expiresAt).getTime()<=new Date(scheduledAt).getTime())throw new Error("Expiry must be later than the scheduled send time.");
  const payload={
   campaign_name:$("campaignName").value.trim()||title,title,message:body,
   image_url:uploadedImage&&uploadedImage.image_url||null,image_path:uploadedImage&&uploadedImage.path||null,
   route:$("destination").value,action_label:$("actionLabel").value.trim()||null,
   audience_type:audience.type,audience_filter:audience.filter,channel:$("channel").value,
-  priority:$("priority").value,scheduled_at:scheduledAt,
+  priority:$("priority").value,scheduled_at:scheduledAt,expires_at:expiresAt,
   timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||"Asia/Kolkata"
  };
  const saved=await api("notifications.save_draft",payload);campaignId=saved.campaign_id;
