@@ -191,7 +191,8 @@ async function init(){
  $("displayName").value=(profile&&profile.display_name)||nameFrom(user);
  $("birthday").value=(profile&&profile.birthday)||"";
  if(profile&&profile.gender)setGender(profile.gender);
- var av=(profile&&profile.avatar_url)||user.user_metadata.avatar_url||user.user_metadata.picture;
+ var userMeta=user.user_metadata||{};
+ var av=(profile&&profile.avatar_url)||userMeta.avatar_url||userMeta.picture;
  if(av)renderAvatar(av);
  $("pickAvatar").addEventListener("click",function(){$("avatarFile").click()});
  $("avatarFile").addEventListener("change",function(e){
@@ -209,7 +210,7 @@ async function init(){
  root.classList.remove("momin-profile-pending");
 }
 async function uploadAvatar(){
- if(!selectedFile)return profile&&profile.avatar_url||user.user_metadata.avatar_url||user.user_metadata.picture||null;
+ if(!selectedFile){var meta=user.user_metadata||{};return profile&&profile.avatar_url||meta.avatar_url||meta.picture||null;}
  var ext=(selectedFile.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
  var path=user.id+"/profile-"+Date.now()+"."+ext;
  var result=await client.storage.from("avatars").upload(path,selectedFile,{upsert:true,contentType:selectedFile.type,cacheControl:"3600"});
