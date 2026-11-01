@@ -473,6 +473,32 @@ Deno.serve(async (request: Request) => {
       case "forgot_password": return reply({ error: "Secure recovery is not configured yet. Use your authenticated Admin Profile to change the password, or ask the database owner to perform a verified recovery." }, 501, origin);
       case "dashboard": return reply(await dashboard(), 200, origin);
       case "users": return reply(await listUsers(body), 200, origin);
+      case "user_detail": {
+        const id = String(body.id || "");
+        if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid User ID.");
+        const [{ data: authData, error: authError }, { data: profile, error: profileError },
+          { data: inbox, error: inboxError }, { data: contributions, error: contributionError },
+          { data: complaints, error: complaintsError }] = await Promise.all([
+          db.auth.admin.getUserById(id),
+          db.from("momin_profiles").select("user_id,public_user_id,display_name,email,avatar_url,account_status,created_at,updated_at,profile_completed,last_seen_at").eq("user_id", id).maybeSingle(),
+          db.from("momin_user_notifications").select("id,title,message,route,read_at,created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
+          db.from("momin_contributions").select("transaction_ref,campaign_id,amount,currency,fund_category,payment_status,receipt_status,created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
+          db.from("momin_complaints").select("id,ticket_id,category,subject,priority,status,created_at,updated_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
+        ]);
+        if (authError || !authData.user) throw new Error("MOMIN user was not found.");
+        if (profileError || inboxError || contributionError || complaintsError) throw new Error("Unable to load all user detail records.");
+        return reply({
+          user: {
+            id, user_id: profile?.public_user_id || "MOM-" + id.replaceAll("-", "").slice(0,10).toUpperCase(),
+            name: profile?.display_name || authData.user.user_metadata?.full_name || authData.user.email?.split("@")[0] || "MOMIN User",
+            email: authData.user.email || "", phone: authData.user.phone || "",
+            registered_at: authData.user.created_at, last_active: authData.user.last_sign_in_at || null,
+            status: profile?.account_status || "Active", avatar_url: profile?.avatar_url || null,
+            profile_completed: !!profile?.profile_completed,
+          },
+          notifications: inbox || [], contributions: contributions || [], complaints: complaints || [],
+        }, 200, origin);
+      }
       case "update_user": return reply(await updateUser(body, session.adminId), 200, origin);
       case "set_user_status": return reply(await setUserStatus(body, session.adminId), 200, origin);
       case "notifications_history": {
