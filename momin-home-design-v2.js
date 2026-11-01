@@ -93,7 +93,7 @@ function trackerMarkup(state){
 }
 function featureMarkup(){
   var features=[['Qibla','i-qibla','qibla'],['Duas','i-duas','duas'],['Mosques','i-mosque','mosques'],['Tasbih','i-tasbih','tasbeeh'],
-    ['Quran','i-book','quran'],['Giving','i-heart','giving'],['Inspiration','i-spark','inspiration'],['Calendar','i-grid','calendar']];
+    ['Quran','i-book','quran'],['Giving','i-heart','giving'],['Complaints','i-bell','complaints'],['Inspiration','i-spark','inspiration'],['Calendar','i-grid','calendar']];
   return features.map(function(item){return '<button class="tile" type="button" onclick="go(\''+item[2]+'\')"><svg class="i"><use href="#'+item[1]+'"/></svg>'+esc(item[0])+'</button>';}).join('');
 }
 function quranInfo(){
