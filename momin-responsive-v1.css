@@ -907,3 +907,67 @@
   html body.momin-home-v3-active .reflect,
   html body.momin-home-v3-active #quranResume { border-radius: 30px; }
 }
+
+
+/* Shared shell overrides — the shell caps #view at 480px on phones.
+   Widen that parent only while the redesigned Home route is active. */
+@media (min-width: 601px) and (max-width: 1024px) {
+  html body.momin-app-shell-active.momin-home-v3-active #view.content {
+    display: block !important;
+    width: calc(100% - 40px) !important;
+    max-width: 900px !important;
+    min-width: 0 !important;
+    margin: 0 auto !important;
+    padding: 22px 0 154px !important;
+  }
+  html body.momin-app-shell-active.momin-home-v3-active #view.content > .app {
+    width: 100% !important;
+    max-width: 900px !important;
+    margin: 0 auto !important;
+  }
+}
+@media (min-width: 1025px) {
+  html body.momin-app-shell-active.momin-home-v3-active #view.content {
+    display: block !important;
+    width: calc(100% - 72px) !important;
+    max-width: 1200px !important;
+    min-width: 0 !important;
+    margin: 0 auto !important;
+    padding: 28px 0 48px !important;
+  }
+  html body.momin-app-shell-active.momin-home-v3-active #view.content > .app {
+    width: 100% !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+  }
+  html body.momin-app-shell-active.momin-home-v3-active #momin-shared-bottom-nav-v1 {
+    display: flex !important;
+    flex-direction: column !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 22px !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 88px !important;
+    max-width: 88px !important;
+    margin: 0 !important;
+    padding: 8px !important;
+    gap: 8px !important;
+    transform: translateY(-50%) !important;
+    grid-template-columns: none !important;
+  }
+  html body.momin-app-shell-active.momin-home-v3-active #momin-shared-bottom-nav-v1 > button {
+    width: 100% !important;
+    min-height: 68px !important;
+    padding: 12px 6px !important;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    gap: 6px;
+    font-size: 11px;
+  }
+  html body.momin-app-shell-active.momin-home-v3-active #momin-shared-bottom-nav-v1 > button[aria-current="page"] {
+    background: var(--momin-gold-soft, #2b2312) !important;
+    color: var(--momin-gold-bright, #e8c071) !important;
+    border-color: var(--momin-gold, #d9aa52) !important;
+  }
+}

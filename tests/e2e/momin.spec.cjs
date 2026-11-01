@@ -226,12 +226,11 @@ test.describe("MOMIN authenticated app", () => {
       await page.setViewportSize({ width: size.width, height: size.height });
       const metrics = await app.evaluate((element) => {
         const main = element.querySelector(":scope > main");
-        const tabs = document.querySelector("#view > .tabs");
-        const nav = tabs && tabs.querySelector("nav");
+        const nav = document.querySelector("#momin-shared-bottom-nav-v1");
         return {
           width: Math.round(element.getBoundingClientRect().width),
           columns: getComputedStyle(main).gridTemplateColumns,
-          navPosition: tabs ? getComputedStyle(tabs).position : "",
+          navPosition: nav ? getComputedStyle(nav).position : "",
           navDirection: nav ? getComputedStyle(nav).flexDirection : ""
         };
       });
