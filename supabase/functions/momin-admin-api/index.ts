@@ -92,7 +92,7 @@ async function getAuthUsers(page = 1, perPage = 100) {
   const users = data.users || [];
   const ids = users.map(u => u.id);
   const profilesResult = ids.length
-    ? await db.from("momin_profiles").select("user_id,public_user_id,display_name,email,phone,account_status,created_at,updated_at,avatar_url").in("user_id", ids)
+    ? await db.from("momin_profiles").select("user_id,public_user_id,display_name,email,account_status,created_at,updated_at,avatar_url").in("user_id", ids)
     : { data: [], error: null };
   if (profilesResult.error) throw profilesResult.error;
   const profiles = new Map((profilesResult.data || []).map(p => [p.user_id, p]));
@@ -144,10 +144,10 @@ async function dashboard() {
     recent_users: recentProfiles || [],
   };
 }
-async function listUsers(url: URL) {
-  const page = Math.max(1, Number(url.searchParams.get("page") || 1));
-  const query = (url.searchParams.get("q") || "").toLowerCase().trim();
-  const status = url.searchParams.get("status") || "all";
+async function listUsers(body: Record<string, unknown>) {
+  const page = Math.max(1, Number(body.page || 1));
+  const query = String(body.q || "").toLowerCase().trim();
+  const status = String(body.status || "all");
   const users = await getAuthUsers(page, 100);
   const filtered = users.filter(u =>
     (status === "all" || u.status.toLowerCase() === status.toLowerCase()) &&
@@ -472,7 +472,7 @@ Deno.serve(async (request: Request) => {
       case "change_password": return reply(await changePassword(body, session), 200, origin);
       case "forgot_password": return reply({ error: "Secure recovery is not configured yet. Use your authenticated Admin Profile to change the password, or ask the database owner to perform a verified recovery." }, 501, origin);
       case "dashboard": return reply(await dashboard(), 200, origin);
-      case "users": return reply(await listUsers(new URL(request.url)), 200, origin);
+      case "users": return reply(await listUsers(body), 200, origin);
       case "update_user": return reply(await updateUser(body, session.adminId), 200, origin);
       case "set_user_status": return reply(await setUserStatus(body, session.adminId), 200, origin);
       case "notifications_history": {
@@ -486,6 +486,16 @@ Deno.serve(async (request: Request) => {
       case "campaign_status": return reply(await setCampaignStatus(body, session.adminId), 200, origin);
       case "contributions": return reply(await getContributions(), 200, origin);
       case "complaints": return reply(await getComplaints(), 200, origin);
+      case "complaint_detail": {
+        const id = String(body.id || "");
+        if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid complaint ID.");
+        const { data: complaint, error } = await db.from("momin_complaints").select("*").eq("id", id).single();
+        if (error) throw error;
+        const { data: profile } = await db.from("momin_profiles").select("display_name,public_user_id").eq("user_id", complaint.user_id).maybeSingle();
+        const { data: replies, error: replyError } = await db.from("momin_complaint_replies").select("id,author_type,message,created_at").eq("complaint_id", id).order("created_at", { ascending: true });
+        if (replyError) throw replyError;
+        return reply({ complaint: { ...complaint, user_name: profile?.display_name || "MOMIN User", user_public_id: profile?.public_user_id || "" }, replies: replies || [] }, 200, origin);
+      }
       case "update_complaint": return reply(await saveComplaint(body, session.adminId), 200, origin);
       case "create_complaint": {
         const userId = String(body.user_id || "");
