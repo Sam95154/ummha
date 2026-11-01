@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en" class="momin-profile-pending">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101713">
+<title>Complete your profile · MOMIN</title>
+<style>
+:root{color-scheme:dark;--bg:#101713;--surface:#151e19;--line:#35413a;--ink:#f4f5f2;--muted:#aeb8b0;--green:#00c982;--green-dark:#008f5c;--gold:#d9aa52}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+body{padding:env(safe-area-inset-top) 0 calc(28px + env(safe-area-inset-bottom));}
+html.momin-profile-pending body{visibility:hidden}
+button,input{font:inherit}
+.page{width:min(100%,620px);margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+.head{height:76px;display:flex;align-items:center;gap:20px;padding:0 22px;border-bottom:1px solid rgba(255,255,255,.035);background:#101713;position:sticky;top:0;z-index:5}
+.brand-mark{height:38px;width:38px;object-fit:contain;padding:4px;border-radius:12px;background:#f7f0dd}
+.head h1{font-size:19px;font-weight:650;letter-spacing:-.03em;margin:0}
+.content{padding:28px 26px 22px;flex:1}
+.kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:800;margin:0 0 10px}
+h2{font-size:28px;letter-spacing:-.045em;margin:0 0 7px;font-weight:750}
+.lead{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 26px}
+.notice{display:none;padding:12px 14px;border-radius:12px;margin:0 0 16px;font-size:13px;line-height:1.5}
+.notice.show{display:block}.notice.error{background:#5b241f;color:#ffd9d4}.notice.success{background:#123c2c;color:#c7ffdf}.notice.info{background:#19372e;color:#d4eee0}
+.uploads{border-bottom:1px solid var(--line);margin-bottom:4px}
+.upload-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:82px;border:0;border-bottom:1px solid rgba(255,255,255,.06);background:transparent;color:var(--ink);padding:12px 0;text-align:left}
+.upload-copy{font-size:15px;font-weight:520}
+.upload-hint{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+.avatar-wrap{width:54px;height:54px;border-radius:50%;background:#f4f4f1;color:#19211c;display:grid;place-items:center;overflow:hidden;position:relative;flex:none}
+.avatar-wrap img{width:100%;height:100%;object-fit:cover}
+.avatar-wrap svg{position:absolute;right:1px;bottom:0;width:25px;height:25px;padding:4px;border-radius:50%;background:#d4dad5;border:2px solid var(--bg)}
+.lock{width:32px;height:36px;flex:none;color:var(--muted)}
+.field{padding:19px 0 12px;border-bottom:1px solid var(--line)}
+label.field-label{display:block;font-size:14px;font-weight:560;margin-bottom:12px}
+.input{display:block;width:100%;height:45px;padding:0 0 8px;border:0;border-bottom:1px solid #89928c;border-radius:0;background:transparent;color:var(--ink);font-size:17px;outline:none}
+.input:focus{border-bottom:2px solid var(--green)}
+.input::placeholder{color:#7f8982}
+.email-line{display:flex;align-items:center;gap:12px}
+.email-text{min-width:0;flex:1;overflow-wrap:anywhere;font-size:16px}
+.verified{color:var(--green);font-size:12px;margin-top:6px;display:flex;align-items:center;gap:6px}
+.verified svg{width:15px;height:15px}
+.inline-action{border:0;background:transparent;color:var(--green);font-size:15px;padding:8px 0 8px 10px}
+.helper{margin:9px 0 0;color:var(--muted);font-size:12px;line-height:1.55}
+.optional{font-size:11px;font-weight:500;color:var(--muted);margin-left:7px}
+.info-btn{display:inline-grid;place-items:center;width:19px;height:19px;border:0;border-radius:50%;margin-left:8px;background:transparent;color:var(--green);font-weight:800}
+.gender-options{display:flex;align-items:center;gap:50px;padding:9px 0 6px;flex-wrap:wrap}
+.choice{display:inline-flex;align-items:center;gap:10px;font-size:16px;cursor:pointer}
+.choice input{appearance:none;width:22px;height:22px;border:2px solid #9aa39d;border-radius:50%;margin:0;display:grid;place-items:center}
+.choice input:checked{border-color:var(--green)}
+.choice input:checked:after{content:"";width:10px;height:10px;background:var(--green);border-radius:50%}
+.password-row{width:100%;display:flex;align-items:center;justify-content:space-between;min-height:72px;padding:12px 0;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);text-align:left;font-size:16px}
+.chevron{font-size:28px;font-weight:300}
+.password-panel{display:none;padding:14px 0 18px;border-bottom:1px solid var(--line)}
+.password-panel.open{display:block}
+.password-panel .input{margin:8px 0 14px}
+.small-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 14px;font-size:13px}
+.save-wrap{padding:24px 22px calc(24px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(16,23,19,.88),#101713 28%);position:sticky;bottom:0}
+.save{width:100%;min-height:60px;border:0;border-radius:15px;background:var(--green);color:#062416;font-weight:750;font-size:17px;letter-spacing:-.01em;box-shadow:0 9px 24px rgba(0,201,130,.13)}
+.save:disabled{opacity:.55}
+.footnote{text-align:center;color:var(--muted);font-size:11px;line-height:1.5;margin:16px 0 0}
+@media(max-width:420px){.content{padding:26px 22px 16px}.head{padding:0 22px}.gender-options{gap:34px}.save-wrap{padding-left:18px;padding-right:18px}h2{font-size:26px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="page">
+<header class="head">
+  <img class="brand-mark" src="./momin-mark.svg?v=islamic-logo-v3" alt="MOMIN">
+  <h1>Complete your profile</h1>
+</header>
+<main class="content">
+  <p class="kicker">One last step</p>
+  <h2>Update Profile</h2>
+  <p class="lead">Confirm your details before entering MOMIN. Your account information stays linked to your sign-in.</p>
+  <div id="message" class="notice" role="status" aria-live="polite"></div>
+  <div id="verifyBox" class="notice info" style="display:none">
+    <strong>Email verification required.</strong>
+    <p style="margin:5px 0 10px">Confirm your email address before completing your profile.</p>
+    <button class="small-btn" id="resend" type="button">Resend verification email</button>
+  </div>
+  <section class="uploads" aria-label="Profile images">
+    <button class="upload-row" id="pickAvatar" type="button">
+      <span class="upload-copy">Profile Image<span class="upload-hint">Optional · JPG, PNG or WebP</span></span>
+      <span class="avatar-wrap" id="avatarPreview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c.5-4.2 3.5-6.5 8-6.5s7.5 2.3 8 6.5"/></svg>
+      </span>
+    </button>
+    <input id="avatarFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>
+    <div class="upload-row" aria-disabled="true">
+      <span class="upload-copy">Cover Image<span class="upload-hint">Not available yet</span></span>
+      <svg class="lock" viewBox="0 0 24 28" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="15" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+  </section>
+  <section class="field">
+    <label class="field-label" for="displayName">Name <span style="color:var(--green)">*</span></label>
+    <input class="input" id="displayName" maxlength="80" autocomplete="name" placeholder="Enter your full name" required>
+  </section>
+  <section class="field">
+    <label class="field-label">Email</label>
+    <div class="email-line"><div class="email-text" id="emailValue">—</div><span class="inline-action" id="emailAction"></span></div>
+    <div class="verified" id="verifiedText"></div>
+  </section>
+  <section class="field">
+    <label class="field-label" for="birthday">Birthday <span class="optional">Optional</span><button class="info-btn" type="button" title="Your birthday is optional and is used only for your profile." aria-label="Birthday is optional">ⓘ</button></label>
+    <input class="input" id="birthday" type="date" min="1900-01-01">
+    <p class="helper">You can leave this blank. Please check the date carefully before saving.</p>
+  </section>
+  <section class="field">
+    <label class="field-label">Gender <span class="optional">Optional</span><button class="info-btn" type="button" title="This field is optional." aria-label="Gender is optional">ⓘ</button></label>
+    <div class="gender-options">
+      <label class="choice"><input type="radio" name="gender" value="male"> Male</label>
+      <label class="choice"><input type="radio" name="gender" value="female"> Female</label>
+      <label class="choice"><input type="radio" name="gender" value="prefer_not_to_say"> Prefer not to say</label>
+    </div>
+  </section>
+  <button class="password-row" id="passwordToggle" type="button" aria-expanded="false">
+    <span>Set Your Password <span class="optional">Optional</span></span><span class="chevron">›</span>
+  </button>
+  <div class="password-panel" id="passwordPanel">
+    <p class="helper">Create a password to sign in with email as well as your linked Google account.</p>
+    <label class="field-label" for="newPassword" style="margin-top:12px">New password</label>
+    <input class="input" id="newPassword" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters">
+    <label class="field-label" for="confirmPassword" style="margin-top:12px">Confirm password</label>
+    <input class="input" id="confirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Enter it again">
+    <button class="small-btn" id="setPassword" type="button">Set password</button>
+  </div>
+  <p class="footnote">Your profile is private. Birthday and gender are optional and can be left blank.</p>
+</main>
+<footer class="save-wrap">
+  <button class="save" id="save" type="button">Save Changes</button>
+</footer>
+</div>
+<script>
+(function(){
+"use strict";
+var URL="https://qzwqpiquvhpjwqgaxorp.supabase.co";
+var KEY="sb_publishable_SAHjdts8xtuQSXE_lPa1cw_V6J3PjQt";
+var $=function(id){return document.getElementById(id)};
+var root=document.documentElement;
+var client=window.mominSupabase||(window.supabase&&window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}));
+if(!client){show("Sign-in service could not load. Refresh and try again.","error");return}
+window.mominSupabase=client;
+var session=null,user=null,profile=null,selectedFile=null,redirecting=false;
+function show(text,type){var el=$("message");el.textContent=text;el.className="notice show "+(type||"info")}
+function hide(){var el=$("message");el.textContent="";el.className="notice"}
+function safeNext(){
+ var raw=new URLSearchParams(location.search).get("next")||"/";
+ try{var u=new URL(raw,location.origin);if(u.origin!==location.origin)return "/";var path=u.pathname+u.search+u.hash;return path.indexOf("/profile-complete.html")===0?"/":path}catch(_){return "/"}
+}
+function goApp(){if(redirecting)return;redirecting=true;location.replace(safeNext())}
+function verified(u){
+ var provider=u&&u.app_metadata&&u.app_metadata.provider;
+ return !!(u&&(u.email_confirmed_at||u.confirmed_at||(u.user_metadata&&u.user_metadata.email_verified===true)||(provider==="google"&&u.email)));
+}
+function nameFrom(u){
+ var m=u&&u.user_metadata||{};
+ return String(m.full_name||m.name||m.display_name||[m.given_name,m.family_name].filter(Boolean).join(" ")||(u&&u.email?u.email.split("@")[0]:"")).trim()
+}
+function selectedGender(){var el=document.querySelector('input[name="gender"]:checked');return el?el.value:null}
+function setGender(value){var el=document.querySelector('input[name="gender"][value="'+value+'"]');if(el)el.checked=true}
+function renderAvatar(url){
+ var box=$("avatarPreview");
+ if(url){box.innerHTML='<img src="'+String(url).replace(/["<>]/g,"")+'" alt="Profile image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>'}
+}
+function showVerify(){
+ $("verifyBox").style.display="block";
+ $("save").disabled=true;
+ $("displayName").disabled=true;
+ $("birthday").disabled=true;
+ document.querySelectorAll('input[name="gender"]').forEach(function(x){x.disabled=true});
+ $("pickAvatar").disabled=true;
+}
+async function init(){
+ var result=await client.auth.getSession();
+ if(result.error||!result.data||!result.data.session){
+   var next=location.pathname+location.search+location.hash;
+   location.replace("/login.html?next="+encodeURIComponent(next));return;
+ }
+ session=result.data.session;user=session.user;
+ var provider=user.app_metadata&&user.app_metadata.provider||"email";
+ if(!verified(user)){showVerify();}
+ $("emailValue").textContent=user.email||"Email unavailable";
+ $("verifiedText").textContent=verified(user)?"✓ Verified email":"Email verification required";
+ $("emailAction").textContent=verified(user)?"Verified":"";
+ var q=await client.from("momin_profiles")
+  .select("display_name,email,avatar_url,birthday,gender,profile_completed,profile_image_path")
+  .eq("user_id",user.id).maybeSingle();
+ if(q.error){show("We could not load your profile. "+q.error.message,"error");return}
+ profile=q.data;
+ if(profile&&profile.profile_completed){goApp();return}
+ $("displayName").value=(profile&&profile.display_name)||nameFrom(user);
+ $("birthday").value=(profile&&profile.birthday)||"";
+ if(profile&&profile.gender)setGender(profile.gender);
+ var av=(profile&&profile.avatar_url)||user.user_metadata.avatar_url||user.user_metadata.picture;
+ if(av)renderAvatar(av);
+ $("pickAvatar").addEventListener("click",function(){$("avatarFile").click()});
+ $("avatarFile").addEventListener("change",function(e){
+   selectedFile=e.target.files&&e.target.files[0]||null;
+   if(!selectedFile)return;
+   if(!/^image\/(jpeg|png|webp|avif)$/.test(selectedFile.type)||selectedFile.size>5*1024*1024){
+     selectedFile=null;e.target.value="";show("Choose a JPG, PNG, WebP or AVIF image up to 5 MB.","error");return;
+   }
+   var reader=new FileReader();reader.onload=function(){renderAvatar(String(reader.result))};reader.readAsDataURL(selectedFile);
+ });
+ $("passwordToggle").addEventListener("click",function(){var open=$("passwordPanel").classList.toggle("open");this.setAttribute("aria-expanded",String(open))});
+ $("setPassword").addEventListener("click",setPassword);
+ $("save").addEventListener("click",saveProfile);
+ $("resend").addEventListener("click",resendVerification);
+ root.classList.remove("momin-profile-pending");
+}
+async function uploadAvatar(){
+ if(!selectedFile)return profile&&profile.avatar_url||user.user_metadata.avatar_url||user.user_metadata.picture||null;
+ var ext=(selectedFile.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+ var path=user.id+"/profile-"+Date.now()+"."+ext;
+ var result=await client.storage.from("avatars").upload(path,selectedFile,{upsert:true,contentType:selectedFile.type,cacheControl:"3600"});
+ if(result.error)throw result.error;
+ return client.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+}
+async function saveProfile(){
+ hide();
+ if(!verified(user)){show("Please verify your email address before continuing.","error");showVerify();return}
+ var name=$("displayName").value.trim(),dob=$("birthday").value||null,gender=selectedGender();
+ if(name.length<2){show("Please enter your name (at least 2 characters).","error");$("displayName").focus();return}
+ if(dob){var d=new Date(dob+"T00:00:00"),today=new Date();today.setHours(23,59,59,999);if(Number.isNaN(d.getTime())||d.getFullYear()<1900||d>today){show("Enter a valid birthday that is not in the future.","error");return}}
+ var button=$("save");button.disabled=true;button.textContent="Saving…";
+ try{
+  var avatar=await uploadAvatar();
+  var meta=await client.auth.updateUser({data:{full_name:name,name:name,display_name:name}});
+  if(meta.error)throw meta.error;
+  var data={
+   user_id:user.id,display_name:name,email:user.email||null,
+   avatar_url:avatar||null,auth_provider:(user.app_metadata&&user.app_metadata.provider)||"email",
+   email_verified:verified(user),birthday:dob,gender:gender,
+   profile_image_path:selectedFile?user.id+"/profile-"+ "":(profile&&profile.profile_image_path)||null,
+   profile_completed:true,profile_completed_at:new Date().toISOString(),updated_at:new Date().toISOString()
+  };
+  var result=await client.from("momin_profiles").upsert(data,{onConflict:"user_id"});
+  if(result.error)throw result.error;
+  show("Profile saved. Welcome to MOMIN!","success");
+  setTimeout(goApp,500);
+ }catch(error){show(error.message||"We could not save your profile. Try again.","error")}
+ finally{button.disabled=false;button.textContent="Save Changes"}
+}
+async function setPassword(){
+ hide();var p=$("newPassword").value,c=$("confirmPassword").value;
+ if(p.length<8){show("Use a password with at least 8 characters.","error");return}
+ if(p!==c){show("The passwords do not match.","error");return}
+ var b=$("setPassword");b.disabled=true;b.textContent="Saving…";
+ try{var r=await client.auth.updateUser({password:p});if(r.error)throw r.error;$("newPassword").value=$("confirmPassword").value="";show("Password added to your account.","success")}
+ catch(e){show(e.message||"Password could not be saved.","error")}
+ finally{b.disabled=false;b.textContent="Set password"}
+}
+async function resendVerification(){
+ var b=$("resend");b.disabled=true;
+ try{
+  var r=await client.auth.resend({type:"signup",email:user.email,options:{emailRedirectTo:location.origin+"/profile-complete.html?next="+encodeURIComponent(safeNext())}});
+  if(r.error)throw r.error;show("Verification email sent. Open the email link, then return to MOMIN.","success");
+ }catch(e){show(e.message||"Could not resend verification email.","error")}
+ finally{b.disabled=false}
+}
+init().catch(function(e){show(e.message||"Could not open profile setup.","error");root.classList.remove("momin-profile-pending")});
+})();
+</script>
+</body></html>
