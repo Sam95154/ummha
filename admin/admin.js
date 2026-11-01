@@ -215,16 +215,18 @@
     if (state.givingTab === "create") return heading("Giving Management", "Create and publish a Zakat, Sadaqah, or Charity campaign") +
       '<div class="tabs"><button data-action="giving-tab" data-tab="campaigns">Campaigns</button><button class="active" data-action="giving-tab" data-tab="create">Create campaign</button><button data-action="giving-tab" data-tab="contributions">Contributions</button></div>' +
       '<div class="split"><section class="card"><form data-form="campaign">' +
-      field("Campaign name","name","","text",true,'maxlength="120"') +
-      selectField("Category","category",["Zakat","Sadaqah","Charity","Other approved"].map(x=>({value:x,label:x})),"Sadaqah",true) +
-      '<div class="field wide"><label>Description</label><textarea class="control" name="description" maxlength="5000"></textarea></div>' +
-      field("Target amount","target_amount","","number",true,'min="1" step="0.01"') +
+      field("Campaign name","name",state.editCampaign?.name || "","text",true,'maxlength="120"') +
+      selectField("Category","category",["Zakat","Sadaqah","Charity","Other approved"].map(x=>({value:x,label:x})),state.editCampaign?.category || "Sadaqah",true) +
+      '<div class="field wide"><label>Description</label><textarea class="control" name="description" maxlength="5000">' + escapeHtml(state.editCampaign?.description || "") + '</textarea></div>' +
+      field("Target amount","target_amount",state.editCampaign?.target_amount || "","number",true,'min="1" step="0.01"') +
       selectField("Currency","currency",[{value:"INR",label:"INR – Indian Rupee"},{value:"AED",label:"AED – UAE Dirham"},{value:"USD",label:"USD – US Dollar"},{value:"GBP",label:"GBP – Pound Sterling"}],"INR") +
-      field("Start date","starts_at","","date") + field("End date","ends_at","","date") +
-      '<div class="field wide"><label>Donation instructions</label><textarea class="control" name="donation_instructions" maxlength="2000"></textarea></div>' +
-      '<div class="field wide"><label>Cover image (optional)</label><input class="control" type="file" name="image" accept="image/jpeg,image/png,image/webp"><small class="hint">JPG, PNG or WebP · max 2 MB.</small><div id="campaign-image-preview"></div></div>' +
-      selectField("Publish status","status",[{value:"Draft",label:"Save as Draft"},{value:"Active",label:"Publish as Active"}],"Draft") +
-      '<div class="field wide"><button class="btn primary" type="submit">Save campaign</button></div></form></section>' +
+      field("Start date","starts_at",state.editCampaign?.starts_at || "","date") + field("End date","ends_at",state.editCampaign?.ends_at || "","date") +
+      '<div class="field wide"><label>Donation instructions</label><textarea class="control" name="donation_instructions" maxlength="2000">' + escapeHtml(state.editCampaign?.donation_instructions || "") + '</textarea></div>' +
+      '<div class="field wide"><label>Cover image (optional)</label><input class="control" type="file" name="image" accept="image/jpeg,image/png,image/webp"><input type="hidden" name="existing_image_url" value="' + escapeHtml(state.editCampaign?.image_url || "") + '"><small class="hint">JPG, PNG or WebP · max 2 MB. Upload a new file to replace it.</small>' + (state.editCampaign?.image_url ? '<img src="' + escapeHtml(state.editCampaign.image_url) + '" alt="" style="max-width:180px;border-radius:9px;margin-top:8px">' : '') + '<div id="campaign-image-preview"></div></div>' +
+      selectField("Publish status","status",[{value:"Draft",label:"Save as Draft"},{value:"Active",label:"Publish as Active"}], "Draft") +
+      '<input type="hidden" name="id" value="' + escapeHtml(state.editCampaign?.id || "") + '">' +
+      '<div class="field wide"><button class="btn primary" type="submit">' + (state.editCampaign ? "Save campaign changes" : "Save campaign") + '</button> ' +
+      (state.editCampaign ? '<button class="btn" type="button" data-action="cancel-campaign-edit">Cancel</button>' : '') + '</div></form></section>' +
       '<section class="card"><h3>Fund separation</h3><p class="muted">Zakat, Sadaqah, and Charity are separately categorized in campaign and contribution records. Only verified contributions count toward totals.</p></section></div>';
     return heading("Giving Management", "Manage campaigns and monitor verified contributions") +
       '<div class="tabs"><button class="active" data-action="giving-tab" data-tab="campaigns">Campaigns</button><button data-action="giving-tab" data-tab="create">Create campaign</button><button data-action="giving-tab" data-tab="contributions">Contributions</button></div>' +
