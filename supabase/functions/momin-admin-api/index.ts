@@ -184,13 +184,13 @@ async function listUsers(body: Record<string, unknown>) {
   const query = String(body.q || "").trim().slice(0, 100);
   const status = String(body.status || "all");
   let request = db.from("momin_profiles")
-    .select("user_id,public_user_id,display_name,email,account_status,created_at,avatar_url", { count: "exact" })
+    .select("user_id,public_user_id,display_name,email,phone,account_status,created_at,avatar_url", { count: "exact" })
     .order("created_at", { ascending: false })
     .range((page - 1) * pageSize, page * pageSize - 1);
   if (status === "Active" || status === "Inactive") request = request.eq("account_status", status);
   if (query) {
     const safe = query.replace(/[^\p{L}\p{N}@._+\-\s]/gu, "").trim().split(/\s+/).filter(Boolean).join("%");
-    if (safe) request = request.or("public_user_id.ilike.%"+safe+"%,display_name.ilike.%"+safe+"%,email.ilike.%"+safe+"%");
+    if (safe) request = request.or("public_user_id.ilike.%"+safe+"%,display_name.ilike.%"+safe+"%,email.ilike.%"+safe+"%,phone.ilike.%"+safe+"%");
   }
   const { data, error, count } = await request;
   if (error) throw error;
@@ -199,7 +199,7 @@ async function listUsers(body: Record<string, unknown>) {
     user_id: p.public_user_id,
     name: p.display_name || p.email?.split("@")[0] || "MOMIN User",
     email: p.email || "",
-    phone: "",
+    phone: p.phone || "",
     registered_at: p.created_at,
     last_sign_in_at: null,
     status: p.account_status || "Active",
