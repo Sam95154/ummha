@@ -554,7 +554,12 @@ Deno.serve(async (request: Request) => {
         const { data: profile } = await db.from("momin_profiles").select("display_name,public_user_id").eq("user_id", complaint.user_id).maybeSingle();
         const { data: replies, error: replyError } = await db.from("momin_complaint_replies").select("id,author_type,message,created_at").eq("complaint_id", id).order("created_at", { ascending: true });
         if (replyError) throw replyError;
-        return reply({ complaint: { ...complaint, user_name: profile?.display_name || "MOMIN User", user_public_id: profile?.public_user_id || "" }, replies: replies || [] }, 200, origin);
+        let attachmentUrl: string | null = null;
+        if (complaint.attachment_path) {
+          const signed = await db.storage.from("momin-complaint-attachments").createSignedUrl(complaint.attachment_path, 3600);
+          if (!signed.error) attachmentUrl = signed.data.signedUrl;
+        }
+        return reply({ complaint: { ...complaint, attachment_url: attachmentUrl, user_name: profile?.display_name || "MOMIN User", user_public_id: profile?.public_user_id || "" }, replies: replies || [] }, 200, origin);
       }
       case "update_complaint": return reply(await saveComplaint(body, session.adminId), 200, origin);
       case "create_complaint": {
