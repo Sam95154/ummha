@@ -248,7 +248,7 @@ async function loadVapidServer() {
 function normalizeAdminMediaUrl(value: unknown) {
   if (value == null || value === "") return null;
   if (typeof value !== "string") throw new Error("Invalid media URL.");
-  const prefix = SUPABASE_URL.replace(/\\/$/, "") + "/storage/v1/object/public/momin-admin-media/";
+  const prefix = SUPABASE_URL + "/storage/v1/object/public/momin-admin-media/";
   if (!value.startsWith(prefix) || value.length > 2048) throw new Error("Media must be uploaded to MOMIN Admin storage.");
   return value;
 }
