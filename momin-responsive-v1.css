@@ -1,0 +1,724 @@
+/*
+ * MOMIN Responsive Layout V1
+ * Additive tablet/desktop overrides only. The phone layout (<=600px) is intentionally untouched.
+ * Load this file after each page's existing stylesheets.
+ */
+
+/* Tablet: 601px–1024px */
+@media (min-width: 601px) and (max-width: 1024px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  body {
+    min-width: 0;
+  }
+
+  img,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+  }
+
+  .layout,
+  .layout > main,
+  main,
+  .content,
+  .wrap,
+  .app,
+  .page,
+  .profile-app {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  /* Shared app shell: override the 480px cap injected by the shared-shell module. */
+  html body.momin-app-shell-active #view.content {
+    display: block !important;
+    width: calc(100% - 40px) !important;
+    max-width: 720px !important;
+    min-width: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 22px 0 154px !important;
+    overflow: visible !important;
+  }
+
+  html body.momin-app-shell-active #view.content .app {
+    width: 100% !important;
+    max-width: 720px !important;
+    min-width: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  html body.momin-app-shell-active .momin-shell-header__inner {
+    width: calc(100% - 40px);
+    max-width: 720px;
+  }
+
+  /* Reading and legal content stays in a single, comfortable column. */
+  html body.momin-app-shell-active #view.content:has(.quran-reader),
+  html body.momin-app-shell-active #view.content:has(.quran-library),
+  html body.momin-app-shell-active #view.content:has(.dua-page),
+  html body.momin-app-shell-active #view.content:has(.momin-founder-page),
+  html body.momin-app-shell-active #view.content:has(.momin-terms-page),
+  html body.momin-app-shell-active #view.content:has(.momin-privacy-page) {
+    width: calc(100% - 40px) !important;
+    max-width: 760px !important;
+  }
+
+  html body .quran-reader,
+  html body .quran-library.qv-shell,
+  html body .dua-page,
+  html body .momin-founder-page,
+  html body .momin-terms-page,
+  html body .momin-privacy-page {
+    width: 100%;
+    max-width: 760px;
+    min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+  }
+
+  html body .quran-reader {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  html body .quran-toolbar,
+  html body .reading-goal,
+  html body .reader-loadstatus,
+  html body .surah-banner,
+  html body .ayah-list,
+  html body .surah-catalog,
+  html body .quran-library.qv-shell .qv-top,
+  html body .quran-library.qv-shell .qv-content {
+    width: 100%;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+  }
+
+  html body .quran-audio-bar {
+    width: min(760px, calc(100vw - 48px));
+    max-width: 760px;
+  }
+
+  /* Widen standalone and embedded page containers without changing their markup. */
+  html body .app {
+    width: min(100%, 720px);
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  html body.momin-founder-embedded .app {
+    width: 100% !important;
+    max-width: 760px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  html body.momin-duas-embedded .app,
+  html body.momin-inspiration-embedded .app {
+    width: 100%;
+    max-width: 760px !important;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  html body .wrap {
+    width: min(100%, 720px);
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  html body.momin-journey-embedded .wrap {
+    width: 100% !important;
+    max-width: 720px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  html body.momin-prayer-embedded .wrap {
+    width: 100%;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  html body .page {
+    width: min(100%, 720px);
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Keep the four-tab shared navigation; float it centrally on larger screens. */
+  html body #momin-shared-bottom-nav-v1 {
+    position: fixed;
+    left: 50%;
+    right: auto;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: min(520px, calc(100vw - 48px));
+    max-width: 520px;
+    margin: 0;
+    transform: translateX(-50%);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  html body > nav:not(#momin-shared-bottom-nav-v1),
+  html body .tabs > nav,
+  html body .tabbar > nav {
+    left: 50%;
+    right: auto;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: min(520px, calc(100vw - 48px));
+    max-width: 520px;
+    margin-left: 0;
+    margin-right: 0;
+    transform: translateX(-50%);
+    box-sizing: border-box;
+  }
+
+  /* Full-width hero surfaces within each centred page container. */
+  html body .hero,
+  html body .hero-card,
+  html body .qv-hero {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    background-size: cover;
+    background-position: center;
+  }
+
+  /* Two-column card collections on tablets; calendar grids remain untouched. */
+  html body .grid.g2,
+  html body .grid.g3,
+  html body .quickgrid,
+  html body .qv-juz-grid,
+  html body .qv-learn,
+  html body .qv-recents,
+  html body .qv-stats,
+  html body .kpis,
+  html body .duo,
+  html body.momin-duas-embedded .grid,
+  html body.momin-inspiration-embedded .list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
+  }
+
+  html body .grid > *,
+  html body .quickgrid > *,
+  html body .qv-juz-grid > *,
+  html body .qv-learn > *,
+  html body .qv-recents > *,
+  html body .qv-stats > *,
+  html body .kpis > *,
+  html body .duo > * {
+    min-width: 0;
+  }
+
+  /* Founder is a single reading column, rather than a wide two-column article. */
+  html body .momin-founder-page {
+    max-width: 760px;
+  }
+
+  html body .momin-founder-page-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html body .momin-founder-page-photo-wrap {
+    width: min(100%, 320px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Centre sheets, modals and native dialogs instead of anchoring them to the bottom. */
+  html body #sheet.sheet.on,
+  html body .sheet.on {
+    position: fixed;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: min(560px, calc(100vw - 48px));
+    max-width: 560px;
+    max-height: min(82vh, 760px);
+    margin: 0;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+  }
+
+  html body #qv-sheet.qv-sheet.on,
+  html body .quran-library.qv-shell #qv-sheet.qv-sheet.on {
+    position: fixed;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: min(560px, calc(100vw - 48px));
+    max-width: 560px;
+    max-height: min(82vh, 760px);
+    margin: 0;
+    border: 1px solid var(--qv-line, var(--line));
+    border-radius: 24px;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+  }
+
+  html body dialog[open],
+  html body [role="dialog"][aria-modal="true"]:not(.sheet):not(.qv-sheet) {
+    width: min(560px, calc(100vw - 48px));
+    max-width: 560px;
+    max-height: min(82vh, 760px);
+    box-sizing: border-box;
+  }
+
+  html body #mominPrivacyDetailsDialogV1 {
+    width: min(560px, calc(100vw - 48px));
+    max-width: 560px;
+    max-height: min(82vh, 760px);
+  }
+
+  html body .journey-reflection-overlay {
+    align-items: center;
+    justify-items: center;
+    padding: 24px;
+  }
+
+  html body .journey-reflection-panel {
+    width: min(560px, calc(100vw - 48px));
+    max-width: 560px;
+    max-height: min(82vh, 760px);
+    overflow: auto;
+    box-sizing: border-box;
+  }
+
+  /* Preserve Arabic direction, natural glyph size and wrapping. */
+  html body [lang="ar"],
+  html body [dir="rtl"],
+  html body .arabic,
+  html body .ar,
+  html body .qv-sura-ar,
+  html body .qv-juz-arabic,
+  html body .qv-sheet-ar,
+  html body .ayah-arabic {
+    direction: rtl;
+    text-align: right;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: normal;
+    word-break: normal;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+/* Desktop: 1025px–1439px */
+@media (min-width: 1025px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  body {
+    min-width: 0;
+  }
+
+  img,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+  }
+
+  .layout,
+  .layout > main,
+  main,
+  .content,
+  .wrap,
+  .app,
+  .page,
+  .profile-app {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  html body.momin-app-shell-active #view.content {
+    display: block !important;
+    width: calc(100% - 72px) !important;
+    max-width: 1100px !important;
+    min-width: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 28px 0 160px !important;
+    overflow: visible !important;
+  }
+
+  html body.momin-app-shell-active #view.content .app {
+    width: 100% !important;
+    max-width: 1100px !important;
+    min-width: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  html body.momin-app-shell-active .momin-shell-header__inner {
+    width: calc(100% - 72px);
+    max-width: 1100px;
+  }
+
+  html body.momin-app-shell-active #view.content:has(.quran-reader),
+  html body.momin-app-shell-active #view.content:has(.quran-library),
+  html body.momin-app-shell-active #view.content:has(.dua-page),
+  html body.momin-app-shell-active #view.content:has(.momin-founder-page),
+  html body.momin-app-shell-active #view.content:has(.momin-terms-page),
+  html body.momin-app-shell-active #view.content:has(.momin-privacy-page) {
+    width: calc(100% - 72px) !important;
+    max-width: 760px !important;
+  }
+
+  html body .quran-reader,
+  html body .quran-library.qv-shell,
+  html body .dua-page,
+  html body .momin-founder-page,
+  html body .momin-terms-page,
+  html body .momin-privacy-page {
+    width: 100%;
+    max-width: 760px;
+    min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+  }
+
+  html body .quran-reader {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  html body .quran-toolbar,
+  html body .reading-goal,
+  html body .reader-loadstatus,
+  html body .surah-banner,
+  html body .ayah-list,
+  html body .surah-catalog,
+  html body .quran-library.qv-shell .qv-top,
+  html body .quran-library.qv-shell .qv-content {
+    width: 100%;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+  }
+
+  html body .quran-audio-bar {
+    width: min(760px, calc(100vw - 72px));
+    max-width: 760px;
+  }
+
+  html body .app {
+    width: min(100%, 1100px);
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  html body.momin-founder-embedded .app {
+    width: 100% !important;
+    max-width: 760px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  html body.momin-duas-embedded .app,
+  html body.momin-inspiration-embedded .app {
+    width: 100%;
+    max-width: 760px !important;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  html body .wrap {
+    width: min(100%, 1100px);
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  html body.momin-journey-embedded .wrap {
+    width: 100% !important;
+    max-width: 1100px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  html body.momin-prayer-embedded .wrap {
+    width: 100%;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  html body .page {
+    width: min(100%, 1100px);
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* The original sidebar stays hidden; the shared four-tab bar remains the only app navigation. */
+  html body #momin-shared-bottom-nav-v1 {
+    position: fixed;
+    left: 50%;
+    right: auto;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    width: min(520px, calc(100vw - 72px));
+    max-width: 520px;
+    margin: 0;
+    transform: translateX(-50%);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  html body > nav:not(#momin-shared-bottom-nav-v1),
+  html body .tabs > nav,
+  html body .tabbar > nav {
+    left: 50%;
+    right: auto;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    width: min(520px, calc(100vw - 72px));
+    max-width: 520px;
+    margin-left: 0;
+    margin-right: 0;
+    transform: translateX(-50%);
+    box-sizing: border-box;
+  }
+
+  html body .hero,
+  html body .hero-card,
+  html body .qv-hero {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    background-size: cover;
+    background-position: center;
+  }
+
+  /* Allow two or three columns, based on the card collection's available space. */
+  html body .grid.g2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html body .grid.g3,
+  html body .quickgrid,
+  html body .qv-juz-grid,
+  html body .qv-learn,
+  html body .qv-stats,
+  html body .kpis,
+  html body.momin-duas-embedded .grid,
+  html body.momin-inspiration-embedded .list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-width: 0;
+  }
+
+  html body .qv-recents,
+  html body .duo {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
+  }
+
+  html body .grid > *,
+  html body .quickgrid > *,
+  html body .qv-juz-grid > *,
+  html body .qv-learn > *,
+  html body .qv-recents > *,
+  html body .qv-stats > *,
+  html body .kpis > *,
+  html body .duo > * {
+    min-width: 0;
+  }
+
+  html body .momin-founder-page {
+    max-width: 760px;
+  }
+
+  html body .momin-founder-page-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html body .momin-founder-page-photo-wrap {
+    width: min(100%, 320px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Centre sheets, bottom sheets and Terms/Privacy dialogs. */
+  html body #sheet.sheet.on,
+  html body .sheet.on {
+    position: fixed;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: min(560px, calc(100vw - 72px));
+    max-width: 560px;
+    max-height: min(82vh, 760px);
+    margin: 0;
+    padding: 26px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+  }
+
+  html body #qv-sheet.qv-sheet.on,
+  html body .quran-library.qv-shell #qv-sheet.qv-sheet.on {
+    position: fixed;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: min(560px, calc(100vw - 72px));
+    max-width: 560px;
+    max-height: min(82vh, 760px);
+    margin: 0;
+    border: 1px solid var(--qv-line, var(--line));
+    border-radius: 24px;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+  }
+
+  html body dialog[open],
+  html body [role="dialog"][aria-modal="true"]:not(.sheet):not(.qv-sheet) {
+    width: min(560px, calc(100vw - 72px));
+    max-width: 560px;
+    max-height: min(82vh, 760px);
+    box-sizing: border-box;
+  }
+
+  html body #mominPrivacyDetailsDialogV1 {
+    width: min(560px, calc(100vw - 72px));
+    max-width: 560px;
+    max-height: min(82vh, 760px);
+  }
+
+  html body .journey-reflection-overlay {
+    align-items: center;
+    justify-items: center;
+    padding: 32px;
+  }
+
+  html body .journey-reflection-panel {
+    width: min(560px, calc(100vw - 72px));
+    max-width: 560px;
+    max-height: min(82vh, 760px);
+    overflow: auto;
+    box-sizing: border-box;
+  }
+
+  html body [lang="ar"],
+  html body [dir="rtl"],
+  html body .arabic,
+  html body .ar,
+  html body .qv-sura-ar,
+  html body .qv-juz-arabic,
+  html body .qv-sheet-ar,
+  html body .ayah-arabic {
+    direction: rtl;
+    text-align: right;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: normal;
+    word-break: normal;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+/* Large desktop: 1440px and wider */
+@media (min-width: 1440px) {
+  html body.momin-app-shell-active #view.content {
+    width: calc(100% - 96px) !important;
+    max-width: 1200px !important;
+  }
+
+  html body.momin-app-shell-active #view.content .app {
+    max-width: 1200px !important;
+  }
+
+  html body.momin-app-shell-active .momin-shell-header__inner {
+    width: calc(100% - 96px);
+    max-width: 1200px;
+  }
+
+  html body .app,
+  html body .wrap,
+  html body .page {
+    max-width: 1200px;
+  }
+
+  html body.momin-journey-embedded .wrap {
+    max-width: 1200px !important;
+  }
+
+  html body.momin-prayer-embedded .wrap {
+    max-width: 1200px;
+  }
+
+  /* Reading pages remain deliberately narrow on very wide displays. */
+  html body.momin-app-shell-active #view.content:has(.quran-reader),
+  html body.momin-app-shell-active #view.content:has(.quran-library),
+  html body.momin-app-shell-active #view.content:has(.dua-page),
+  html body.momin-app-shell-active #view.content:has(.momin-founder-page),
+  html body.momin-app-shell-active #view.content:has(.momin-terms-page),
+  html body.momin-app-shell-active #view.content:has(.momin-privacy-page),
+  html body .quran-reader,
+  html body .quran-library.qv-shell,
+  html body .dua-page,
+  html body .momin-founder-page,
+  html body .momin-terms-page,
+  html body .momin-privacy-page,
+  html body.momin-founder-embedded .app,
+  html body.momin-duas-embedded .app,
+  html body.momin-inspiration-embedded .app {
+    max-width: 760px;
+  }
+
+  html body.momin-app-shell-active #view.content:has(.quran-reader),
+  html body.momin-app-shell-active #view.content:has(.quran-library),
+  html body.momin-app-shell-active #view.content:has(.dua-page),
+  html body.momin-app-shell-active #view.content:has(.momin-founder-page),
+  html body.momin-app-shell-active #view.content:has(.momin-terms-page),
+  html body.momin-app-shell-active #view.content:has(.momin-privacy-page) {
+    width: calc(100% - 96px) !important;
+  }
+
+  html body #momin-shared-bottom-nav-v1 {
+    width: min(520px, calc(100vw - 96px));
+    max-width: 520px;
+  }
+
+  html body > nav:not(#momin-shared-bottom-nav-v1),
+  html body .tabs > nav,
+  html body .tabbar > nav {
+    width: min(520px, calc(100vw - 96px));
+    max-width: 520px;
+  }
+}
