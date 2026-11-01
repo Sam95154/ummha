@@ -204,7 +204,7 @@
       '<div class="toolbar"><input class="control" id="recipient-search" placeholder="Search MOMIN users"><button type="button" class="btn" data-action="search-recipients">Search</button></div>' +
       '<label for="user-ids">Select user(s)</label><select class="control" id="user-ids" name="user_ids" multiple size="6">' + userOptions +
       '</select><small class="hint">Use Ctrl (Windows) or Command (Mac) to select multiple users. ' + state.notificationUsers.length + ' result(s) shown.</small>' +
-      '<div class="pill-row mt">' + (selected || '<small class="hint">No users selected.</small>') + '</div></div>' +
+      '<div class="pill-row mt" id="selected-recipients">' + (selected || '<small class="hint">No users selected.</small>') + '</div></div>' +
       field("Notification title","title","", "text", true, 'maxlength="80"') +
       '<div class="field"><label for="message">Message *</label><textarea class="control" id="message" name="message" maxlength="1000" required></textarea></div>' +
       selectField("Open in MOMIN","route",["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"].map(x=>({value:x,label:x[0].toUpperCase()+x.slice(1)})),"home",true) +
@@ -433,6 +433,14 @@
     state.editCampaign = null;
     state.givingTab = "campaigns"; await goto("giving");
   }
+  function updateSelectedRecipients() {
+    const host = document.getElementById("selected-recipients");
+    if (!host) return;
+    host.innerHTML = state.notificationSelections.map(id =>
+      '<span class="pill">' + escapeHtml(id.slice(0, 8)) +
+      ' <button type="button" aria-label="Remove selected user" data-action="remove-recipient" data-id="' + escapeHtml(id) + '">×</button></span>'
+    ).join(" ") || '<small class="hint">No users selected.</small>';
+  }
   function updateNotificationPreview(form) {
     const title = form.elements.title?.value || "Notification title";
     const message = form.elements.message?.value || "Your message will appear here.";
@@ -484,6 +492,7 @@
       if (select) select.multiple = event.target.value === "selected";
       if (event.target.value === "all") state.notificationSelections = [];
       if (event.target.value === "individual") state.notificationSelections = state.notificationSelections.slice(0, 1);
+      updateSelectedRecipients();
     }
     if (event.target.matches("#user-ids")) {
       const select = event.target;
@@ -491,6 +500,7 @@
       const stillSelected = state.notificationSelections.filter(id => !visibleIds.includes(id));
       const newlySelected = Array.from(select.selectedOptions).map(o => o.value);
       state.notificationSelections = (select.multiple ? [...stillSelected, ...newlySelected] : newlySelected).filter((id, i, all) => all.indexOf(id) === i);
+      updateSelectedRecipients();
     }
     if (event.target.matches("#notification-image")) updateNotificationPreview(event.target.form);
   });
@@ -531,7 +541,7 @@
         state.notificationSelections = state.notificationSelections.filter(id => id !== el.dataset.id);
         const select = document.getElementById("user-ids");
         if (select) Array.from(select.options).forEach(o => { if (o.value === el.dataset.id) o.selected = false; });
-        el.closest(".pill")?.remove(); return;
+        updateSelectedRecipients(); return;
       }
       if (action === "edit-user") return editUser(el.dataset.id);
       if (action === "user-status") {
