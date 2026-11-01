@@ -255,7 +255,7 @@ async function setPassword(){
 async function resendVerification(){
  var b=$("resend");b.disabled=true;
  try{
-  var r=await client.auth.resend({type:"signup",email:user.email,options:{emailRedirectTo:location.origin+"/profile-complete.html?next="+encodeURIComponent(safeNext())}});
+  var r=await client.auth.resend({type:"signup",email:user.email,options:{emailRedirectTo:location.origin+"/"}});
   if(r.error)throw r.error;show("Verification email sent. Open the email link, then return to MOMIN.","success");
  }catch(e){show(e.message||"Could not resend verification email.","error")}
  finally{b.disabled=false}
