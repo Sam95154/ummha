@@ -44,6 +44,17 @@
     put("momin-push-enabled","true");put("momin-push-last-sync",new Date().toISOString());return result.data;
   }
   async function enableBackgroundPush(prefs){
+    if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){
+      var permission=await window.MominNativePrayerAlarm.requestNotificationPermission();
+      if(!permission.notificationsEnabled)throw new Error("Allow notifications for MOMIN in Android settings.");
+      if(!permission.exactAlarmAllowed){
+        await window.MominNativePrayerAlarm.openExactAlarmSettings();
+        throw new Error("Enable Alarms & reminders for MOMIN, return to MOMIN, then save notifications again.");
+      }
+      var nativeResult=await window.MominNativePrayerAlarm.scheduleFromPreferences(prefs,true);
+      put("momin-push-enabled","true");
+      return {native:true,scheduled:nativeResult.scheduled||0};
+    }
     if(!("Notification" in window)||!("serviceWorker" in navigator)||!("PushManager" in window))throw new Error("This browser does not support background push. Install MOMIN as an app or use a supported browser.");
     var permission=Notification.permission;if(permission==="default")permission=await Notification.requestPermission();
     if(permission!=="granted")throw new Error(permission==="denied"?"Notifications are blocked for MOMIN. Allow them in your browser or phone settings.":"Notifications were not enabled.");
@@ -72,7 +83,15 @@
     if(get("momin-push-enabled","false")!=="true")return consent;
     try{await registerExistingPush(prefs);return true}catch(error){console.warn("MOMIN background notification preference sync:",error);return false}
   }
-  async function sendPushTest(){if(get("momin-push-enabled","false")!=="true")await enableBackgroundPush(currentPushPreferences());await pushApi("test",{});try{await refreshPushInbox()}catch(_){}return true}
+  async function sendPushTest(){
+    if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){
+      var status=await window.MominNativePrayerAlarm.getStatus();
+      if(!status.notificationsEnabled)throw new Error("Allow MOMIN notifications in Android settings.");
+      await window.MominNativePrayerAlarm.testNotification();return true;
+    }
+    if(get("momin-push-enabled","false")!=="true")await enableBackgroundPush(currentPushPreferences());
+    await pushApi("test",{});try{await refreshPushInbox()}catch(_){}return true;
+  }
   async function refreshPushInbox(){
     var previous=readInbox(),readIds={};
     previous.forEach(function(item){if(item&&item.inboxId&&item.unread===false)readIds[String(item.inboxId)]=true;});
@@ -83,6 +102,7 @@
     put("noor-notification-inbox",JSON.stringify(items));try{window.dispatchEvent(new CustomEvent("momin:notifications-updated"))}catch(_){}return items;
   }
   async function disableBackgroundPush(){
+    if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){await window.MominNativePrayerAlarm.cancel();put("momin-push-enabled","false");return true;}
     try{var session=await getPushSession();if(session)await pushApi("unsubscribe",{});if("serviceWorker" in navigator){var reg=pushRegistration||await navigator.serviceWorker.getRegistration("/");if(reg){var sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe()}}put("momin-push-enabled","false");return true}
     catch(error){console.warn("MOMIN push unsubscribe:",error);return false}
   }
@@ -102,7 +122,7 @@
       return false;
     }
   }
-  if("serviceWorker" in navigator&&window.isSecureContext){
+  if(!window.MominNativePrayerAlarm&&"serviceWorker" in navigator&&window.isSecureContext){
     getPushWorker().then(function(){return refreshPushSubscriptionIfNeeded()})
       .catch(function(error){console.warn("MOMIN service worker:",error)});
     window.addEventListener("focus",refreshPushSubscriptionIfNeeded);
@@ -266,6 +286,7 @@
   }
   function checkPrayerReminders(){
     var prefs=readPrefs();
+    if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){if(prefs.on)window.MominNativePrayerAlarm.scheduleFromPreferences(prefs).catch(function(e){console.warn("MOMIN native prayer alarm:",e)});else window.MominNativePrayerAlarm.cancel().catch(function(e){console.warn("MOMIN native prayer alarm cancel:",e)});return;}
     if(!prefs.on||!("Notification" in window)||Notification.permission!=="granted")return;
     var data=prayerData();if(!data||!data.timings)return;
     var now=new Date(),keyDay=dayKey(now,data.timezone),part=timeParts(now,data.timezone),nowMin=part.hour*60+part.minute;
@@ -352,6 +373,13 @@
     PRAYERS.forEach(function(p,i){var el=document.getElementById("settingsNotify-"+p[0]);if(el)prefs.pr[i]=!!el.checked});
     var lead=document.getElementById("settingsReminderMinutesV1");if(lead)prefs.lead=Number(lead.value)||0;
     savePrefs(prefs);
+    if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){
+      if(prefs.on){
+        try{await enableBackgroundPush(prefs);toast("Prayer alerts and Makkah Azan alarms are enabled. Azan plays at the actual prayer time.");}
+        catch(error){toast(error.message||"Android prayer alarms could not be enabled.");}
+      }else{await disableBackgroundPush();toast("Prayer notifications and Azan alarms are paused.");}
+      checkPrayerReminders();return true;
+    }
     var permission="unsupported";
     if(prefs.on)permission=await requestPermission();
     if(prefs.on&&permission==="granted"){
@@ -366,6 +394,11 @@
     catch(error){toast("Background notification test failed: "+error.message);return false;}
   };
   window.previewMominAzanV1=function(){
+    if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){
+      window.MominNativePrayerAlarm.previewAzan().then(function(){toast("Makkah Azan preview started. Use Stop Azan in its notification to stop playback.")})
+        .catch(function(error){toast("Azan preview failed: "+(error.message||"Android audio could not start."))});
+      return;
+    }
     if(playAzan())toast("Makkah Azan preview started. Keep MOMIN open while it plays.");
     else toast("Azan audio could not start. Check browser audio permissions.");
   };
