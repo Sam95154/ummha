@@ -30,7 +30,8 @@ function isExternal(value) {
 function resolveLocalReference(page, rawValue) {
   const value = rawValue.trim();
   if (!value || value.startsWith("#") || isExternal(value) ||
-      value.startsWith("$" + "{") || value.includes("{{") || value.includes("}}")) return null;
+      value.startsWith("$" + "{") || value.includes("{{") || value.includes("}}") ||
+      (/^["']\s*\+/.test(value) && /\b(?:esc|String)\s*\(/.test(value))) return null;
   let pathname = value.split(/[?#]/, 1)[0];
   if (!pathname) return null;
   try { pathname = decodeURIComponent(pathname); } catch { /* keep original path */ }
@@ -97,7 +98,7 @@ check(/@media\s*\(\s*max-width\s*:\s*700px\s*\)/i.test(indexHtml),
 
 if (fs.existsSync(shellPath)) {
   const shell = fs.readFileSync(shellPath, "utf8");
-  check(/aria-label=["']Primary navigation["']/.test(shell),
+  check(/aria-label=["']Primary navigation["']/.test(shell) || /setAttribute\(["']aria-label["']\s*,\s*["']Primary navigation["']\)/.test(shell),
     "Shared tab navigation has an accessible name");
   check(/aria-current=/.test(shell),
     "Shared tab navigation marks the active destination");
