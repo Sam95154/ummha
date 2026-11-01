@@ -77,12 +77,12 @@ function calendarUrl(month,year,loc) {
   const params = new URLSearchParams({method:String(loc.method),school:String(loc.school)});
   let path;
   if (loc.latitude != null && loc.longitude != null) {
-    path = "calendar/"+month+"/"+year;
+    path = "calendar/"+year+"/"+month;
     params.set("latitude",String(loc.latitude));
     params.set("longitude",String(loc.longitude));
   } else {
     if (!loc.city || !loc.country) throw new Error("Set your location in Prayer Times before enabling prayer alarms.");
-    path = "calendarByCity/"+month+"/"+year;
+    path = "calendarByCity/"+year+"/"+month;
     params.set("city",loc.city);
     params.set("country",loc.country);
   }
