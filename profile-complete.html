@@ -138,7 +138,7 @@ var KEY="sb_publishable_SAHjdts8xtuQSXE_lPa1cw_V6J3PjQt";
 var $=function(id){return document.getElementById(id)};
 var root=document.documentElement;
 var client=window.mominSupabase||(window.supabase&&window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}));
-if(!client){show("Sign-in service could not load. Refresh and try again.","error");return}
+if(!client){show("Sign-in service could not load. Refresh and try again.","error");root.classList.remove("momin-profile-pending");return}
 window.mominSupabase=client;
 var session=null,user=null,profile=null,selectedFile=null,uploadedAvatarPath=null,redirecting=false;
 function show(text,type){var el=$("message");el.textContent=text;el.className="notice show "+(type||"info")}
@@ -185,7 +185,7 @@ async function init(){
  var q=await client.from("momin_profiles")
   .select("display_name,email,avatar_url,birthday,gender,profile_completed,profile_image_path")
   .eq("user_id",user.id).maybeSingle();
- if(q.error){show("We could not load your profile. "+q.error.message,"error");return}
+ if(q.error){show("We could not load your profile. "+q.error.message,"error");root.classList.remove("momin-profile-pending");return}
  profile=q.data;
  if(profile&&profile.profile_completed){goApp();return}
  $("displayName").value=(profile&&profile.display_name)||nameFrom(user);
