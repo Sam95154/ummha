@@ -7,19 +7,26 @@ alter table public.momin_profiles
 alter table public.momin_profiles
   add column if not exists account_status text not null default 'Active'
   check (account_status in ('Active','Inactive'));
+alter table public.momin_profiles
+  add column if not exists phone text;
 
 update public.momin_profiles
 set public_user_id = 'MOM-' || upper(substr(replace(user_id::text, '-', ''), 1, 10))
 where public_user_id is null;
 
 alter table public.momin_profiles
-  alter column public_user_id set default ('MOM-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10)));
+  alter column public_user_id set default ('MOM-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 16)));
 
 alter table public.momin_profiles
   alter column public_user_id set not null;
 
 create unique index if not exists momin_profiles_public_user_id_uidx
   on public.momin_profiles(public_user_id);
+
+update public.momin_profiles p
+set phone = u.phone
+from auth.users u
+where p.user_id = u.id and p.phone is distinct from u.phone;
 
 create table if not exists public.momin_admin_accounts (
   id uuid primary key default gen_random_uuid(),
@@ -258,7 +265,7 @@ begin
         new.public_user_id := existing_public_id;
         new.account_status := existing_status;
       else
-        new.public_user_id := 'MOM-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10));
+        new.public_user_id := 'MOM-' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 16));
         new.account_status := 'Active';
       end if;
     else
