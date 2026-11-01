@@ -111,7 +111,7 @@ test.describe("MOMIN Admin Panel", () => {
     await page.getByRole("button", { name: "Edit name" }).click();
     await expect(page.getByRole("heading", { name: "Edit user name" })).toBeVisible();
     await page.locator('#modal-root input[name="name"]').fill("Aisha Basha");
-    await page.locator('#modal-root button[type="submit"]').click();
+    await page.locator("#modal-root").getByRole("button", { name: "Save name" }).click();
     await expect(page.getByText("Aisha Basha")).toBeVisible();
     expect(state.user.user_id).toBe("MOM-ABC1234567");
     expect(state.calls.some(x => x.action === "update_user" && x.body.name === "Aisha Basha")).toBeTruthy();
