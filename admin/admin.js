@@ -160,7 +160,8 @@
   function renderUsers() {
     const rows = state.users.map(u => '<tr><td><b>' + escapeHtml(u.user_id) + '</b></td><td>' + escapeHtml(u.name) +
       '</td><td>' + escapeHtml(u.email || "—") + '</td><td>' + date(u.registered_at) + '</td><td>' + badge(u.status) +
-      '</td><td><button type="button" class="btn small" data-action="edit-user" data-id="' + escapeHtml(u.id) + '">Edit name</button> ' +
+      '</td><td><button type="button" class="btn small" data-action="view-user" data-id="' + escapeHtml(u.id) + '">Details</button> ' +
+      '<button type="button" class="btn small" data-action="edit-user" data-id="' + escapeHtml(u.id) + '">Edit name</button> ' +
       '<button type="button" class="btn small ' + (u.status === "Active" ? "danger" : "") + '" data-action="user-status" data-id="' +
       escapeHtml(u.id) + '" data-status="' + (u.status === "Active" ? "Inactive" : "Active") + '">' +
       (u.status === "Active" ? "Deactivate" : "Activate") + "</button></td></tr>");
@@ -349,6 +350,23 @@
     toast("Admin password updated.");
     await goto("dash");
   }
+  function userDetailsHtml(data) {
+    const u = data.user || {};
+    const noteRows = (data.notifications || []).map(n => "<tr><td>" + escapeHtml(n.title) + "</td><td>" +
+      escapeHtml(n.route) + "</td><td>" + date(n.created_at) + "</td><td>" + (n.read_at ? "Read" : "Unread") + "</td></tr>");
+    const givingRows = (data.contributions || []).map(x => "<tr><td>" + escapeHtml(x.transaction_ref) + "</td><td>" +
+      escapeHtml(x.fund_category) + "</td><td>" + money(x.amount, x.currency) + "</td><td>" + badge(x.payment_status) + "</td></tr>");
+    const complaintRows = (data.complaints || []).map(x => "<tr><td>" + escapeHtml(x.ticket_id) + "</td><td>" +
+      escapeHtml(x.subject) + "</td><td>" + badge(x.status) + "</td></tr>");
+    return '<h2>User details</h2><p class="muted">Permanent User ID: <b>' + escapeHtml(u.user_id) + '</b></p>' +
+      '<div class="grid grid-2"><div><b>Name</b><p>' + escapeHtml(u.name) + '</p><b>Email</b><p>' + escapeHtml(u.email || "—") +
+      '</p><b>Phone</b><p>' + escapeHtml(u.phone || "—") + '</p></div><div><b>Account status</b><p>' + badge(u.status) +
+      '</p><b>Registered</b><p>' + date(u.registered_at) + '</p><b>Last active</b><p>' + date(u.last_active) +
+      '</p></div></div><h3>Recent notifications</h3>' + table(["Title","Destination","Created","Read"], noteRows, "No notifications recorded.") +
+      '<h3 class="mt">Giving history</h3>' + table(["Reference","Fund","Amount","Payment"], givingRows, "No contributions recorded.") +
+      '<h3 class="mt">Complaints</h3>' + table(["Ticket","Subject","Status"], complaintRows, "No complaints recorded.") +
+      '<div class="modal-actions"><button type="button" class="btn" data-action="modal-close">Close</button></div>';
+  }
   async function editUser(id) {
     const user = state.users.find(x => x.id === id);
     if (!user) return;
@@ -478,6 +496,10 @@
       if (action === "toggle-password") { const input = document.getElementById("login-password"); if (input) input.type = el.checked ? "text" : "password"; return; }
       if (action === "forgot-login" || action === "forgot-password") { const data = await api("forgot_password"); toast(data.message || "Password recovery is not configured.", true); return; }
       if (action === "modal-close" && (event.target === el || el.classList.contains("btn"))) return closeModal();
+      if (action === "view-user") {
+        const detail = await api("user_detail", { id: el.dataset.id });
+        showModal(userDetailsHtml(detail)); return;
+      }
       if (action === "edit-user") return editUser(el.dataset.id);
       if (action === "user-status") {
         if (!confirm("Change this user's account status to " + el.dataset.status + "?")) return;
