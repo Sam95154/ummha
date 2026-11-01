@@ -110,6 +110,9 @@ async function buildAlarms(prefs,loc) {
     if (!res.ok) throw new Error("Prayer calendar returned HTTP "+res.status+".");
     const payload = await res.json();
     if (!payload || !Array.isArray(payload.data)) throw new Error("Prayer calendar did not return daily timings.");
+    const timezoneRow = payload.data.find(row => row && row.meta && row.meta.timezone);
+    const returnedTimezone = (payload.meta && payload.meta.timezone) || (timezoneRow && timezoneRow.meta.timezone);
+    if (returnedTimezone) loc.timezone = String(returnedTimezone);
     payload.data.forEach(row=>{const key=rowDate(row);if(key)rows.set(key,row);});
   }
   const names=["Fajr","Dhuhr","Asr","Maghrib","Isha"], alarms=[], now=Date.now();
