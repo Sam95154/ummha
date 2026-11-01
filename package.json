@@ -9,7 +9,8 @@
     "android:prepare": "npm run android:web && node scripts/prepare-android-project.mjs",
     "android:debug": "npm run android:prepare && cd android && ./gradlew assembleDebug",
     "android:bundle": "npm run android:prepare && cd android && ./gradlew bundleRelease",
-    "qa:e2e": "playwright test"
+    "qa:e2e": "playwright test",
+    "qa:admin": "node scripts/qa-admin.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",
