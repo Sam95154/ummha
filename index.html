@@ -1021,6 +1021,66 @@ body.momin-founder-route-v3 #momin-founder-frame-v3{display:block!important;widt
   });
 })();
 </script>
+<style id="momin-quran-audio-dock-alignment-v1">
+/* MOMIN Quran reader: dedicated audio row above the shared bottom navigation. */
+.quran-reader .quran-audio-bar{
+  left:50%!important;
+  right:auto!important;
+  bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;
+  transform:translateX(-50%)!important;
+  width:min(480px,calc(100vw - 24px))!important;
+  max-width:480px!important;
+  box-sizing:border-box!important;
+  z-index:58!important;
+  border:1px solid rgba(214,177,97,.78)!important;
+  border-radius:22px!important;
+  background:linear-gradient(145deg,#282116 0%,#1b1710 58%,#17140f 100%)!important;
+  color:#f3ead5!important;
+  box-shadow:0 12px 30px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,236,184,.08)!important;
+}
+.quran-reader .quran-audio-bar .audio-play{
+  background:linear-gradient(145deg,#f0d28d,#c59a4a)!important;
+  color:#241a0b!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 4px 12px rgba(0,0,0,.2)!important;
+}
+.quran-reader .quran-audio-bar .audio-title{color:#f6edda!important}
+.quran-reader .quran-audio-bar .audio-reciter,
+.quran-reader .quran-audio-bar .audio-time{color:#bcae92!important}
+.quran-reader .quran-audio-bar .audio-speed,
+.quran-reader .quran-audio-bar .audio-skip{color:#e7c779!important}
+.quran-reader .quran-audio-bar .audio-seek{accent-color:#dfb95f!important}
+body.momin-app-shell-active .quran-reader{
+  padding-bottom:calc(270px + env(safe-area-inset-bottom,0px))!important;
+}
+@media(max-width:700px){
+  .quran-reader .quran-audio-bar{
+    bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;
+    width:calc(100vw - 24px)!important;
+    min-height:82px!important;
+    padding:10px!important;
+    grid-template-columns:48px minmax(0,1fr) 34px 28px 28px!important;
+    gap:6px!important;
+    border-radius:20px!important;
+  }
+  .quran-reader .quran-audio-bar .audio-play{width:46px!important;height:46px!important}
+  .quran-reader .quran-audio-bar .audio-title{font-size:12px!important}
+  .quran-reader .quran-audio-bar .audio-reciter{font-size:11px!important}
+  .quran-reader .quran-audio-bar .audio-speed{font-size:12px!important;padding:4px!important}
+  .quran-reader .quran-audio-bar .audio-skip{font-size:17px!important;padding:3px!important}
+  .quran-reader .quran-audio-bar .audio-time{font-size:9px!important}
+}
+@media(max-width:370px){
+  .quran-reader .quran-audio-bar{
+    grid-template-columns:44px minmax(0,1fr) 30px 24px 24px!important;
+    gap:4px!important;
+    padding:8px!important;
+  }
+  .quran-reader .quran-audio-bar .audio-play{width:42px!important;height:42px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .quran-reader .quran-audio-bar{transition:none!important}
+}
+</style>
 </head><body><div id="momin-splash" role="status" aria-label="Loading MOMIN"><img class="momin-splash-logo" src="./momin-mark.svg?v=islamic-logo-v3" alt="MOMIN — mosque and open Quran logo"><span class="momin-splash-progress" aria-hidden="true"><i></i></span></div><script>(function(){var s=document.getElementById("momin-splash");if(!s)return;var finished=false;function hide(){if(finished)return;finished=true;s.classList.add("is-hidden");window.setTimeout(function(){if(s&&s.parentNode)s.parentNode.removeChild(s)},550)}window.addEventListener("load",function(){window.setTimeout(hide,3200)},{once:true});window.setTimeout(hide,8000)})();</script><div class="layout"><aside class="sidebar"><a class="brand" href="#" aria-label="MOMIN home" onclick="go('home');return false"><img class="brand-logo" src="./momin-mark.svg?v=islamic-logo-v3" alt="MOMIN Islamic logo">MOMIN</a><div class="nav-label">YOUR DAY</div><div class="nav" id="sideNav"></div><div class="nav-label">EXPLORE</div><div class="nav" id="moreNav"></div><div class="sidebar-bottom"><div class="location">⌖ &nbsp;YOUR LOCATION<b id="locationName">London, United Kingdom</b></div><div class="profile"><div class="avatar">G</div><div><b>Guest</b><small>Free account</small></div><button class="plain" style="margin-left:auto" onclick="go(&quot;settings&quot;)">⚙</button></div></div></aside><main><header class="top"><div class="crumb"><img class="momin-topbar-logo" src="./momin-mark.svg?v=islamic-logo-v3" alt="MOMIN"><span id="crumb">Home</span> <span id="hijriTop" style="margin-left:12px"></span></div><div class="topright"><button class="iconbtn" title="Notifications" onclick="toast(&quot;You’re all caught up&quot;)">♧</button><button class="iconbtn" title="Settings" onclick="go(&quot;settings&quot;)">⚙</button><div class="avatar">S</div></div></header><div class="content" id="view"></div></main></div><nav class="mobilebar" id="mobileNav"></nav><div class="toast" id="toast"></div>
 <script>
 const pages=[['home','⌂','Home'],['prayers','◷','Prayer times'],['quran','▤','Quran'],['qibla','◎','Qibla'],['duas','♡','Duas'],['tasbeeh','◉','Tasbeeh'],['calendar','▦','Calendar'],['settings','⚙','Settings']];
