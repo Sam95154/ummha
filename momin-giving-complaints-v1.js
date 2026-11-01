@@ -68,7 +68,7 @@
         return {...c,received_amount:received,contribution_count:tx.length};
       });
     }catch(error){notify(error.message);}
-    finally{state.loadingCampaigns=false;renderCustom();}
+    finally{state.loadingCampaigns=false;state.campaignsLoaded=true;renderCustom();}
   }
   function complaintsMarkup() {
     if(state.selectedComplaint){
@@ -103,7 +103,7 @@
       if(error)throw error;
       state.complaints=data||[];state.complaintsLoaded=true;
     }catch(error){notify(error.message);}
-    finally{state.loadingComplaints=false;renderCustom();}
+    finally{state.loadingComplaints=false;state.complaintsLoaded=true;renderCustom();}
   }
   async function openComplaint(id) {
     try{
