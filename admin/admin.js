@@ -177,6 +177,8 @@ async function finishAuthentication(){
  if(!profile.data||profile.data.profile_completed!==true){
   location.replace("/profile-complete.html?next="+encodeURIComponent("/admin/"));return;
  }
+ const preflight=await api("preflight");
+ if(!preflight||!preflight.staff||preflight.staff.status==="suspended")throw new Error("This account is not an active MOMIN administrator.");
  const mfaComplete=await checkMfa();
  if(!mfaComplete)return;
  const s=await client.auth.getSession();session=s.data.session;
@@ -374,8 +376,8 @@ function renderSelectedUsers(){
 }
 async function searchRecipients(term){
  if(term.trim().length<2){$("recipientMatches").innerHTML="";return}
- const r=await api("users.list",{page:1,per_page:50,search:term,status:"all"});
- $("recipientMatches").innerHTML=(r.users||[]).slice(0,10).map(u=>'<button type="button" class="search-result" data-add-user="'+esc(u.user_id)+'" data-name="'+esc(u.display_name||u.email||u.user_id)+'"><span class="avatar">'+esc((u.display_name||"U").charAt(0).toUpperCase())+'</span><span>'+esc(u.display_name||"MOMIN user")+'</span><small>'+esc(u.email||"Hidden")+'</small></button>').join("")||'<p class="muted tiny">No users found.</p>';
+ const r=await api("recipients.search",{search:term});
+ $("recipientMatches").innerHTML=(r.recipients||[]).slice(0,10).map(u=>'<button type="button" class="search-result" data-add-user="'+esc(u.user_id)+'" data-name="'+esc(u.display_name||u.user_id)+'"><span class="avatar">'+esc((u.display_name||"U").charAt(0).toUpperCase())+'</span><span>'+esc(u.display_name||"MOMIN user")+'</span><small>'+esc(u.email||"Hidden")+'</small></button>').join("")||'<p class="muted tiny">No opted-in users found.</p>';
  $("recipientMatches").querySelectorAll("[data-add-user]").forEach(b=>b.onclick=()=>{
   const id=b.dataset.addUser;if(!selectedUsers.some(x=>x.id===id))selectedUsers.push({id,name:b.dataset.name});
   renderSelectedUsers();$("recipientSearch").value="";$("recipientMatches").innerHTML="";
