@@ -427,6 +427,7 @@
       status: data.get("status"), image_url: imageUrl
     });
     toast("Campaign saved.");
+    state.editCampaign = null;
     state.givingTab = "campaigns"; await goto("giving");
   }
   function updateNotificationPreview(form) {
