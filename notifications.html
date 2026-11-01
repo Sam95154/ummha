@@ -5,56 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0c0a07">
-<style id="momin-auth-gate-style">html.momin-auth-pending body{visibility:hidden!important}</style>
-<script>document.documentElement.classList.add("momin-auth-pending");</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-(function(){
-  "use strict";
-  var root=document.documentElement,redirecting=false;
-  /* MOMIN already authenticates the top-level app. Reusing a second Supabase
-     client inside this same-origin iframe can contend with the parent's
-     session lock and cause the embedded page to flash/reload. */
-  var trustedMominParent=false;
-  try{
-    trustedMominParent=window.top!==window.self &&
-      window.parent.location.origin===location.origin &&
-      !!window.parent.MominNotificationsBridgeV1;
-  }catch(_){}
-  if(trustedMominParent){
-    root.classList.remove("momin-auth-pending");
-    return;
-  }
-  var client=window.mominSupabase||window.supabase.createClient(
-    "https://qzwqpiquvhpjwqgaxorp.supabase.co",
-    "sb_publishable_SAHjdts8xtuQSXE_lPa1cw_V6J3PjQt",
-    {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
-  );
-  window.mominSupabase=client;
-  function login(){
-    if(redirecting)return;
-    redirecting=true;
-    var next=location.pathname+location.search+location.hash;
-    location.replace("/login.html?next="+encodeURIComponent(next||"/"));
-  }
-  client.auth.getSession().then(function(result){
-    if(result.error||!result.data||!result.data.session){login();return;}
-    root.classList.remove("momin-auth-pending");
-  }).catch(login);
-  client.auth.onAuthStateChange(function(event,session){
-    if(event==="SIGNED_OUT"||(event==="TOKEN_REFRESHED"&&!session))login();
-  });
-  window.addEventListener("pageshow",function(event){
-    if(event.persisted){
-      root.classList.add("momin-auth-pending");
-      client.auth.getSession().then(function(result){
-        if(result.error||!result.data||!result.data.session){login();return;}
-        root.classList.remove("momin-auth-pending");
-      }).catch(login);
-    }
-  });
-})();
-</script>
 <title>Notifications</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
 <style id="momin-notifications-single-header-v1">/* Keep the main MOMIN shell header; hide only this embedded page's duplicate title, back button and logo. */ .bar{display:none!important}</style>
