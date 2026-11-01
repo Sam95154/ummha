@@ -95,6 +95,15 @@ if (fs.existsSync(responsiveCssPath)) {
     "Responsive styles include the shared bottom navigation");
 }
 check(/@media\s*\(\s*max-width\s*:\s*700px\s*\)/i.test(indexHtml),
+const homeModulePath = path.join(ROOT, "momin-home-design-v2.js");
+if (fs.existsSync(homeModulePath)) {
+  const homeModule = fs.readFileSync(homeModulePath, "utf8");
+  const marker = 'data-name=\\"Journey\\"';
+  const markerAt = homeModule.indexOf(marker);
+  const buttonSource = markerAt >= 0 ? homeModule.slice(markerAt, markerAt + 150) : "";
+  check(markerAt >= 0 && buttonSource.includes("go(") && buttonSource.toLowerCase().includes("journey") && !buttonSource.includes("profile"),
+    "Home fallback Journey tab routes to Journey, not Profile");
+}
   "Main app retains a dedicated phone breakpoint");
 
 if (fs.existsSync(shellPath)) {
