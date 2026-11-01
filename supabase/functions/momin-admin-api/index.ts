@@ -540,6 +540,11 @@ Deno.serve(async (request: Request) => {
 
     const session = await requireAdmin(request);
     if ("error" in session) return reply({ error: session.error }, session.status, origin);
+    // Enforce the initial password rotation on the server. A caller cannot bypass
+    // the browser's forced-password screen by invoking protected actions directly.
+    if (session.account.force_password_change && !["me", "logout", "change_password"].includes(action)) {
+      return reply({ error: "Change the initial Admin password before continuing." }, 403, origin);
+    }
     if (form) {
       if (action !== "upload_media") return reply({ error: "Unsupported upload action." }, 400, origin);
       const file = form.get("file");

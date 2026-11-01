@@ -39,6 +39,7 @@ check(!html.includes("Shaik@9515") && !css.includes("Shaik@9515"), "Initial Admi
 check(!js.includes("service_role") && !js.includes("sb_secret_"), "Admin browser bundle contains no privileged Supabase secret key");
 check(api.includes("PBKDF2") && api.includes("momin_admin_sessions") && api.includes("token_hash"), "Admin API uses password derivation and hashed server-side sessions");
 check(api.includes('loginId !== "owner"'), "Admin API restricts the dedicated Admin identifier to owner");
+check(api.includes("session.account.force_password_change") && api.includes("Change the initial Admin password before continuing."), "Server blocks all Admin API operations until the initial password is changed");
 check(migration.includes("momin_admin_accounts") && migration.includes("momin_admin_sessions"), "Migration creates dedicated Admin account and session tables");
 check(migration.includes("momin_giving_campaigns") && migration.includes("momin_contributions"), "Migration creates Giving and contribution tables");
 check(migration.includes("momin_complaints") && migration.includes("momin_complaint_replies"), "Migration creates complaint and reply tables");
