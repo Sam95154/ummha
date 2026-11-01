@@ -1,26 +1,127 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#11100d">
-<meta name="robots" content="noindex,nofollow">
-<title>MOMIN Admin · In Development</title>
-<style>
-:root{color-scheme:dark;--bg:#11100d;--panel:#1b1914;--gold:#c6a15d;--ink:#f5f0e5;--muted:#aaa294}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#3a2c16 0%,transparent 56%),var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{width:min(100%,480px);padding:38px 28px;text-align:center;border:1px solid #5c4827;border-radius:24px;background:linear-gradient(160deg,#211d15,var(--panel));box-shadow:0 24px 80px #0008}
-img{width:68px;height:68px;object-fit:contain;margin-bottom:18px}
-h1{margin:0 0 10px;font:600 30px/1.2 Georgia,serif}
-p{margin:0;color:var(--muted)}
-a{display:inline-flex;margin-top:26px;padding:11px 18px;border:1px solid #8d713d;border-radius:12px;color:#f0d69f;text-decoration:none}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0C0A07">
+  <meta name="robots" content="noindex,nofollow">
+  <title>MOMIN Admin Control Centre</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./admin.css?v=preview-shell-v1">
 </head>
-<body><main>
-<img src="/momin-mark.svg?v=islamic-logo-v3" alt="MOMIN">
-<h1>Admin panel</h1>
-<p>The admin area is temporarily unavailable while we develop it. The regular MOMIN app remains available.</p>
-<a href="/">Back to MOMIN</a>
-</main></body>
+<body>
+  <div id="adminApp" class="admin-app">
+    <div id="demoBanner" class="demo-banner"><span class="demo-dot"></span><strong>ADMIN PREVIEW</strong><span>Workspace layout preview. Live records and privileged actions remain locked until administrator access is enabled.</span></div>
+    <div id="workspace" class="workspace">
+      <div id="sidebarScrim" class="sidebar-scrim"></div>
+      <aside id="sidebar" class="sidebar" aria-label="Admin navigation">
+        <div class="sidebar-brand"><img class="brand-symbol small" src="../momin-mark.svg?v=islamic-logo-v3" alt="MOMIN logo"><div class="brand-copy"><strong>MOMIN</strong><span>ADMIN CONTROL CENTRE</span><small>Administrator workspace</small></div><button id="collapseSidebar" class="collapse-btn" aria-label="Collapse sidebar">‹</button></div>
+        <div class="sidebar-scroll">
+          <div class="nav-group"><button type="button" class="nav-heading nav-group-toggle" aria-expanded="true">OVERVIEW</button><button class="nav-item active" data-page="dashboard"><span class="nav-icon">◫</span><span class="nav-label">Dashboard</span></button></div>
+          <div class="nav-group"><button type="button" class="nav-heading nav-group-toggle" aria-expanded="true">USER OPERATIONS</button>
+            <button class="nav-item" data-page="users"><span class="nav-icon">♙</span><span class="nav-label">All Users</span></button>
+            <button class="nav-item" data-page="active-users"><span class="nav-icon">◉</span><span class="nav-label">Active Users</span></button>
+            <button class="nav-item" data-page="devices"><span class="nav-icon">▣</span><span class="nav-label">User Devices</span></button>
+            <button class="nav-item" data-page="user-support"><span class="nav-icon">☏</span><span class="nav-label">User Support</span></button>
+            <button class="nav-item" data-page="suspended"><span class="nav-icon">⊘</span><span class="nav-label">Suspended Accounts</span></button>
+          </div>
+          <div class="nav-group"><button type="button" class="nav-heading nav-group-toggle" aria-expanded="true">COMMUNICATION</button>
+            <button class="nav-item" data-page="notifications"><span class="nav-icon">♧</span><span class="nav-label">Notification Centre</span><span class="nav-count">—</span></button>
+            <button class="nav-item" data-page="create-notification"><span class="nav-icon">＋</span><span class="nav-label">Create Notification</span></button>
+            <button class="nav-item" data-page="templates"><span class="nav-icon">▤</span><span class="nav-label">Notification Templates</span></button>
+            <button class="nav-item" data-page="scheduled"><span class="nav-icon">◷</span><span class="nav-label">Scheduled Notifications</span></button>
+            <button class="nav-item" data-page="delivery-reports"><span class="nav-icon">▥</span><span class="nav-label">Delivery Reports</span></button>
+            <button class="nav-item" data-page="announcements"><span class="nav-icon">⚑</span><span class="nav-label">Announcements</span></button>
+          </div>
+          <div class="nav-group"><button type="button" class="nav-heading nav-group-toggle" aria-expanded="true">GIVING & FINANCE</button>
+            <button class="nav-item" data-page="giving"><span class="nav-icon">♡</span><span class="nav-label">Giving Dashboard</span></button>
+            <button class="nav-item" data-page="campaigns"><span class="nav-icon">▱</span><span class="nav-label">All Campaigns</span></button>
+            <button class="nav-item" data-page="create-campaign"><span class="nav-icon">＋</span><span class="nav-label">Create Campaign</span></button>
+            <button class="nav-item" data-page="donations"><span class="nav-icon">♥</span><span class="nav-label">Donations</span></button>
+            <button class="nav-item" data-page="zakat"><span class="nav-icon">◈</span><span class="nav-label">Zakat Management</span></button>
+            <button class="nav-item" data-page="sadaqah"><span class="nav-icon">❋</span><span class="nav-label">Sadaqah Management</span></button>
+            <button class="nav-item" data-page="charity-events"><span class="nav-icon">▦</span><span class="nav-label">Charity Events</span></button>
+            <button class="nav-item" data-page="transactions"><span class="nav-icon">⇄</span><span class="nav-label">Transactions</span></button>
+            <button class="nav-item" data-page="receipts"><span class="nav-icon">▧</span><span class="nav-label">Receipts</span></button>
+            <button class="nav-item" data-page="refunds"><span class="nav-icon">↶</span><span class="nav-label">Refunds</span></button>
+            <button class="nav-item" data-page="fund-allocation"><span class="nav-icon">⌁</span><span class="nav-label">Fund Allocation</span></button>
+            <button class="nav-item" data-page="financial-reports"><span class="nav-icon">▥</span><span class="nav-label">Financial Reports</span></button>
+          </div>
+          <div class="nav-group"><button type="button" class="nav-heading nav-group-toggle" aria-expanded="true">CONTENT MANAGEMENT</button>
+            <button class="nav-item" data-page="content"><span class="nav-icon">▤</span><span class="nav-label">Content Dashboard</span></button>
+            <button class="nav-item" data-page="quran"><span class="nav-icon">▣</span><span class="nav-label">Quran Management</span></button>
+            <button class="nav-item" data-page="translations-quran"><span class="nav-icon">文</span><span class="nav-label">Quran Translations</span></button>
+            <button class="nav-item" data-page="duas"><span class="nav-icon">✧</span><span class="nav-label">Duas</span></button>
+            <button class="nav-item" data-page="reflections"><span class="nav-icon">☼</span><span class="nav-label">Daily Reflections</span></button>
+            <button class="nav-item" data-page="hadith"><span class="nav-icon">✦</span><span class="nav-label">Hadith References</span></button>
+            <button class="nav-item" data-page="articles"><span class="nav-icon">▤</span><span class="nav-label">Islamic Articles</span></button>
+            <button class="nav-item" data-page="calendar-content"><span class="nav-icon">▦</span><span class="nav-label">Islamic Calendar</span></button>
+            <button class="nav-item" data-page="media"><span class="nav-icon">♫</span><span class="nav-label">Audio & Media</span></button>
+            <button class="nav-item" data-page="faqs"><span class="nav-icon">?</span><span class="nav-label">FAQs</span></button>
+          </div>
+          <div class="nav-group"><button type="button" class="nav-heading nav-group-toggle" aria-expanded="true">APP MANAGEMENT</button>
+            <button class="nav-item" data-page="languages"><span class="nav-icon">文</span><span class="nav-label">Languages</span></button>
+            <button class="nav-item" data-page="app-settings"><span class="nav-icon">⚙</span><span class="nav-label">App Settings</span></button>
+            <button class="nav-item" data-page="features"><span class="nav-icon">◈</span><span class="nav-label">Feature Flags</span></button>
+            <button class="nav-item" data-page="modules"><span class="nav-icon">⊞</span><span class="nav-label">Module Management</span></button>
+            <button class="nav-item" data-page="prayer-config"><span class="nav-icon">◷</span><span class="nav-label">Prayer Configuration</span></button>
+            <button class="nav-item" data-page="mosques"><span class="nav-icon">⌂</span><span class="nav-label">Mosque Directory</span></button>
+            <button class="nav-item" data-page="learning"><span class="nav-icon">▣</span><span class="nav-label">Islamic Learning</span></button>
+            <button class="nav-item" data-page="app-announcements"><span class="nav-icon">⚑</span><span class="nav-label">App Announcements</span></button>
+          </div>
+          <div class="nav-group"><button type="button" class="nav-heading nav-group-toggle" aria-expanded="true">CUSTOMER EXPERIENCE</button>
+            <button class="nav-item" data-page="support"><span class="nav-icon">☏</span><span class="nav-label">Support Tickets</span><span class="nav-count muted-count">—</span></button>
+            <button class="nav-item" data-page="feedback"><span class="nav-icon">☆</span><span class="nav-label">User Feedback</span></button>
+            <button class="nav-item" data-page="complaints"><span class="nav-icon">⚑</span><span class="nav-label">Complaints</span></button>
+            <button class="nav-item" data-page="content-reports"><span class="nav-icon">⚠</span><span class="nav-label">Content Reports</span></button>
+            <button class="nav-item" data-page="moderation"><span class="nav-icon">◉</span><span class="nav-label">Moderation</span></button>
+          </div>
+          <div class="nav-group"><button type="button" class="nav-heading nav-group-toggle" aria-expanded="true">BUSINESS INTELLIGENCE</button>
+            <button class="nav-item" data-page="analytics"><span class="nav-icon">▥</span><span class="nav-label">Analytics</span></button>
+            <button class="nav-item" data-page="user-reports"><span class="nav-icon">▧</span><span class="nav-label">User Reports</span></button>
+            <button class="nav-item" data-page="campaign-reports"><span class="nav-icon">▧</span><span class="nav-label">Campaign Reports</span></button>
+            <button class="nav-item" data-page="notification-reports"><span class="nav-icon">▧</span><span class="nav-label">Notification Reports</span></button>
+            <button class="nav-item" data-page="finance-reports"><span class="nav-icon">▧</span><span class="nav-label">Finance Reports</span></button>
+          </div>
+          <div class="nav-group"><button type="button" class="nav-heading nav-group-toggle" aria-expanded="true">ADMINISTRATION</button>
+            <button class="nav-item" data-page="staff"><span class="nav-icon">♙</span><span class="nav-label">Staff Members</span></button>
+            <button class="nav-item" data-page="roles"><span class="nav-icon">⚿</span><span class="nav-label">Roles & Permissions</span></button>
+            <button class="nav-item" data-page="approvals"><span class="nav-icon">✓</span><span class="nav-label">Approvals</span><span class="nav-count">—</span></button>
+            <button class="nav-item" data-page="audit"><span class="nav-icon">≡</span><span class="nav-label">Audit Logs</span></button>
+            <button class="nav-item" data-page="security"><span class="nav-icon">♢</span><span class="nav-label">Security Centre</span></button>
+            <button class="nav-item" data-page="health"><span class="nav-icon">⌁</span><span class="nav-label">System Health</span></button>
+            <button class="nav-item" data-page="storage"><span class="nav-icon">▣</span><span class="nav-label">Storage</span></button>
+            <button class="nav-item" data-page="future"><span class="nav-icon">✧</span><span class="nav-label">Future Modules</span></button>
+            <button class="nav-item" data-page="settings"><span class="nav-icon">⚙</span><span class="nav-label">Admin Settings</span></button>
+          </div>
+        </div>
+        <div class="sidebar-bottom"><div class="preview-user"><div class="avatar">F</div><div class="brand-copy"><strong>Signed-in admin</strong><span>Role-protected session</span></div><span class="status-dot"></span></div></div>
+      </aside>
+
+      <main class="main-shell">
+        <header class="topbar">
+          <div class="topbar-left"><button id="mobileMenu" class="icon-btn mobile-only" aria-label="Open navigation">☰</button><button id="desktopMenu" class="icon-btn desktop-only" aria-label="Toggle navigation">☰</button><div class="breadcrumb"><span>Admin</span><b>›</b><strong id="breadcrumbCurrent">Dashboard</strong></div></div>
+          <div class="top-search-wrap"><button id="globalSearchButton" class="global-search"><span>⌕</span><span>Search users, campaigns, content…</span><kbd>Ctrl K</kbd></button></div>
+          <div class="topbar-actions"><div class="quick-wrap"><button id="quickCreate" class="btn btn-primary btn-small">＋ <span>Quick Create</span></button><div id="quickMenu" class="quick-menu hidden"><button data-quick="Notification">♧ &nbsp; New notification</button><button data-quick="Giving campaign">♡ &nbsp; Create giving campaign</button><button data-quick="Content">▤ &nbsp; Add content</button><button data-quick="Staff invitation">♙ &nbsp; Invite staff</button><button data-quick="Announcement">⚑ &nbsp; Announcement</button></div></div><button class="icon-btn notification-icon" id="adminBell" aria-label="Admin notifications">♧<i></i></button><button class="profile-menu" id="profileMenu"><span class="avatar">F</span><span class="profile-menu-copy"><strong>Founder</strong><small>Demo preview</small></span><span>⌄</span></button></div>
+        </header>
+
+        <div class="workspace-content">
+          <div class="page-topline"><div><div class="eyebrow" id="pageEyebrow">OVERVIEW</div><h1 id="pageTitle">Dashboard</h1><p id="pageSubtitle">Founder overview of the MOMIN ecosystem.</p></div><div class="page-actions" id="pageActions"><div class="select-wrap"><select id="dateRange" aria-label="Dashboard date range"><option>Last 30 days</option><option>Today</option><option>Last 7 days</option><option>Last 90 days</option><option>This year</option><option>Custom range</option></select></div><button class="btn btn-secondary" id="compareButton">Compare</button></div></div>
+          <div id="pageContent" aria-live="polite"></div>
+          <footer class="workspace-footer"><span>MOMIN Admin Control Centre</span><span>Phase 2 · Connected users and notifications · <span class="footer-demo">Some modules remain planned</span></span></footer>
+        </div>
+      </main>
+    </div>
+
+    <div id="searchOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="searchTitle">
+      <div class="search-dialog"><div class="search-dialog-top"><span>⌕</span><input id="globalSearchInput" type="search" placeholder="Search pages, users, campaigns…" autocomplete="off"><kbd>ESC</kbd><button class="icon-btn" data-close="searchOverlay" aria-label="Close search">×</button></div><div class="search-dialog-body"><div id="searchTitle" class="eyebrow">QUICK NAVIGATION</div><div id="searchResults" class="search-results"></div></div><div class="search-hint">↑ ↓ Navigate <span>↵ Open page</span> <span>ESC Close</span></div></div>
+    </div>
+    <div id="modalOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-card"><div class="modal-head"><div><div class="eyebrow">MOMIN ADMIN ACTION</div><h2 id="modalTitle">Confirm action</h2></div><button class="icon-btn" data-close="modalOverlay" aria-label="Close dialog">×</button></div><div id="modalBody" class="modal-body"></div><div class="modal-foot"><button class="btn btn-secondary" data-close="modalOverlay">Close</button><button class="btn btn-primary" id="modalConfirm">Confirm</button></div></div></div>
+    <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./admin.js?v=preview-shell-v1" defer></script>
+</body>
 </html>
