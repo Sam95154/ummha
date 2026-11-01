@@ -10,6 +10,7 @@ import android.content.pm.ServiceInfo;
 import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -42,11 +43,19 @@ public class MominAzanPlaybackService extends Service {
     }
     private void startAudio() {
         releasePlayer();
-        player=MediaPlayer.create(this,R.raw.makkah_azan_notification);
-        if(player==null){android.util.Log.e("MOMIN-Azan","Makkah Azan MP3 could not be opened");stopPlayback();return;}
-        player.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM)
-            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
-        player.setWakeMode(getApplicationContext(),PowerManager.PARTIAL_WAKE_LOCK);
+        try {
+            player=new MediaPlayer();
+            player.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
+            player.setWakeMode(getApplicationContext(),PowerManager.PARTIAL_WAKE_LOCK);
+            Uri audioUri=Uri.parse("android.resource://"+getPackageName()+"/"+R.raw.makkah_azan_notification);
+            player.setDataSource(this,audioUri);
+            player.prepare();
+        } catch(Exception error) {
+            android.util.Log.e("MOMIN-Azan","Makkah Azan MP3 could not be prepared",error);
+            stopPlayback();
+            return;
+        }
         player.setOnCompletionListener(mp->stopPlayback());
         player.setOnErrorListener((mp,what,extra)->{android.util.Log.e("MOMIN-Azan","MediaPlayer error "+what+"/"+extra);stopPlayback();return true;});
         try{player.start();}catch(Exception error){android.util.Log.e("MOMIN-Azan","Azan playback failed",error);stopPlayback();}
