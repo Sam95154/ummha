@@ -518,10 +518,17 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
   }
   function injectFounderStyle(frame){
     try{
-      var doc=frame.contentDocument;if(!doc||doc.getElementById("momin-shared-founder-v1-style"))return;
+      var doc=frame.contentDocument;
+      if(!doc)return;
       doc.documentElement.classList.add("momin-founder-embedded");
-      var style=doc.createElement("style");style.id="momin-shared-founder-v1-style";
-      style.textContent='html.momin-founder-embedded .app>.bar,html.momin-founder-embedded .tabs{display:none!important}html.momin-founder-embedded body{padding-bottom:130px!important}html.momin-founder-embedded .app{padding-bottom:16px!important}html.momin-founder-embedded .app>main{padding-top:0!important}';
+      if(doc.getElementById("momin-shared-founder-v1-style"))return;
+      var style=doc.createElement("style");
+      style.id="momin-shared-founder-v1-style";
+      style.textContent=
+        'html.momin-founder-embedded body{padding-top:0!important;padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))!important}'+
+        'html.momin-founder-embedded .app{padding-bottom:0!important}'+
+        'html.momin-founder-embedded .app>.bar,html.momin-founder-embedded .tabs{display:none!important}'+
+        'html.momin-founder-embedded .app>main{padding-top:0!important}';
       doc.head.appendChild(style);
     }catch(_){}
   }
