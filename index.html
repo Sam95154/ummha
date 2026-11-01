@@ -957,12 +957,57 @@ body.momin-founder-route-v3 #momin-founder-frame-v3{display:block!important;widt
     var next=location.pathname+location.search+location.hash;
     location.replace("/login.html?next="+encodeURIComponent(next||"/"));
   }
-  function verifySession(blockPage){
+  function sendToProfile(){
+    if(redirecting)return;
+    redirecting=true;
+    var next=location.pathname+location.search+location.hash;
+    if(!next||next.indexOf("/profile-complete.html")===0)next="/";
+    location.replace("/profile-complete.html?next="+encodeURIComponent(next));
+  }
+  function isEmailVerified(user){
+    var meta=user&&user.user_metadata||{};
+    return !!(user&&(user.email_confirmed_at||user.confirmed_at||meta.email_verified===true));
+  }
+  async function hasCompletedProfile(user){
+    var result=await supabaseClient.from("momin_profiles")
+      .select("profile_completed")
+      .eq("user_id",user.id)
+      .maybeSingle();
+    if(result.error)throw result.error;
+    if(!result.data){
+      var meta=user.user_metadata||{};
+      var name=meta.full_name||meta.name||meta.display_name||
+        [meta.given_name,meta.family_name].filter(Boolean).join(" ")||
+        (user.email?user.email.split("@")[0]:"");
+      var created=await supabaseClient.from("momin_profiles").upsert({
+        user_id:user.id,
+        display_name:name,
+        email:user.email||null,
+        avatar_url:meta.avatar_url||meta.picture||meta.photo_url||null,
+        auth_provider:(user.app_metadata&&user.app_metadata.provider)||"email",
+        email_verified:isEmailVerified(user),
+        profile_completed:false,
+        updated_at:new Date().toISOString()
+      },{onConflict:"user_id"});
+      if(created.error)throw created.error;
+      return false;
+    }
+    return result.data.profile_completed===true;
+  }
+  async function verifySession(blockPage){
     if(blockPage)root.classList.add("momin-auth-pending");
-    supabaseClient.auth.getSession().then(function(result){
+    try{
+      var result=await supabaseClient.auth.getSession();
       if(result.error||!result.data||!result.data.session){sendToLogin();return;}
+      var user=result.data.session.user;
+      if(!isEmailVerified(user)){sendToProfile();return;}
+      var complete=await hasCompletedProfile(user);
+      if(!complete){sendToProfile();return;}
       root.classList.remove("momin-auth-pending");
-    }).catch(sendToLogin);
+    }catch(error){
+      console.warn("MOMIN profile completion gate:",error);
+      sendToProfile();
+    }
   }
   supabaseClient.auth.onAuthStateChange(function(event,session){
     if(event==="SIGNED_OUT"||(event==="TOKEN_REFRESHED"&&!session))sendToLogin();
