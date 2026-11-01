@@ -7,7 +7,7 @@
   const state = {
     token: null, admin: null, page: "login", theme: localStorage.getItem("momin-admin-theme") || "dark",
     busy: false, error: "", toastTimer: null, menu: false, notifTab: "create", givingTab: "campaigns",
-    dashboard: null, users: [], editCampaign: null, userQuery: "", userStatus: "all", notifications: [],
+    dashboard: null, users: [], usersPage: 1, userTotal: 0, notificationUsers: [], notificationSelections: [], editCampaign: null, userQuery: "", userStatus: "all", notifications: [],
     campaigns: [], contributions: [], complaints: [], profile: null, selectedComplaint: null,
     notificationImage: null, campaignImage: null
   };
@@ -170,12 +170,17 @@
       '<button type="button" class="btn small ' + (u.status === "Active" ? "danger" : "") + '" data-action="user-status" data-id="' +
       escapeHtml(u.id) + '" data-status="' + (u.status === "Active" ? "Inactive" : "Active") + '">' +
       (u.status === "Active" ? "Deactivate" : "Activate") + "</button></td></tr>");
-    return heading("Users", "Search and manage registered MOMIN accounts") +
-      '<section class="card"><form class="toolbar" data-form="user-search"><input class="control search" name="q" placeholder="Search name, unique User ID, email or phone" value="' +
+    const totalPages = Math.max(1, Math.ceil(state.userTotal / 50));
+    return heading("Users", "Search and manage all registered MOMIN accounts") +
+      '<section class="card"><form class="toolbar" data-form="user-search"><input class="control search" name="q" placeholder="Search name, unique User ID or email" value="' +
       escapeHtml(state.userQuery) + '"><select class="control" name="status"><option value="all">All statuses</option><option value="Active" ' +
       (state.userStatus === "Active" ? "selected" : "") + '>Active</option><option value="Inactive" ' +
       (state.userStatus === "Inactive" ? "selected" : "") + '>Inactive</option></select><button class="btn primary">Search</button></form>' +
       table(["Unique User ID","Name","Email","Registered","Status","Actions"], rows) +
+      '<div class="toolbar mt"><small class="muted">Page ' + state.usersPage + " of " + totalPages + " · " + state.userTotal + " matching users</small>" +
+      '<span class="spacer"></span><button type="button" class="btn small" data-action="users-page" data-page="' + Math.max(1, state.usersPage - 1) + '" ' +
+      (state.usersPage <= 1 ? "disabled" : "") + '>Previous</button><button type="button" class="btn small" data-action="users-page" data-page="' +
+      Math.min(totalPages, state.usersPage + 1) + '" ' + (state.usersPage >= totalPages ? "disabled" : "") + '>Next</button></div>' +
       '<p class="hint">User IDs are permanent identifiers. Editing a display name never changes the User ID.</p></section>';
   }
   function renderNotifications() {
@@ -187,13 +192,19 @@
         '<div class="tabs"><button data-action="notif-tab" data-tab="create">Create</button><button class="active" data-action="notif-tab" data-tab="history">History</button></div>' +
         '<section class="card">' + table(["Title","Audience","Created","Media","Status","Recipients","Push sent"], rows) + "</section>";
     }
-    const userOptions = state.users.map(u => '<option value="' + escapeHtml(u.id) + '">' + escapeHtml(u.user_id + " · " + u.name) + "</option>").join("");
+    const userOptions = state.notificationUsers.map(u => '<option value="' + escapeHtml(u.id) + '" ' +
+      (state.notificationSelections.includes(u.id) ? "selected" : "") + '>' + escapeHtml(u.user_id + " · " + u.name) + "</option>").join("");
+    const selected = state.notificationSelections.map(id => '<span class="pill">' + escapeHtml(id.slice(0, 8)) +
+      ' <button type="button" aria-label="Remove selected user" data-action="remove-recipient" data-id="' + escapeHtml(id) + '">×</button></span>').join(" ");
     return heading("Notifications", "Send to all MOMIN users, selected users, or one individual") +
       '<div class="tabs"><button class="active" data-action="notif-tab" data-tab="create">Create</button><button data-action="notif-tab" data-tab="history">History</button></div>' +
       '<div class="split"><section class="card"><form data-form="notification">' +
       selectField("Audience","audience",[{value:"all",label:"All MOMIN users"},{value:"selected",label:"Selected users"},{value:"individual",label:"One particular user"}],"all",true,'data-audience') +
-      '<div class="field" id="recipient-field" hidden><label for="user-ids">Select user(s)</label><select class="control" id="user-ids" name="user_ids" multiple size="6">' + userOptions +
-      '</select><small class="hint">Use Ctrl (Windows) or Command (Mac) to select multiple users.</small></div>' +
+      '<div class="field" id="recipient-field" hidden><label for="recipient-search">Find user by name, User ID, or email</label>' +
+      '<div class="toolbar"><input class="control" id="recipient-search" placeholder="Search MOMIN users"><button type="button" class="btn" data-action="search-recipients">Search</button></div>' +
+      '<label for="user-ids">Select user(s)</label><select class="control" id="user-ids" name="user_ids" multiple size="6">' + userOptions +
+      '</select><small class="hint">Use Ctrl (Windows) or Command (Mac) to select multiple users. ' + state.notificationUsers.length + ' result(s) shown.</small>' +
+      '<div class="pill-row mt">' + (selected || '<small class="hint">No users selected.</small>') + '</div></div>' +
       field("Notification title","title","", "text", true, 'maxlength="80"') +
       '<div class="field"><label for="message">Message *</label><textarea class="control" id="message" name="message" maxlength="1000" required></textarea></div>' +
       selectField("Open in MOMIN","route",["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"].map(x=>({value:x,label:x[0].toUpperCase()+x.slice(1)})),"home",true) +
@@ -296,14 +307,14 @@
     try {
       if (page === "dash") state.dashboard = await api("dashboard");
       if (page === "users") {
-        const result = await api("users", { q: state.userQuery, status: state.userStatus });
-        state.users = result.users || [];
+        const result = await api("users", { q: state.userQuery, status: state.userStatus, page: state.usersPage });
+        state.users = result.users || []; state.userTotal = result.total ?? state.users.length;
       }
       if (page === "notif") {
         const [users, history] = await Promise.all([
-          api("users", { q: "", status: "Active" }), api("notifications_history")
+          api("users", { q: "", status: "Active", page: 1 }), api("notifications_history")
         ]);
-        state.users = users.users || []; state.notifications = history.notifications || [];
+        state.notificationUsers = users.users || []; state.notifications = history.notifications || [];
       }
       if (page === "giving") {
         if (state.givingTab === "contributions") state.contributions = (await api("contributions")).contributions || [];
@@ -393,8 +404,9 @@
   async function sendNotification(form) {
     const data = new FormData(form);
     const audience = data.get("audience");
-    const selected = Array.from(form.elements.user_ids?.selectedOptions || []).map(o => o.value);
+    const selected = state.notificationSelections.slice(0);
     if (audience !== "all" && !selected.length) throw new Error("Select at least one user.");
+    if (audience === "individual" && selected.length !== 1) throw new Error("Select exactly one individual user.");
     let imageUrl = null;
     const image = data.get("image");
     if (image instanceof File && image.size) imageUrl = (await upload(image, "notification")).public_url;
@@ -403,7 +415,7 @@
       route: data.get("route"), user_ids: selected, image_url: imageUrl
     });
     toast("Notification processed. " + result.recipient_count + " user inbox record(s); push sent to " + result.push_sent + " device(s).");
-    state.notifTab = "history"; await goto("notif");
+    state.notificationSelections = []; state.notifTab = "history"; await goto("notif");
   }
   async function saveCampaign(form) {
     const data = new FormData(form);
@@ -441,7 +453,7 @@
       if (type === "login") return await doLogin(form);
       if (type === "password") return await savePassword(form);
       if (type === "user-search") {
-        state.userQuery = form.elements.q.value.trim(); state.userStatus = form.elements.status.value;
+        state.userQuery = form.elements.q.value.trim(); state.userStatus = form.elements.status.value; state.usersPage = 1;
         return await goto("users");
       }
       if (type === "edit-user") {
@@ -470,6 +482,15 @@
       if (box) box.hidden = event.target.value === "all";
       const select = document.getElementById("user-ids");
       if (select) select.multiple = event.target.value === "selected";
+      if (event.target.value === "all") state.notificationSelections = [];
+      if (event.target.value === "individual") state.notificationSelections = state.notificationSelections.slice(0, 1);
+    }
+    if (event.target.matches("#user-ids")) {
+      const select = event.target;
+      const visibleIds = Array.from(select.options).map(o => o.value);
+      const stillSelected = state.notificationSelections.filter(id => !visibleIds.includes(id));
+      const newlySelected = Array.from(select.selectedOptions).map(o => o.value);
+      state.notificationSelections = (select.multiple ? [...stillSelected, ...newlySelected] : newlySelected).filter((id, i, all) => all.indexOf(id) === i);
     }
     if (event.target.matches("#notification-image")) updateNotificationPreview(event.target.form);
   });
@@ -493,6 +514,24 @@
       if (action === "view-user") {
         const detail = await api("user_detail", { id: el.dataset.id });
         showModal(userDetailsHtml(detail)); return;
+      }
+      if (action === "users-page") {
+        state.usersPage = Math.max(1, Number(el.dataset.page || 1)); return await goto("users");
+      }
+      if (action === "search-recipients") {
+        const input = document.getElementById("recipient-search");
+        const result = await api("users", { q: input ? input.value.trim() : "", status: "Active", page: 1 });
+        state.notificationUsers = result.users || [];
+        const select = document.getElementById("user-ids");
+        if (select) select.innerHTML = state.notificationUsers.map(u => '<option value="' + escapeHtml(u.id) + '" ' +
+          (state.notificationSelections.includes(u.id) ? "selected" : "") + '>' + escapeHtml(u.user_id + " · " + u.name) + "</option>").join("");
+        return;
+      }
+      if (action === "remove-recipient") {
+        state.notificationSelections = state.notificationSelections.filter(id => id !== el.dataset.id);
+        const select = document.getElementById("user-ids");
+        if (select) Array.from(select.options).forEach(o => { if (o.value === el.dataset.id) o.selected = false; });
+        el.closest(".pill")?.remove(); return;
       }
       if (action === "edit-user") return editUser(el.dataset.id);
       if (action === "user-status") {
