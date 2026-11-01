@@ -96,6 +96,20 @@ create unique index if not exists momin_user_notifications_notification_user_uid
   on public.momin_user_notifications(notification_id, user_id)
   where notification_id is not null;
 
+create or replace view public.momin_admin_notification_stats
+with (security_invoker = true)
+as
+select
+  notification_id,
+  count(*)::integer as recipient_count,
+  count(*) filter (where read_at is not null)::integer as read_count
+from public.momin_user_notifications
+where notification_id is not null
+group by notification_id;
+
+revoke all on public.momin_admin_notification_stats from anon, authenticated;
+grant select on public.momin_admin_notification_stats to service_role;
+
 create table if not exists public.momin_giving_campaigns (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(name) between 2 and 120),
