@@ -216,9 +216,9 @@ async function updateUser(body: Record<string, unknown>, adminId: string) {
   const meta = { ...(authData.user.user_metadata || {}), display_name: name, full_name: name };
   const { error: updateAuthError } = await db.auth.admin.updateUserById(id, { user_metadata: meta });
   if (updateAuthError) throw updateAuthError;
-  const { error } = await db.from("momin_profiles").upsert({
-    user_id: id, display_name: name, email: authData.user.email || null, updated_at: new Date().toISOString(),
-  }, { onConflict: "user_id" });
+  const { error } = await db.from("momin_profiles").update({
+    display_name: name, email: authData.user.email || null, updated_at: new Date().toISOString(),
+  }).eq("user_id", id);
   if (error) throw error;
   await audit(adminId, "user.name_updated", "user", id, { display_name: name });
   return { success: true };
