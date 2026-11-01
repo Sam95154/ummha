@@ -270,20 +270,6 @@
       '<div class="pill-row"><button class="btn ' + (state.theme === "dark" ? "primary" : "") + '" data-action="set-theme" data-theme="dark">Dark mode</button>' +
       '<button class="btn ' + (state.theme === "light" ? "primary" : "") + '" data-action="set-theme" data-theme="light">Light mode</button></div></section>';
   }
-  function renderComplaintDetail(c, replies) {
-    return '<div class="modal-backdrop" data-action="modal-close"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="complaint-title">' +
-      '<h2 id="complaint-title">' + escapeHtml(c.ticket_id) + " · " + escapeHtml(c.subject) + '</h2><p class="muted">' +
-      escapeHtml(c.user_name) + " · " + escapeHtml(c.category) + " · " + escapeHtml(c.priority) + "</p><p>" +
-      escapeHtml(c.description) + "</p><div class="timeline">" +
-      '<div class="timeline-item"><b>Submitted</b><small>' + date(c.created_at) + "</small></div>" +
-      '<div class="timeline-item"><b>Current status: ' + escapeHtml(c.status) + "</b><small>" + date(c.updated_at) + "</small></div>" +
-      (replies || []).map(r => '<div class="timeline-item"><b>' + (r.author_type === "admin" ? "Admin response" : "User message") +
-        '</b><p>' + escapeHtml(r.message) + "</p><small>" + date(r.created_at) + "</small></div>").join("") +
-      '</div><form data-form="complaint-update" data-id="' + escapeHtml(c.id) + '">' +
-      selectField("Update status","status",["Open","Pending","In Progress","Resolved","Closed"].map(x=>({value:x,label:x})),c.status) +
-      '<div class="field"><label>Admin response (optional)</label><textarea class="control" name="message" maxlength="5000"></textarea></div>' +
-      '<div class="modal-actions"><button type="button" class="btn" data-action="modal-close">Close</button><button class="btn primary">Save update</button></div></form></section></div>';
-  }
   function render() {
     if (!state.token) return renderLogin();
     if (state.admin?.force_password_change) return renderPasswordRequired();
