@@ -334,7 +334,14 @@
   }
   window.MominNotificationsBridgeV1={
     snapshot:snapshot,
-    savePrefs:function(prefs){var saved=savePrefs(prefs);syncPushPreferences();return saved;},
+    savePrefs:function(prefs){
+      var saved=savePrefs(prefs);
+      if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){
+        if(saved.on)window.MominNativePrayerAlarm.scheduleFromPreferences(saved).catch(function(error){console.warn("MOMIN Android notification preferences:",error)});
+        else window.MominNativePrayerAlarm.cancel().catch(function(error){console.warn("MOMIN Android notification cancel:",error)});
+      }else syncPushPreferences();
+      return saved;
+    },
     requestPermission:requestPermission,
     enableBackgroundPush:enableBackgroundPush,
     syncPushPreferences:syncPushPreferences,

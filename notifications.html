@@ -195,7 +195,7 @@ nav a[aria-current]{color:var(--gold2);font-weight:700;background:var(--soft);bo
   <div class="sec rise" style="--d:5"><h3>Recent</h3><button id="clr" type="button">Clear all</button></div>
   <div id="recent"></div>
 
-  <section class="card note rise" style="--d:6"><h2>Prayer reminders</h2><p>MOMIN can send server-scheduled push alerts while this app is closed after this device is enabled. Delivery can still vary with network and phone power settings.</p>
+  <section class="card note rise" style="--d:6"><h2>Prayer reminders</h2><p id="mominReminderHelpV1">MOMIN can send prayer reminders while notifications are enabled.</p>
     <div class="acts"><button class="btn main" id="set" type="button">Notification settings</button></div></section>
 </div>
 <nav aria-label="Main">
@@ -215,6 +215,15 @@ var PRAYER_NAMES=["Fajr","Dhuhr","Asr","Maghrib","Isha"];var P=PRAYER_NAMES.map(
 var RECENT=[];
 var UPS=[{k:"jumuah",t:"Jumuʿah reminder",s:"A gentle reminder on Fridays",i:"cal"},{k:"adhkar",t:"Morning and evening adhkar",s:"Daily remembrance prompts",i:"mo"},{k:"dates",t:"Islamic dates and occasions",s:"Important days in the Hijri calendar",i:"bk"},{k:"announcements",t:"App announcements",s:"Optional news, giving campaigns and community updates",i:"b"}];
 var LEADS=[0,5,10,15,30];
+(function updateReminderHelp(){
+  try{
+    var nativeMode=window.parent!==window&&window.parent.MominNativePrayerAlarm&&window.parent.MominNativePrayerAlarm.isNative;
+    var help=$("mominReminderHelpV1");
+    if(help)help.textContent=nativeMode
+      ?"Android schedules prayer alarms on this device. Allow Notifications and Alarms & reminders. The Makkah Azan plays at the actual prayer time when selected; advance reminders are separate."
+      :"Web reminders depend on browser notification permission, push support and network access. Full Azan audio cannot be guaranteed after the browser is closed.";
+  }catch(_){}
+})();
 /* ===== end of data ===== */
 function fmt(m){m=((m%1440)+1440)%1440;var h=Math.floor(m/60),mm=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+(mm<10?"0":"")+mm+" "+ap}
 function bridge(){try{return window.parent!==window&&window.parent.MominNotificationsBridgeV1||null}catch(e){return null}}
