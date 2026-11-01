@@ -143,7 +143,6 @@ function profileMarkup(){
 
 function buildSections(){
  var sections=[];
- sections.push({id:"profile",ic:"user",title:"Profile & Account",sub:"Profile, password and signed-in devices",body:profileMarkup()});
  sections.push({id:"appearance",ic:"contrast",title:"Appearance & Personalization",sub:"Dark appearance · accessibility preferences",body:
   note("MOMIN uses its fixed dark appearance. You can still adjust motion and contrast.")+
   switchRow("reduceMotion","Reduce animations","Prefer less movement","","settingsReduceMotionV1")+
