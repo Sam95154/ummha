@@ -1,0 +1,62 @@
+name: MOMIN Android Build
+
+on:
+  push:
+    branches:
+      - noor-ul-islam-live
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: momin-android-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Prepare and build Android app
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out MOMIN
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 16 SDK
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Generate Capacitor Android project and assets
+        run: npm run android:prepare
+
+      - name: Build debug APK and unsigned release AAB
+        working-directory: android
+        run: ./gradlew --no-daemon --stacktrace assembleDebug bundleRelease
+
+      - name: Upload Android build files
+        uses: actions/upload-artifact@v4
+        with:
+          name: momin-android-builds
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/bundle/release/*.aab

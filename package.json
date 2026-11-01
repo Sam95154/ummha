@@ -1,0 +1,23 @@
+{
+  "name": "momin-android",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Android wrapper for the existing MOMIN web app",
+  "scripts": {
+    "android:web": "node scripts/prepare-android-web.mjs",
+    "android:prepare": "npm run android:web && node scripts/prepare-android-project.mjs",
+    "android:debug": "npm run android:prepare && cd android && ./gradlew assembleDebug",
+    "android:bundle": "npm run android:prepare && cd android && ./gradlew bundleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/browser": "^8.0.0",
+    "@capacitor/core": "8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "3.0.5",
+    "@capacitor/cli": "8.5.3",
+    "esbuild": "^0.25.0"
+  }
+}
