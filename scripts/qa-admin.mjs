@@ -67,7 +67,8 @@ check(js.includes("async function searchComplaintUsers") && js.includes('modalRo
 check(js.includes("autocomplete-option") && js.includes("selectComplaintUser") && js.includes("data-user-index"), "Complaint user search renders selectable name suggestions");
 check(js.includes('aria-autocomplete="list"') && js.includes("ArrowDown") && js.includes('event.key === "Enter"'), "Complaint user autocomplete supports accessible keyboard selection");
 check(js.includes("complaint-user-search-status") && js.includes("No matches for"), "Complaint user autocomplete reports matching and empty-result states");
-check(api.includes("public_user_id.ilike.%"+'" + safe + "') && api.includes("display_name.ilike.%"+'" + safe + "') && api.includes("email.ilike.%"+'" + safe + "'), "Admin user API searches permanent User ID, display name, and email");
+const userSearchApi = api.slice(api.indexOf("async function listUsers"), api.indexOf("async function updateUser"));
+check(userSearchApi.includes("request.or(") && ["public_user_id.ilike.%", "display_name.ilike.%", "email.ilike.%"].every(field => userSearchApi.includes(field)), "Admin user API searches permanent User ID, display name, and email");
 check(js.includes('user.email || "No email"') && js.includes('user.user_id || "MOMIN User ID unavailable"'), "Admin complaint suggestions show email and permanent User ID");
 
 check(!/as\s+\$\s*\n/i.test(migration), "Migration contains no malformed anonymous dollar-quote block");
