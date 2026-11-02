@@ -123,7 +123,7 @@ const fcmMetadata = `
         <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="momin-announcements" />
 `;
 if (!manifest.includes("com.google.firebase.messaging.default_notification_icon")) {
-  manifest = manifest.replace("</application>", fcmMetadata + "\\n    </application>");
+  manifest = manifest.replace("</application>", fcmMetadata + "\n    </application>");
 }
 
 const nativeComponents = `
@@ -141,7 +141,7 @@ const nativeComponents = `
         <service android:name="com.momin.noorulislam.MominAzanPlaybackService" android:enabled="true" android:exported="false" android:foregroundServiceType="mediaPlayback" />
 `;
 if (!manifest.includes("MominAzanPlaybackService")) {
-  manifest = manifest.replace("</application>", nativeComponents + "\\n    </application>");
+  manifest = manifest.replace("</application>", nativeComponents + "\n    </application>");
 }
 fs.writeFileSync(manifestPath, manifest, "utf8");
 
