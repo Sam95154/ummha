@@ -18,7 +18,7 @@ self.addEventListener("push", function(event) {
   var title = String(payload.title || "MOMIN reminder");
   var body = String(payload.body || "A reminder from MOMIN.");
   var route = String(payload.route || "home");
-  var allowed = ["home","prayers","quran","duas","calendar","notifications","settings","journey","giving"];
+  var allowed = ["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"];
   if (allowed.indexOf(route) < 0) route = "home";
   var options = {
     body: body,
@@ -38,7 +38,7 @@ self.addEventListener("push", function(event) {
 self.addEventListener("notificationclick", function(event) {
   event.notification.close();
   var route = event.notification.data && event.notification.data.route || "home";
-  var allowed = ["home","prayers","quran","duas","calendar","notifications","settings","journey","giving"];
+  var allowed = ["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"];
   if (allowed.indexOf(route) < 0) route = "home";
   var target = new URL("/?mominPushRoute=" + encodeURIComponent(route), self.location.origin).href;
   event.waitUntil((async function() {
