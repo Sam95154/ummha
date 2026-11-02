@@ -56,6 +56,21 @@
     },{onConflict:"user_id"});
     if(error)console.warn("MOMIN profile sync:",error.message);
   }
+  function refreshNativeFcmWhenReady(){
+    if(localStorage.getItem("momin-push-enabled")!=="true")return;
+    var attempts=0;
+    function waitForPush(){
+      attempts++;
+      if(window.MominNativePush&&typeof window.MominNativePush.syncIfEnabled==="function"){
+        window.MominNativePush.syncIfEnabled().catch(function(error){
+          console.warn("MOMIN FCM token refresh:",error&&error.message||error);
+        });
+        return;
+      }
+      if(attempts<60)setTimeout(waitForPush,100);
+    }
+    waitForPush();
+  }
   async function inspectCurrentDevice(user,session){
     var {data,error}=await supabase.from("momin_devices")
       .select("id,revoked_at")
@@ -113,6 +128,14 @@
       revokeDevice:async function(id){
         var device=(profileApi.getDevices()||[]).find(function(d){return d.id===id});
         if(!device)throw new Error("Device record not found.");
+        if(window.MominNativePush){
+          try{
+            var revokePush=await supabase.functions.invoke("momin-fcm-register",{
+              body:{action:"disable",device_key:device.device_key,app_id:"com.momin.noorulislam"}
+            });
+            if(revokePush.error)console.warn("MOMIN revoked device FCM cleanup:",revokePush.error.message);
+          }catch(pushError){console.warn("MOMIN revoked device FCM cleanup:",pushError&&pushError.message||pushError);}
+        }
         var {error}=await supabase.from("momin_devices")
           .update({revoked_at:new Date().toISOString(),is_current:false})
           .eq("id",id);
@@ -150,11 +173,7 @@
     try{
       await syncProfile(user);
       await inspectCurrentDevice(user,session);
-      if(window.MominNativePush&&localStorage.getItem("momin-push-enabled")==="true"){
-        window.MominNativePush.syncIfEnabled().catch(function(error){
-          console.warn("MOMIN FCM token refresh:",error&&error.message||error);
-        });
-      }
+      refreshNativeFcmWhenReady();
       var devices=await profileApi.getDevices();
       var result=await supabase.from("momin_devices").select("id,device_key,device_name,last_seen_at,is_current,revoked_at")
         .eq("user_id",user.id).is("revoked_at",null).order("last_seen_at",{ascending:false});
@@ -204,6 +223,7 @@
   document.addEventListener("visibilitychange",function(){
     if(document.visibilityState==="visible"){
       supabase.auth.getSession().then(function(r){if(r.data&&r.data.session)inspectCurrentDevice(r.data.session.user,r.data.session).catch(function(){});});
+      refreshNativeFcmWhenReady();
     }
   });
   window.MominAuthV1={
