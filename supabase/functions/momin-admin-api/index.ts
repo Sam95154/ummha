@@ -371,7 +371,7 @@ async function getFcmCredentials() {
 }
 
 async function recordFcmDelivery(row: Record<string, any>, notificationId: string, title: string, message: string, route: string, status: "accepted" | "failed", extra: Record<string, unknown> = {}) {
-  const { error } = await db.from("momin_fcm_deliveries").insert({
+  const { error } = await db.from("momin_fcm_deliveries").upsert({
     admin_notification_id: notificationId,
     user_id: row.user_id,
     fcm_token_id: row.id,
@@ -381,7 +381,7 @@ async function recordFcmDelivery(row: Record<string, any>, notificationId: strin
     status,
     fcm_message_name: extra.messageName || null,
     error: extra.error || null,
-  });
+  }, { onConflict: "admin_notification_id,fcm_token_id" });
   if (error) throw error;
 }
 
@@ -526,14 +526,20 @@ async function sendFcmNotifications(
   let failed = 0;
   for (let offset = 0; offset < eligibleTokens.length; offset += 10) {
     const batch = eligibleTokens.slice(offset, offset + 10);
-    const results = await Promise.all(batch.map(row =>
-      sendFcmNotificationToToken(credentials, row, notificationId, title, message, route, imageUrl)
-        .catch(async error => {
-          const reason = String(error instanceof Error ? error.message : error).slice(0, 500);
-          await recordFcmDelivery(row, notificationId, title, message, route, "failed", { error: reason });
-          return { sent: 0, failed: 1 };
-        })
-    ));
+    const results = await Promise.all(batch.map(async row => {
+      try {
+        const { data: priorAccepted, error: priorAcceptedError } = await db.from("momin_fcm_deliveries")
+          .select("id").eq("admin_notification_id", notificationId).eq("fcm_token_id", row.id).eq("status", "accepted").maybeSingle();
+        if (priorAcceptedError) throw priorAcceptedError;
+        if (priorAccepted) return { sent: 1, failed: 0 };
+        return await sendFcmNotificationToToken(credentials, row, notificationId, title, message, route, imageUrl);
+      } catch (error) {
+        const reason = String(error instanceof Error ? error.message : error).slice(0, 500);
+        try { await recordFcmDelivery(row, notificationId, title, message, route, "failed", { error: reason }); }
+        catch (recordError) { console.error("MOMIN FCM failure audit:", recordError); }
+        return { sent: 0, failed: 1 };
+      }
+    }));
     sent += results.reduce((sum, result) => sum + result.sent, 0);
     failed += results.reduce((sum, result) => sum + result.failed, 0);
   }
