@@ -295,9 +295,12 @@ body.momin-app-shell-active.momin-shell-enter #view :is(.card,.card2,.acc):nth-c
 }
 /* Automatically size every authenticated MOMIN feature page to the viewport. */
 @media(min-width:701px){
- body.momin-app-shell-active #view.content,
- body.momin-app-shell-active .app{
+ body.momin-app-shell-active #view.content{
   width:calc(100% - 48px)!important;max-width:1120px!important;
+  margin-left:auto!important;margin-right:auto!important;min-width:0!important;
+ }
+ body.momin-app-shell-active .app{
+  width:100%!important;max-width:1080px!important;
   margin-left:auto!important;margin-right:auto!important;min-width:0!important;
  }
  .momin-shell-header__inner{width:calc(100% - 48px)!important;max-width:1120px!important}
@@ -330,14 +333,14 @@ body.momin-app-shell-active.momin-shell-enter #view :is(.card,.card2,.acc):nth-c
  body.momin-app-shell-active .momin-inspiration-frame-wrap iframe{width:100%!important}
 }
 @media(min-width:701px) and (max-width:900px){
- body.momin-app-shell-active #view.content,
- body.momin-app-shell-active .app{width:calc(100% - 36px)!important;max-width:860px!important}
+ body.momin-app-shell-active #view.content{width:calc(100% - 36px)!important;max-width:860px!important}
+ body.momin-app-shell-active .app{width:100%!important;max-width:820px!important}
  .momin-shell-header__inner{width:calc(100% - 36px)!important;max-width:860px!important}
  .momin-shell-bottom-nav{width:min(680px,calc(100% - 40px))!important}
 }
 @media(min-width:901px) and (max-width:1366px){
- body.momin-app-shell-active #view.content,
- body.momin-app-shell-active .app{width:calc(100% - 64px)!important;max-width:1200px!important}
+ body.momin-app-shell-active #view.content{width:calc(100% - 64px)!important;max-width:1200px!important}
+ body.momin-app-shell-active .app{width:100%!important;max-width:1160px!important}
  .momin-shell-header__inner{width:calc(100% - 64px)!important;max-width:1200px!important}
  body.momin-app-shell-active .quran-library.qv-shell .qv-sura-list{
   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:start;
@@ -345,8 +348,8 @@ body.momin-app-shell-active.momin-shell-enter #view :is(.card,.card2,.acc):nth-c
  body.momin-app-shell-active .quran-library.qv-shell .qv-juz-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 }
 @media(min-width:1367px){
- body.momin-app-shell-active #view.content,
- body.momin-app-shell-active .app{width:calc(100% - 80px)!important;max-width:1360px!important}
+ body.momin-app-shell-active #view.content{width:calc(100% - 80px)!important;max-width:1360px!important}
+ body.momin-app-shell-active .app{width:100%!important;max-width:1320px!important}
  .momin-shell-header__inner{width:calc(100% - 80px)!important;max-width:1360px!important}
  body.momin-app-shell-active .quran-library.qv-shell,
  body.momin-app-shell-active .qv-juz-reader,
