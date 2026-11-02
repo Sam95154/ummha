@@ -126,6 +126,21 @@ assert.ok(
   "Device stylesheet must reserve one outer gutter and let the nested page fill it."
 );
 
+const notificationsPage = fs.readFileSync(path.join(root, "notifications.html"), "utf8");
+const recentHeading = notificationsPage.indexOf('<div class="sec rise" style="--d:1"><h3>Recent</h3>');
+const recentContainer = notificationsPage.indexOf('<div id="recent"></div>');
+const remindersHero = notificationsPage.indexOf('<section class="hero rise" style="--d:2" id="hero"');
+const prayerTimeline = notificationsPage.indexOf('<section class="card rise" style="--d:3">');
+assert.ok(recentHeading >= 0, "Recent notifications heading must be the first Notifications content section.");
+assert.ok(recentContainer > recentHeading, "Recent notification list must follow its heading.");
+assert.ok(remindersHero > recentContainer, "Recent notifications must appear above the reminders summary.");
+assert.ok(prayerTimeline > remindersHero, "Prayer timeline must remain below the reminder summary.");
+assert.equal((notificationsPage.match(/id="recent"/g) || []).length, 1, "Notifications page must contain exactly one Recent list.");
+assert.equal((notificationsPage.match(/id="clr"/g) || []).length, 1, "Notifications page must keep exactly one Clear all control.");
+assert.ok(notificationsPage.includes('data-mark-read'), "Recent messages must retain their mark-as-read action.");
+assert.ok(notificationsPage.includes('m.inboxId&&m.unread'), "Unread admin announcements must retain their read control.");
+assert.ok(notificationsPage.includes('window.addEventListener("focus",function(){refreshPageFromBridge();refreshNativeNotificationStatus()})'), "Recent inbox must continue refreshing when the Notifications page regains focus.");
+
 const capacitorPrep = fs.readFileSync(path.join(root, "scripts/prepare-android-web.mjs"), "utf8");
 assert.ok(capacitorPrep.includes('copyAppFiles(root, webDir)'), "Android bundle must copy the shared stylesheet with app assets.");
 
