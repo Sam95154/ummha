@@ -296,7 +296,7 @@ function utf8Base64Url(value: string) {
 }
 
 function decodePrivateKey(value: string) {
-  const pem = value.replace(/\\n/g, "\n").replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\\s/g, "");
+  const pem = value.replace(/\\n/g, "\n").replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g, "");
   const binary = atob(pem);
   return Uint8Array.from(binary, c => c.charCodeAt(0));
 }
