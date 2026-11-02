@@ -11,7 +11,8 @@
     "test:fcm": "node scripts/test-native-fcm.mjs",
     "test:tablet": "node scripts/test-tablet-responsive.mjs",
     "test:giving": "node scripts/test-giving-sync.mjs",
-    "test:notifications": "node scripts/test-notification-release.mjs"
+    "test:notifications": "node scripts/test-notification-release.mjs",
+    "android:signing:prepare": "node scripts/configure-android-signing.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",
@@ -25,4 +26,4 @@
     "@capacitor/cli": "8.5.3",
     "esbuild": "^0.25.0"
   }
-}
+}\n
