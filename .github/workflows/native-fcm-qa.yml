@@ -1,0 +1,109 @@
+name: Native FCM QA
+
+on:
+  push:
+    branches:
+      - feature/native-fcm-push
+    paths:
+      - "package.json"
+      - "ANDROID_SETUP.md"
+      - "capacitor.config.json"
+      - "scripts/**"
+      - "src/native/**"
+      - "momin-auth-v1.js"
+      - "momin-notifications-admin-inbox-v1.js"
+      - "supabase/functions/momin-fcm-register/**"
+      - "supabase/functions/momin-admin-api/**"
+      - "supabase/migrations/*momin_native_fcm.sql"
+      - ".github/workflows/native-fcm-qa.yml"
+  pull_request:
+    branches:
+      - noor-ul-islam-live
+    paths:
+      - "package.json"
+      - "ANDROID_SETUP.md"
+      - "capacitor.config.json"
+      - "scripts/**"
+      - "src/native/**"
+      - "momin-auth-v1.js"
+      - "momin-notifications-admin-inbox-v1.js"
+      - "supabase/functions/momin-fcm-register/**"
+      - "supabase/functions/momin-admin-api/**"
+      - "supabase/migrations/*momin_native_fcm.sql"
+
+jobs:
+  static-and-function-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run static FCM QA
+        run: npm run test:fcm
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check FCM registration function
+        run: deno check --node-modules-dir=auto --no-lock supabase/functions/momin-fcm-register/index.ts
+      - name: Type-check Admin FCM sender
+        run: deno check --node-modules-dir=auto --no-lock supabase/functions/momin-admin-api/index.ts
+
+  android-debug-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "21"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools"
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Install JavaScript dependencies
+        run: npm install --no-audit --no-fund
+      - name: Create temporary build-only Firebase config
+        run: |
+          cat > google-services.json <<'JSON'
+          {
+            "project_info": {
+              "project_number": "123456789012",
+              "project_id": "momin-fcm-build-validation",
+              "storage_bucket": "momin-fcm-build-validation.appspot.com"
+            },
+            "client": [{
+              "client_info": {
+                "mobilesdk_app_id": "1:123456789012:android:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "android_client_info": {
+                  "package_name": "com.momin.noorulislam"
+                }
+              },
+              "oauth_client": [],
+              "api_key": [{
+                "current_key": "AIzaSyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              }],
+              "services": {
+                "appinvite_service": {
+                  "other_platform_oauth_client": []
+                }
+              }
+            }],
+            "configuration_version": "1"
+          }
+          JSON
+      - name: Generate the Capacitor Android project
+        run: npm run android:prepare
+      - name: Compile Android debug APK
+        run: cd android && ./gradlew assembleDebug --no-daemon

@@ -20,6 +20,7 @@ const excludedNames = new Set([
   "package-lock.json",
   "capacitor.config.ts",
   "ANDROID_SETUP.md",
+  "google-services.json",
   ".gitignore"
 ]);
 

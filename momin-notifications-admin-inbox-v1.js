@@ -55,7 +55,11 @@
       }
       var nativeResult=await window.MominNativePrayerAlarm.scheduleFromPreferences(activePrefs,true);
       put("momin-push-enabled","true");
-      return {native:true,scheduled:nativeResult.scheduled||0};
+      if(!window.MominNativePush||typeof window.MominNativePush.register!=="function"){
+        throw new Error("Firebase push support is not available in this MOMIN build. Rebuild the Android app.");
+      }
+      var fcmResult=await window.MominNativePush.register();
+      return {native:true,scheduled:nativeResult.scheduled||0,fcmRegistered:!!(fcmResult&&fcmResult.registered)};
     }
     if(!("Notification" in window)||!("serviceWorker" in navigator)||!("PushManager" in window))throw new Error("This browser does not support background push. Install MOMIN as an app or use a supported browser.");
     var permission=Notification.permission;if(permission==="default")permission=await Notification.requestPermission();
@@ -83,6 +87,10 @@
     var prefs=currentPushPreferences();
     var consent=await syncAnnouncementPreference(prefs);
     if(get("momin-push-enabled","false")!=="true")return consent;
+    if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){
+      try{await window.MominNativePush.register();return true}
+      catch(error){console.warn("MOMIN native FCM preference sync:",error);return false}
+    }
     try{await registerExistingPush(prefs);return true}catch(error){console.warn("MOMIN background notification preference sync:",error);return false}
   }
   async function sendPushTest(){
@@ -127,7 +135,11 @@
     put("noor-notification-inbox",JSON.stringify(items));try{window.dispatchEvent(new CustomEvent("momin:notifications-updated"))}catch(_){}return items;
   }
   async function disableBackgroundPush(){
-    if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){await window.MominNativePrayerAlarm.cancel();put("momin-push-enabled","false");return true;}
+    if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){
+      await window.MominNativePrayerAlarm.cancel();
+      try{if(window.MominNativePush)await window.MominNativePush.disable()}catch(error){console.warn("MOMIN FCM disable:",error)}
+      put("momin-push-enabled","false");return true;
+    }
     try{var session=await getPushSession();if(session)await pushApi("unsubscribe",{});if("serviceWorker" in navigator){var reg=pushRegistration||await navigator.serviceWorker.getRegistration("/");if(reg){var sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe()}}put("momin-push-enabled","false");return true}
     catch(error){console.warn("MOMIN push unsubscribe:",error);return false}
   }

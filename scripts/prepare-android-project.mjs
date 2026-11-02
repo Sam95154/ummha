@@ -15,6 +15,17 @@ if (!fs.existsSync(androidDir)) {
   run("npx", ["cap", "add", "android"]);
 }
 
+const firebaseConfigSource = path.join(root, "google-services.json");
+const firebaseConfigTarget = path.join(androidDir, "app", "google-services.json");
+if (fs.existsSync(firebaseConfigSource)) {
+  fs.mkdirSync(path.dirname(firebaseConfigTarget), { recursive: true });
+  fs.copyFileSync(firebaseConfigSource, firebaseConfigTarget);
+} else if (!fs.existsSync(firebaseConfigTarget)) {
+  throw new Error(
+    "Firebase configuration is missing. Place the downloaded google-services.json in the repository root, then run npm run android:prepare."
+  );
+}
+
 const manifestPath = path.join(androidDir, "app", "src", "main", "AndroidManifest.xml");
 if (!fs.existsSync(manifestPath)) {
   throw new Error("Capacitor did not generate AndroidManifest.xml.");
@@ -50,6 +61,20 @@ public class MainActivity extends BridgeActivity {
 }
 `;
 fs.writeFileSync(mainActivityPath, mainActivity, "utf8");
+
+const drawableDir = path.join(androidDir, "app", "src", "main", "res", "drawable");
+fs.mkdirSync(drawableDir, { recursive: true });
+const notificationIcon = `<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M15.2,2.3 C9.5,2.3 5,6.8 5,12.4 C5,17.7 9.1,21.8 14.3,21.8 C17.6,21.8 20.4,20.2 22,17.5 C19.5,19.1 16.9,19.1 14.7,17.9 C11.1,16 10,11.7 12.1,8.3 C13.1,6.6 14.8,5.3 16.7,4.8 C16.4,3.8 15.9,3 15.2,2.3 Z" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M19.2,5.2 L20,7.1 L22,7.3 L20.5,8.7 L20.9,10.7 L19.2,9.7 L17.5,10.7 L17.9,8.7 L16.4,7.3 L18.4,7.1 Z" />
+</vector>`;
+fs.writeFileSync(path.join(drawableDir, "momin_notification_icon.xml"), notificationIcon, "utf8");
 
 const rawDir = path.join(androidDir, "app", "src", "main", "res", "raw");
 fs.mkdirSync(rawDir, { recursive: true });
@@ -93,6 +118,14 @@ if (!manifest.includes('android:scheme="com.momin.noorulislam"')) {
   manifest = manifest.replace("</activity>", deepLink + "\n        </activity>");
 }
 
+const fcmMetadata = `
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/momin_notification_icon" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="momin-announcements" />
+`;
+if (!manifest.includes("com.google.firebase.messaging.default_notification_icon")) {
+  manifest = manifest.replace("</application>", fcmMetadata + "\n    </application>");
+}
+
 const nativeComponents = `
         <receiver android:name="com.momin.noorulislam.MominPrayerAlarmReceiver" android:enabled="true" android:exported="false" />
         <receiver android:name="com.momin.noorulislam.MominStopAzanReceiver" android:enabled="true" android:exported="false" />
@@ -108,7 +141,7 @@ const nativeComponents = `
         <service android:name="com.momin.noorulislam.MominAzanPlaybackService" android:enabled="true" android:exported="false" android:foregroundServiceType="mediaPlayback" />
 `;
 if (!manifest.includes("MominAzanPlaybackService")) {
-  manifest = manifest.replace("</application>", nativeComponents + "\\n    </application>");
+  manifest = manifest.replace("</application>", nativeComponents + "\n    </application>");
 }
 fs.writeFileSync(manifestPath, manifest, "utf8");
 
