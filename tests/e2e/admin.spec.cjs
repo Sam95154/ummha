@@ -49,8 +49,17 @@ async function mockAdminApi(page, state) {
           notifications_sent: 3, active_campaigns: 1, contributions_total: 5000, open_complaints: 1, resolved_complaints: 2 },
           campaigns: [], complaint_status: [], recent_users: [] };
         break;
-      case "users":
-        data = { users: [state.user], page: 1, page_size: 100 };
+      case "users": {
+        const query = String(body.q || "").trim().toLowerCase();
+        const matches = [state.user].filter(user =>
+          [user.name, user.email, user.user_id, user.id, user.phone]
+            .some(value => String(value || "").toLowerCase().includes(query))
+        );
+        data = { users: matches, page: 1, page_size: 50, total: matches.length, has_more: false };
+        break;
+      }
+      case "create_complaint":
+        data = { success: true, id: "complaint-created-id", ticket_id: "MOM-C-QA123" };
         break;
       case "user_detail":
         data = { user: state.user, notifications: [], contributions: [], complaints: [] };
@@ -177,6 +186,53 @@ test.describe("MOMIN Admin Panel", () => {
     expect(saved.body.name).toBe("Community Water Project");
     expect(saved.body.category).toBe("Sadaqah");
     expect(saved.body.status).toBe("Draft");
+  });
+
+  test("Admin can find a complaint user by name, email, or MOMIN User ID and create the ticket", async ({ page }) => {
+    const state = makeState();
+    await login(page, state);
+    await page.getByRole("button", { name: "Complaints" }).click();
+    await page.getByRole("button", { name: "Create for user" }).click();
+
+    const modal = page.locator("#modal-root");
+    const search = modal.locator("#complaint-user-search");
+    const form = modal.locator('form[data-form="create-complaint"]');
+    const userSelect = form.locator('select[name="user_id"]');
+
+    await expect(modal.getByRole("heading", { name: "Create complaint for a user" })).toBeVisible();
+    await expect(modal.locator("#complaint-user-search-status")).toContainText("Showing 1 of 1 users");
+
+    await search.fill("Aisha Rahman");
+    await modal.getByRole("button", { name: "Search" }).click();
+    await expect(userSelect.locator("option")).toHaveText([
+      "Choose a MOMIN user...",
+      "MOM-ABC1234567 · Aisha Rahman · aisha@example.test"
+    ]);
+    await userSelect.selectOption(userId);
+
+    await search.fill("aisha@example.test");
+    await search.press("Enter");
+    await expect(userSelect).toHaveValue(userId);
+    await expect(modal.locator("#complaint-user-search-status")).toContainText("1 matching user found");
+
+    await search.fill("MOM-ABC1234567");
+    await modal.getByRole("button", { name: "Search" }).click();
+    await expect(userSelect).toHaveValue(userId);
+
+    await form.locator('[name="category"]').selectOption("Notifications");
+    await form.locator('[name="priority"]').selectOption("High");
+    await form.locator('[name="subject"]').fill("Notification issue reported by support");
+    await form.locator('[name="description"]').fill("The user reported that prayer notifications are not arriving on their device.");
+    await form.getByRole("button", { name: "Create complaint" }).click();
+
+    const lookups = state.calls.filter(call => call.action === "users").map(call => call.body.q);
+    expect(lookups).toContain("Aisha Rahman");
+    expect(lookups).toContain("aisha@example.test");
+    expect(lookups).toContain("MOM-ABC1234567");
+    const created = state.calls.find(call => call.action === "create_complaint");
+    expect(created).toBeTruthy();
+    expect(created.body.user_id).toBe(userId);
+    expect(created.body.priority).toBe("High");
   });
 
   test("Admin can respond to a complaint and change its status", async ({ page }) => {
