@@ -1,0 +1,51 @@
+name: Native FCM QA
+
+on:
+  push:
+    branches:
+      - feature/native-fcm-push
+    paths:
+      - "package.json"
+      - "capacitor.config.json"
+      - "scripts/**"
+      - "src/native/**"
+      - "momin-auth-v1.js"
+      - "momin-notifications-admin-inbox-v1.js"
+      - "supabase/functions/momin-fcm-register/**"
+      - "supabase/functions/momin-admin-api/**"
+      - "supabase/migrations/*momin_native_fcm.sql"
+      - ".github/workflows/native-fcm-qa.yml"
+  pull_request:
+    branches:
+      - noor-ul-islam-live
+    paths:
+      - "package.json"
+      - "capacitor.config.json"
+      - "scripts/**"
+      - "src/native/**"
+      - "momin-auth-v1.js"
+      - "momin-notifications-admin-inbox-v1.js"
+      - "supabase/functions/momin-fcm-register/**"
+      - "supabase/functions/momin-admin-api/**"
+      - "supabase/migrations/*momin_native_fcm.sql"
+
+jobs:
+  static-and-function-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run static FCM QA
+        run: npm run test:fcm
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check FCM registration function
+        run: deno check --no-lock supabase/functions/momin-fcm-register/index.ts
+      - name: Type-check Admin FCM sender
+        run: deno check --no-lock supabase/functions/momin-admin-api/index.ts
