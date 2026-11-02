@@ -4,7 +4,7 @@
   if (window.MominInspirationPageV1 && window.MominInspirationPageV1.initialized) return;
 
   var FRAME_ID = "momin-inspiration-page-v1-frame";
-  var PAGE_URL = "./inspiration-page-v1.html?embed=1&v=20261101-inspiration-v1";
+  var PAGE_URL = "./inspiration-page-v1.html?embed=1&v=20261103-device-responsive-v1";
 
   function frameHeight() {
     return Math.max(360, Math.min(1200, window.innerHeight - 190));
