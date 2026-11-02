@@ -107,7 +107,7 @@
     previous.forEach(function(item){if(item&&item.inboxId&&item.unread===false)readIds[String(item.inboxId)]=true;});
     var result=await pushApi("inbox",{}),items=(result.data&&result.data.items||[]).map(function(item){
       var at=item.sent_at||item.created_at||new Date().toISOString(),date=new Date(at),id=item.id||null;
-      return {t:item.title||"MOMIN reminder",s:item.body||"",w:date.toLocaleDateString([],{month:"short",day:"numeric"}),i:item.icon_key||"b",at:at,route:item.route||"home",image:item.image_url||null,inboxId:id,unread:id?!readIds[String(id)]:true};
+      return {t:item.title||"MOMIN reminder",s:item.body||"",w:date.toLocaleDateString([],{month:"short",day:"numeric"}),i:item.icon_key||"b",at:at,route:item.route||"home",image:item.image_url||null,inboxId:id,read_at:item.read_at||null,unread:id?(item.read_at?false:!readIds[String(id)]):true};
     });
     /* Admin announcements are persisted per user in Supabase and are also shown
        in the same MOMIN inbox, including when push permission is disabled. */
@@ -402,44 +402,50 @@
     sendPushTest:sendPushTest,
     refreshInbox:refreshPushInbox,
     unreadCount:unreadCount,
+    unreadCount:unreadCount,
     markInboxRead:function(id){
       var key=String(id||""),items=readInbox(),found=items.some(function(item){return String(item&&item.inboxId||"")===key});
       if(!found)return Promise.resolve(false);
-      var markLocal=function(){
-        var next=readInbox().map(function(item){
-          if(String(item&&item.inboxId||"")===key){item.unread=false;item.read=true;}
-          return item;
-        });
-        writeInbox(next);notifyInboxChanged();return true;
-      };
+      var persist;
       if(key.indexOf("admin:")===0&&window.mominSupabase){
         var rowId=key.slice(6);
-        return window.mominSupabase.auth.getUser().then(function(auth){
+        persist=window.mominSupabase.auth.getUser().then(function(auth){
           var user=auth&&auth.data&&auth.data.user;
           if(!user)throw new Error("Sign in to MOMIN to update notification read state.");
           return window.mominSupabase.from("momin_user_notifications")
             .update({read_at:new Date().toISOString()}).eq("id",rowId).eq("user_id",user.id)
-            .then(function(result){
-              if(result.error)throw result.error;
-              return markLocal();
-            });
+            .then(function(result){if(result.error)throw result.error;return true;});
         });
+      }else if(/^[0-9a-f-]{36}$/i.test(key)){
+        persist=pushApi("mark_read",{inbox_id:key}).then(function(result){
+          if(!result.data||result.data.success!==true)throw new Error((result.data&&result.data.error)||"Could not update reminder read state.");
+          return true;
+        });
+      }else{
+        persist=Promise.resolve(true);
       }
-      return Promise.resolve(markLocal());
+      return persist.then(function(){
+        var next=readInbox().map(function(item){
+          if(String(item&&item.inboxId||"")===key){item.unread=false;item.read=true;item.read_at=new Date().toISOString();}
+          return item;
+        });
+        writeInbox(next);notifyInboxChanged();return true;
+      });
     },
     markAllInboxRead:async function(){
       var client=window.mominSupabase,now=new Date().toISOString();
-      if(client&&client.auth){
-        var auth=await client.auth.getUser(),user=auth&&auth.data&&auth.data.user;
-        if(user){
-          var result=await client.from("momin_user_notifications")
-            .update({read_at:now}).eq("user_id",user.id).is("read_at",null);
-          if(result.error)throw result.error;
-        }
-      }
+      if(!client||!client.auth)throw new Error("MOMIN account service is unavailable.");
+      var auth=await client.auth.getUser(),user=auth&&auth.data&&auth.data.user;
+      if(!user)throw new Error("Sign in to MOMIN to mark notifications as read.");
+      var adminRows=await client.from("momin_user_notifications")
+        .update({read_at:now}).eq("user_id",user.id).is("read_at",null).select("id");
+      if(adminRows.error)throw adminRows.error;
+      var pushRows=await pushApi("mark_all_read",{});
+      if(!pushRows.data||pushRows.data.success!==true)throw new Error((pushRows.data&&pushRows.data.error)||"Could not update reminder read states.");
       var items=readInbox(),count=items.filter(function(item){return item&&item.unread!==false&&item.read!==true}).length;
-      items=items.map(function(item){item.unread=false;item.read=true;return item;});
+      items=items.map(function(item){item.unread=false;item.read=true;item.read_at=now;return item;});
       writeInbox(items);notifyInboxChanged();
+      await refreshPushInbox();
       return count;
     },
     disableBackgroundPush:disableBackgroundPush,
