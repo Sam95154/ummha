@@ -1,0 +1,298 @@
+/* MOMIN responsive feature-page layouts.
+   The current CSS viewport determines the form factor automatically:
+   phone <=700px, tablet 701–1200px, desktop >=1201px.
+   Phone styling is intentionally left to each page's existing mobile rules. */
+
+.momin-prayer-page-frame-wrap,
+.momin-journey-frame-wrap,
+.momin-duas-page-v2-wrap,
+.momin-mosque-page-frame-wrap,
+.momin-inspiration-frame-wrap {
+  width: 100%;
+  max-width: 480px;
+  min-width: 0;
+  margin-left: auto;
+  margin-right: auto;
+}
+.momin-prayer-page-frame-wrap iframe,
+.momin-journey-frame-wrap iframe,
+.momin-duas-page-v2-wrap iframe,
+.momin-mosque-page-frame-wrap iframe,
+.momin-inspiration-frame-wrap iframe {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+}
+
+@media screen and (min-width: 701px) {
+  /* Shared app routes: Prayer, Quran, Journey, Qibla, Duas, Masjid,
+     Tasbih, Giving, Inspiration, Calendar and Notifications. */
+  body.momin-app-shell-active #view.content,
+  body.momin-app-shell-active .app {
+    width: calc(100% - 48px) !important;
+    max-width: 1120px !important;
+    min-width: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Embedded feature pages must grow with their parent viewport too. */
+  .momin-prayer-page-frame-wrap,
+  .momin-journey-frame-wrap,
+  .momin-duas-page-v2-wrap,
+  .momin-mosque-page-frame-wrap,
+  .momin-inspiration-frame-wrap {
+    width: calc(100% - 48px) !important;
+    max-width: 1120px !important;
+  }
+
+  body.momin-prayer-embedded .wrap,
+  body.momin-journey-embedded .wrap,
+  body.momin-mosque-embedded .wrap,
+  body.momin-calendar-embedded .wrap {
+    width: 100% !important;
+    max-width: 1080px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  body.momin-duas-embedded .app,
+  body.momin-inspiration-embedded .app,
+  body .app:has(.momin-notifications-frame-shell) {
+    width: 100% !important;
+    max-width: 1080px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Notifications and Inspiration use their own iframe navigation/sheets. */
+  body .app > main,
+  body .app > #view {
+    min-width: 0;
+  }
+  body .app .sheet {
+    width: min(100%, 820px);
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, 105%);
+  }
+  body .app .sheet.on {
+    transform: translate(-50%, 0);
+  }
+
+  /* Quran library and full-page reader. */
+  .quran-library.qv-shell {
+    width: 100% !important;
+    max-width: 1080px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .qv-juz-reader {
+    width: 100% !important;
+    max-width: 1080px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .quran-reader {
+    width: 100% !important;
+    max-width: 1080px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Qibla and Tasbih use the wider canvas without stretching controls. */
+  .momin-qibla-finder {
+    width: 100% !important;
+    max-width: 1080px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .tsb {
+    width: 100% !important;
+    max-width: 1080px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Calendar and Masjid result surfaces. */
+  .momin-calendar-page-v1,
+  .momin-calendar-frame-shell,
+  .momin-mosque-design-v2,
+  .momin-mosque-page-frame-wrap {
+    width: 100% !important;
+    max-width: 1080px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .momin-calendar-frame,
+  .momin-mosque-page-frame-wrap iframe {
+    width: 100% !important;
+  }
+
+  /* Journey activity panels and calendar cards use the extra width. */
+  body.momin-journey-embedded .kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  body.momin-journey-embedded .duo {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  body.momin-mosque-embedded .nearby-results-v2,
+  body.momin-mosque-embedded .momin-mosque-results-v1 {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+
+  /* Keep modal panels and controls readable at larger widths. */
+  body.momin-inspiration-embedded .sheet,
+  body.momin-duas-embedded .sheet {
+    max-width: 820px !important;
+  }
+  body.momin-notifications-embedded .app,
+  body .momin-notifications-frame-shell {
+    max-width: 1080px !important;
+  }
+  body.momin-notifications-embedded nav {
+    width: min(720px, calc(100% - 48px)) !important;
+    max-width: 720px !important;
+  }
+}
+
+/* Tablet portrait: spacious single-column reading surfaces and two-column tools. */
+@media screen and (min-width: 701px) and (max-width: 900px) {
+  body.momin-app-shell-active #view.content,
+  body.momin-app-shell-active .app,
+  .momin-prayer-page-frame-wrap,
+  .momin-journey-frame-wrap,
+  .momin-duas-page-v2-wrap,
+  .momin-mosque-page-frame-wrap,
+  .momin-inspiration-frame-wrap {
+    width: calc(100% - 36px) !important;
+    max-width: 860px !important;
+  }
+
+  body.momin-prayer-embedded .wrap,
+  body.momin-journey-embedded .wrap,
+  body.momin-mosque-embedded .wrap,
+  body.momin-calendar-embedded .wrap,
+  body.momin-duas-embedded .app,
+  body.momin-inspiration-embedded .app {
+    max-width: 820px !important;
+  }
+
+  .quran-library.qv-shell,
+  .qv-juz-reader,
+  .quran-reader,
+  .momin-qibla-finder,
+  .tsb,
+  .momin-calendar-page-v1,
+  .momin-calendar-frame-shell,
+  .momin-mosque-design-v2 {
+    max-width: 820px !important;
+  }
+
+  body.momin-journey-embedded .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  body.momin-mosque-embedded .nearby-results-v2,
+  body.momin-mosque-embedded .momin-mosque-results-v1 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  body.momin-notifications-embedded nav {
+    width: min(680px, calc(100% - 40px)) !important;
+  }
+}
+
+/* Tablet landscape and compact desktop. */
+@media screen and (min-width: 901px) and (max-width: 1366px) {
+  body.momin-app-shell-active #view.content,
+  body.momin-app-shell-active .app,
+  .momin-prayer-page-frame-wrap,
+  .momin-journey-frame-wrap,
+  .momin-duas-page-v2-wrap,
+  .momin-mosque-page-frame-wrap,
+  .momin-inspiration-frame-wrap {
+    width: calc(100% - 64px) !important;
+    max-width: 1200px !important;
+  }
+
+  body.momin-prayer-embedded .wrap,
+  body.momin-journey-embedded .wrap,
+  body.momin-mosque-embedded .wrap,
+  body.momin-calendar-embedded .wrap,
+  body.momin-duas-embedded .app,
+  body.momin-inspiration-embedded .app {
+    max-width: 1160px !important;
+  }
+
+  .quran-library.qv-shell,
+  .qv-juz-reader,
+  .quran-reader,
+  .momin-qibla-finder,
+  .tsb,
+  .momin-calendar-page-v1,
+  .momin-calendar-frame-shell,
+  .momin-mosque-design-v2 {
+    max-width: 1160px !important;
+  }
+
+  .quran-library.qv-shell .qv-sura-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: start;
+  }
+  .quran-library.qv-shell .qv-juz-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  body.momin-journey-embedded .kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  body.momin-mosque-embedded .nearby-results-v2,
+  body.momin-mosque-embedded .momin-mosque-results-v1 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  body.momin-notifications-embedded nav {
+    width: min(760px, calc(100% - 64px)) !important;
+    max-width: 760px !important;
+  }
+}
+
+/* Large desktop work area. */
+@media screen and (min-width: 1367px) {
+  body.momin-app-shell-active #view.content,
+  body.momin-app-shell-active .app,
+  .momin-prayer-page-frame-wrap,
+  .momin-journey-frame-wrap,
+  .momin-duas-page-v2-wrap,
+  .momin-mosque-page-frame-wrap,
+  .momin-inspiration-frame-wrap {
+    width: calc(100% - 80px) !important;
+    max-width: 1360px !important;
+  }
+  body.momin-prayer-embedded .wrap,
+  body.momin-journey-embedded .wrap,
+  body.momin-mosque-embedded .wrap,
+  body.momin-calendar-embedded .wrap,
+  body.momin-duas-embedded .app,
+  body.momin-inspiration-embedded .app {
+    max-width: 1320px !important;
+  }
+  .quran-library.qv-shell,
+  .qv-juz-reader,
+  .quran-reader,
+  .momin-qibla-finder,
+  .tsb,
+  .momin-calendar-page-v1,
+  .momin-calendar-frame-shell,
+  .momin-mosque-design-v2 {
+    max-width: 1320px !important;
+  }
+  .quran-library.qv-shell .qv-sura-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .quran-library.qv-shell .qv-juz-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
