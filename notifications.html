@@ -173,28 +173,29 @@ nav a[aria-current]{color:var(--gold2);font-weight:700;background:var(--soft);bo
   </header>
   <p class="lead rise">Prayer reminders and updates</p>
 
-  <section class="hero rise" style="--d:1" id="hero" aria-live="polite">
+  <div class="sec rise" style="--d:1"><h3>Recent</h3><button id="clr" type="button">Clear all</button></div>
+  <div id="recent"></div>
+
+  <section class="hero rise" style="--d:2" id="hero" aria-live="polite">
     <div class="top"><div class="bell" id="bell"><i><svg class="i"><use href="#b"/></svg></i></div>
       <div><span class="st" id="st">Off</span><h2 id="hh">Reminders are off</h2><p id="hp"></p></div></div>
     <div class="next" id="next"><div><b id="nb">Next reminder</b><span id="ns"></span></div><span class="cd" id="cd"></span></div>
     <div class="acts" id="acts"></div>
   </section>
 
-  <section class="card rise" style="--d:2">
+  <section class="card rise" style="--d:3">
     <h2>Today’s reminders</h2><p class="sub">Your five daily prayers. The gold dot shows where you are now.</p>
     <div class="tl" id="tl"><div class="line"><div class="fill" id="fill"></div></div><span class="pin" id="pin"></span></div>
   </section>
 
-  <section class="card rise" style="--d:3">
+  <section class="card rise" style="--d:4">
     <h2>Prayer reminders</h2><p class="sub">Choose when to be reminded before each prayer.</p>
     <div class="seg" id="seg" role="group" aria-label="Remind me"><i></i></div>
     <div class="rows" id="rows"></div>
   </section>
 
-  <section class="card rise" style="--d:4"><h2>Updates</h2><p class="sub">Choose the updates you would like MOMIN to send. App announcements are optional and separate from prayer reminders.</p><div class="rows" id="ups"></div></section>
+  <section class="card rise" style="--d:5"><h2>Updates</h2><p class="sub">Choose the updates you would like MOMIN to send. App announcements are optional and separate from prayer reminders.</p><div class="rows" id="ups"></div></section>
 
-  <div class="sec rise" style="--d:5"><h3>Recent</h3><button id="clr" type="button">Clear all</button></div>
-  <div id="recent"></div>
 
   <section class="card note rise" style="--d:6"><h2>Prayer reminders</h2><p id="mominReminderHelpV1">MOMIN can send prayer reminders while notifications are enabled.</p>
     <div class="acts"><button class="btn main" id="set" type="button">Notification settings</button></div></section>
