@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/native-fcm-push
+      - feature/notification-release-readiness
     paths:
       - "package.json"
       - "ANDROID_SETUP.md"
@@ -13,8 +14,10 @@ on:
       - "momin-auth-v1.js"
       - "momin-notifications-admin-inbox-v1.js"
       - "supabase/functions/momin-fcm-register/**"
+      - "supabase/functions/momin-push-register/**"
       - "supabase/functions/momin-admin-api/**"
       - "supabase/migrations/*momin_native_fcm.sql"
+      - "supabase/migrations/*momin_notification_release_readiness.sql"
       - ".github/workflows/native-fcm-qa.yml"
   pull_request:
     branches:
@@ -30,6 +33,9 @@ on:
       - "supabase/functions/momin-fcm-register/**"
       - "supabase/functions/momin-admin-api/**"
       - "supabase/migrations/*momin_native_fcm.sql"
+      - "supabase/migrations/*momin_notification_release_readiness.sql"
+      - "supabase/functions/momin-push-register/**"
+      - ".github/workflows/native-fcm-qa.yml"
 
 jobs:
   static-and-function-checks:
@@ -43,12 +49,16 @@ jobs:
           node-version: "22"
       - name: Run static FCM QA
         run: npm run test:fcm
+      - name: Run notification release QA
+        run: npm run test:notifications
       - name: Set up Deno
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
       - name: Type-check FCM registration function
         run: deno check --node-modules-dir=auto --no-lock supabase/functions/momin-fcm-register/index.ts
+      - name: Type-check Web Push registration and read-state function
+        run: deno check --node-modules-dir=auto --no-lock supabase/functions/momin-push-register/index.ts
       - name: Type-check Admin FCM sender
         run: deno check --node-modules-dir=auto --no-lock supabase/functions/momin-admin-api/index.ts
 
