@@ -63,11 +63,12 @@ check(api.includes("momin_admin_notification_stats"), "Notification history read
 check(authBridge.includes("account_status") && authBridge.includes("phone:user.phone"), "User Auth bridge syncs account status and phone contact details");
 check(userModule.includes("createSignedUrl"), "Private complaint attachments use time-limited signed URLs");
 check(api.includes("createSignedUrl"), "Admin complaint detail issues time-limited signed attachment URLs");
-check(js.includes("async function searchComplaintUsers") && js.includes("modalRoot.addEventListener(\"click\", async event =>"), "Complaint user search is handled inside the modal");
-check(js.includes("complaint-user-search-status") && js.includes("No users found for"), "Complaint user search reports matching and empty-result states");
-check(js.includes('event.target.id !== "complaint-user-search"') && js.includes("searchComplaintUsers(search)"), "Complaint user search supports Enter-key submission");
-check(api.includes("public_user_id.ilike.%"+'"+safe+"') && api.includes("display_name.ilike.%"+'"+safe+"') && api.includes("email.ilike.%"+'"+safe+"'), "Admin user API searches permanent User ID, display name, and email");
-check(js.includes('user.email || ""') && js.includes('user.user_id || "MOMIN User"'), "Admin complaint search results show email and permanent User ID");
+check(js.includes("async function searchComplaintUsers") && js.includes('modalRoot.addEventListener("input"'), "Complaint user autocomplete searches as the Admin types");
+check(js.includes("autocomplete-option") && js.includes("selectComplaintUser") && js.includes("data-user-index"), "Complaint user search renders selectable name suggestions");
+check(js.includes('aria-autocomplete="list"') && js.includes("ArrowDown") && js.includes('event.key === "Enter"'), "Complaint user autocomplete supports accessible keyboard selection");
+check(js.includes("complaint-user-search-status") && js.includes("No matches for"), "Complaint user autocomplete reports matching and empty-result states");
+check(api.includes("public_user_id.ilike.%"+'" + safe + "') && api.includes("display_name.ilike.%"+'" + safe + "') && api.includes("email.ilike.%"+'" + safe + "'), "Admin user API searches permanent User ID, display name, and email");
+check(js.includes('user.email || "No email"') && js.includes('user.user_id || "MOMIN User ID unavailable"'), "Admin complaint suggestions show email and permanent User ID");
 
 check(!/as\s+\$\s*\n/i.test(migration), "Migration contains no malformed anonymous dollar-quote block");
 
