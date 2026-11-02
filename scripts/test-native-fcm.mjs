@@ -46,11 +46,13 @@ contains(adminFunction, "notification_id: notificationId", "Notification identit
 contains(notificationBridge, "window.MominNativePush.register()", "Native FCM registration from settings");
 contains(notificationBridge, "window.MominNativePush.disable()", "Native FCM disable on opt-out");
 contains(authBridge, "syncIfEnabled()", "FCM token refresh after auth/device sync");
+contains(authBridge, "MOMIN revoked device FCM cleanup", "Remote device revocation cleanup");
 
 contains(registerFunction, 'auth.getUser()', "Server-side user authentication");
 contains(registerFunction, 'from("momin_devices")', "Registered device ownership check");
 contains(registerFunction, 'from("momin_fcm_tokens")', "Private token write");
 contains(registerFunction, 'onConflict: "fcm_token"', "Token refresh/upsert behavior");
+contains(registerFunction, "/\\s/.test(token)", "FCM token whitespace validation");
 
 contains(migration, "enable row level security", "FCM table RLS");
 contains(migration, "revoke all on public.momin_fcm_tokens from anon, authenticated", "Token table client access revocation");
