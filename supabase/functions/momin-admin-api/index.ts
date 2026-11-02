@@ -512,6 +512,10 @@ async function sendFcmNotifications(
   } catch (error) {
     const reason = String(error instanceof Error ? error.message : error).slice(0, 500);
     for (const row of eligibleTokens) {
+    const { data: priorAccepted, error: priorAcceptedError } = await db.from("momin_fcm_deliveries")
+      .select("id").eq("admin_notification_id", notificationId).eq("fcm_token_id", row.id).eq("status", "accepted").maybeSingle();
+    if (priorAcceptedError) throw priorAcceptedError;
+    if (priorAccepted) continue;
       await recordFcmDelivery(row, notificationId, title, message, route, "failed", { error: reason });
       await db.from("momin_fcm_tokens").update({ last_error: reason, updated_at: new Date().toISOString() }).eq("id", row.id);
     }
@@ -536,7 +540,84 @@ async function sendFcmNotifications(
   return { sent, failed, devices: eligibleTokens.length, skipped: revokedTokens.length };
 }
 
-async function sendNotification(body: Record<string, unknown>, adminId: string) {
+async function announceGivingCampaign(campaign: Record<string, any>, adminId: string) {
+  const campaignId = String(campaign.id || "");
+  if (!/^[0-9a-f-]{36}$/i.test(campaignId)) throw new Error("Invalid Giving campaign ID.");
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const staleBefore = new Date(now.getTime() - 10 * 60 * 1000).toISOString();
+  let claimed = false;
+  const { error: insertError } = await db.from("momin_giving_campaign_announcements")
+    .insert({ campaign_id: campaignId, status: "sending", updated_at: nowIso });
+  if (!insertError) {
+    claimed = true;
+  } else if (insertError.code === "23505") {
+    const { data: existing, error: readError } = await db.from("momin_giving_campaign_announcements")
+      .select("campaign_id,notification_id,status,updated_at,recipient_count,push_sent,push_failed")
+      .eq("campaign_id", campaignId).maybeSingle();
+    if (readError) throw readError;
+    if (existing?.status === "sent") {
+      return { announced: false, already_announced: true, notification_id: existing.notification_id || null };
+    }
+    if (existing?.status === "sending" && String(existing.updated_at || "") >= staleBefore) {
+      return { announced: false, in_progress: true, notification_id: existing.notification_id || null };
+    }
+    let retry = db.from("momin_giving_campaign_announcements")
+      .update({ status: "sending", updated_at: nowIso, last_error: null })
+      .eq("campaign_id", campaignId).eq("status", existing?.status || "failed");
+    if (existing?.status === "sending") retry = retry.lt("updated_at", staleBefore);
+    const { data: claimedRow, error: retryError } = await retry.select("campaign_id").maybeSingle();
+    if (retryError) throw retryError;
+    if (claimedRow) claimed = true;
+    else {
+      const { data: latest, error: latestError } = await db.from("momin_giving_campaign_announcements")
+        .select("status,notification_id").eq("campaign_id", campaignId).maybeSingle();
+      if (latestError) throw latestError;
+      return { announced: false, in_progress: latest?.status === "sending", already_announced: latest?.status === "sent", notification_id: latest?.notification_id || null };
+    }
+  } else {
+    throw insertError;
+  }
+  if (!claimed) return { announced: false, in_progress: true };
+
+  const category = String(campaign.category || "Charity");
+  const name = String(campaign.name || "New Giving campaign");
+  const title = ("New " + category + " campaign").slice(0, 80);
+  const description = String(campaign.description || "").trim();
+  const amount = Number(campaign.target_amount || 0);
+  const currency = String(campaign.currency || "INR");
+  const message = [
+    name,
+    description || "A new MOMIN Giving campaign is now available.",
+    amount > 0 ? "Target: " + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(amount) + " " + currency : "",
+    "Open MOMIN Giving to learn more."
+  ].filter(Boolean).join(" · ").slice(0, 1000);
+  try {
+    const result = await sendNotification({
+      title, message, audience: "all", route: "giving", image_url: campaign.image_url || null,
+    }, adminId, campaignId);
+    const { error: updateError } = await db.from("momin_giving_campaign_announcements")
+      .update({
+        notification_id: result.id, status: "sent", recipient_count: result.recipient_count,
+        push_sent: result.push_sent, push_failed: result.push_failed,
+        last_error: result.fcm_configuration_error || null,
+        sent_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      }).eq("campaign_id", campaignId);
+    if (updateError) throw updateError;
+    await audit(adminId, "giving.announcement_sent", "campaign", campaignId, {
+      notification_id: result.id, category, recipient_count: result.recipient_count,
+      push_sent: result.push_sent, push_failed: result.push_failed,
+    });
+    return { announced: true, notification_id: result.id, recipient_count: result.recipient_count, push_sent: result.push_sent, push_failed: result.push_failed };
+  } catch (error) {
+    const reason = String(error instanceof Error ? error.message : error).slice(0, 500);
+    await db.from("momin_giving_campaign_announcements")
+      .update({ status: "failed", last_error: reason, updated_at: new Date().toISOString() })
+      .eq("campaign_id", campaignId);
+    throw error;
+  }
+}
+async function sendNotification(body: Record<string, unknown>, adminId: string, givingCampaignId: string | null = null) {
   const title = String(body.title || "").trim();
   const message = String(body.message || "").trim();
   const audience = String(body.audience || "all");
@@ -548,14 +629,37 @@ async function sendNotification(body: Record<string, unknown>, adminId: string) 
   const recipients = await activeRecipientIds(audience, ids);
   if (!recipients.length) throw new Error("No active MOMIN users were found.");
   const imageUrl = normalizeAdminMediaUrl(body.image_url);
-  const { data: campaign, error: campaignError } = await db.from("momin_admin_notifications").insert({
-    title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
-    recipient_count: recipients.length, created_by: adminId,
-  }).select("id").single();
-  if (campaignError) throw campaignError;
+  let campaign: { id: string };
+  if (givingCampaignId) {
+    const { data: existingNotification, error: existingError } = await db.from("momin_admin_notifications")
+      .select("id").eq("giving_campaign_id", givingCampaignId).maybeSingle();
+    if (existingError) throw existingError;
+    if (existingNotification) {
+      const { data: updated, error: updateError } = await db.from("momin_admin_notifications")
+        .update({ title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
+          recipient_count: recipients.length, sent_count: 0, failed_count: 0, completed_at: null })
+        .eq("id", existingNotification.id).select("id").single();
+      if (updateError) throw updateError;
+      campaign = { id: updated.id };
+    } else {
+      const { data: created, error: createError } = await db.from("momin_admin_notifications").insert({
+        title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
+        recipient_count: recipients.length, created_by: adminId, giving_campaign_id: givingCampaignId,
+      }).select("id").single();
+      if (createError) throw createError;
+      campaign = { id: created.id };
+    }
+  } else {
+    const { data: created, error: createError } = await db.from("momin_admin_notifications").insert({
+      title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
+      recipient_count: recipients.length, created_by: adminId,
+    }).select("id").single();
+    if (createError) throw createError;
+    campaign = { id: created.id };
+  }
   const inboxRows = recipients.map(user_id => ({ notification_id: campaign.id, user_id, title, message, route, image_url: imageUrl }));
   for (let i = 0; i < inboxRows.length; i += 500) {
-    const { error } = await db.from("momin_user_notifications").insert(inboxRows.slice(i, i + 500));
+    const { error } = await db.from("momin_user_notifications").upsert(inboxRows.slice(i, i + 500), { onConflict: "notification_id,user_id", ignoreDuplicates: true });
     if (error) throw error;
   }
   let sent = 0, failed = 0;
@@ -564,11 +668,15 @@ async function sendNotification(body: Record<string, unknown>, adminId: string) 
   for (let start = 0; start < recipients.length; start += 100) {
     const userBatch = recipients.slice(start, start + 100);
     const { data: subscriptions, error: subError } = await db.from("momin_push_subscriptions")
-      .select("id,user_id,device_key,subscription,is_active")
+      .select("id,user_id,device_key,subscription,is_active,preferences")
       .in("user_id", userBatch).eq("is_active", true);
     if (subError) throw subError;
-    for (const row of subscriptions || []) {
+    for (const row of (subscriptions || []).filter((item: any) => item.preferences?.announcements === true)) {
     const eventKey = "admin:" + campaign.id + ":" + row.id;
+    const { data: priorDelivery, error: priorError } = await db.from("momin_push_deliveries")
+      .select("id,status").eq("event_key", eventKey).maybeSingle();
+    if (priorError) throw priorError;
+    if (priorDelivery?.status === "sent") { sent++; continue; }
     let status = "failed", errorText: string | null = null;
     if (server) {
       try {
@@ -582,12 +690,12 @@ async function sendNotification(body: Record<string, unknown>, adminId: string) 
         errorText = String(error).slice(0, 500); failed++;
       }
     } else { errorText = "Push signing keys are unavailable."; failed++; }
-    await db.from("momin_push_deliveries").insert({
+    await db.from("momin_push_deliveries").upsert({
       subscription_id: row.id, user_id: row.user_id, event_key: eventKey, title, body: message,
       icon_key: "b", route, image_url: imageUrl, status,
       sent_at: status === "sent" ? new Date().toISOString() : null,
       error: errorText,
-    });
+    }, { onConflict: "event_key" });
     }
   }
   let fcm = { sent: 0, failed: 0, devices: 0, skipped: 0 } as { sent: number; failed: number; devices: number; skipped: number; configuration_error?: string };
@@ -653,6 +761,12 @@ async function saveCampaign(body: Record<string, unknown>, adminId: string) {
   if (!validText(name, 2, 120) || !["Zakat", "Sadaqah", "Charity", "Other approved"].includes(category) || !Number.isFinite(target) || target <= 0 || !/^[A-Z]{3}$/.test(currency)) {
     throw new Error("Complete the campaign name, category, target amount, and currency.");
   }
+  let previous: Record<string, any> | null = null;
+  if (id) {
+    const { data, error } = await db.from("momin_giving_campaigns").select("id,status").eq("id", id).single();
+    if (error) throw error;
+    previous = data;
+  }
   const payload = {
     name, category, description: String(body.description || "").slice(0, 5000),
     image_url: normalizeAdminMediaUrl(body.image_url),
@@ -662,20 +776,31 @@ async function saveCampaign(body: Record<string, unknown>, adminId: string) {
     updated_at: new Date().toISOString(),
   };
   const result = id
-    ? await db.from("momin_giving_campaigns").update(payload).eq("id", id).select("id").single()
-    : await db.from("momin_giving_campaigns").insert({ ...payload, created_by: adminId }).select("id").single();
+    ? await db.from("momin_giving_campaigns").update(payload).eq("id", id).select("*").single()
+    : await db.from("momin_giving_campaigns").insert({ ...payload, created_by: adminId }).select("*").single();
   if (result.error) throw result.error;
   await audit(adminId, id ? "giving.updated" : "giving.created", "campaign", result.data.id, { name, category, status: payload.status });
-  return { success: true, id: result.data.id };
+  let announcement = null;
+  if (payload.status === "Active" && (!previous || previous.status !== "Active")) {
+    announcement = await announceGivingCampaign(result.data, adminId);
+  }
+  return { success: true, id: result.data.id, announcement };
 }
 async function setCampaignStatus(body: Record<string, unknown>, adminId: string) {
   const id = String(body.id || "");
   const status = String(body.status || "");
   if (!/^[0-9a-f-]{36}$/i.test(id) || !["Active", "Paused", "Completed", "Draft"].includes(status)) throw new Error("Invalid campaign status.");
-  const { error } = await db.from("momin_giving_campaigns").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+  const { data: previous, error: readError } = await db.from("momin_giving_campaigns").select("*").eq("id", id).single();
+  if (readError) throw readError;
+  const { data: updated, error } = await db.from("momin_giving_campaigns")
+    .update({ status, updated_at: new Date().toISOString() }).eq("id", id).select("*").single();
   if (error) throw error;
   await audit(adminId, "giving.status_updated", "campaign", id, { status });
-  return { success: true };
+  let announcement = null;
+  if (status === "Active" && previous.status !== "Active") {
+    announcement = await announceGivingCampaign(updated, adminId);
+  }
+  return { success: true, announcement };
 }
 async function getContributions() {
   const { data, error } = await db.from("momin_contributions").select("*").order("created_at", { ascending: false }).limit(500);
