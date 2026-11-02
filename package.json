@@ -10,7 +10,9 @@
     "android:bundle": "npm run android:prepare && cd android && ./gradlew bundleRelease",
     "test:fcm": "node scripts/test-native-fcm.mjs",
     "test:tablet": "node scripts/test-tablet-responsive.mjs",
-    "test:giving": "node scripts/test-giving-sync.mjs"
+    "test:giving": "node scripts/test-giving-sync.mjs",
+    "test:notifications": "node scripts/test-notification-release.mjs",
+    "android:signing:prepare": "node scripts/configure-android-signing.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",

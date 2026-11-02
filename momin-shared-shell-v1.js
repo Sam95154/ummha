@@ -166,6 +166,9 @@ body.momin-app-shell-active .momin-shell-bottom-space{
 .momin-shell-header__title p{max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .momin-shell-actions{width:88px;min-width:88px;display:flex;align-items:center;justify-content:flex-end;gap:8px}
 .momin-shell-actions .momin-shell-action{flex:0 0 40px}
+.momin-shell-actions .momin-shell-action[data-shell-action="notifications"]{position:relative;overflow:visible}
+.momin-shell-unread-badge{position:absolute;top:-5px;right:-6px;min-width:18px;height:18px;padding:0 4px;display:flex;align-items:center;justify-content:center;border:2px solid var(--momin-card);border-radius:999px;background:#d92d20;color:#fff;font:800 10px/1 'DM Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums;box-shadow:0 2px 8px #0005;pointer-events:none}
+.momin-shell-unread-badge[hidden]{display:none!important}
 .momin-shell-header__title h1{
  margin:0;color:var(--momin-text);font:600 27px/1.12 'Playfair Display',Georgia,serif;
  letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -526,7 +529,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     if(tab){
       var actions=route==="home"?
         '<div class="momin-shell-actions">'+
-          '<button class="momin-shell-action" type="button" data-shell-action="notifications" aria-label="Notifications" title="Notifications">'+icon("bell")+'</button>'+
+          '<button class="momin-shell-action" type="button" data-shell-action="notifications" aria-label="Notifications" title="Notifications">'+icon("bell")+'<span class="momin-shell-unread-badge" aria-hidden="true" hidden></span></button>'+
           '<button class="momin-shell-action" type="button" data-shell-action="settings" aria-label="Settings" title="Settings">'+icon("settings")+'</button>'+
         '</div>':'<span></span>';
       return '<div class="momin-shell-header__inner">'+
@@ -629,6 +632,32 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
       window.setTimeout(resizeFounder,500);
     }catch(_){}
   }
+  function notificationUnreadCount(){
+    try{
+      var api=window.MominNotificationsBridgeV1;
+      if(api&&typeof api.unreadCount==="function")return Math.max(0,Number(api.unreadCount())||0);
+      var items=JSON.parse(localStorage.getItem("noor-notification-inbox")||"[]");
+      if(!Array.isArray(items))return 0;
+      return items.filter(function(item){return item&&item.unread!==false&&item.read!==true}).length;
+    }catch(_){return 0}
+  }
+  function updateNotificationBadge(){
+    var button=document.querySelector('[data-shell-action="notifications"]');
+    if(!button)return;
+    var badge=button.querySelector(".momin-shell-unread-badge");
+    if(!badge){
+      badge=document.createElement("span");
+      badge.className="momin-shell-unread-badge";
+      badge.setAttribute("aria-hidden","true");
+      button.appendChild(badge);
+    }
+    var count=notificationUnreadCount();
+    badge.hidden=count<=0;
+    badge.textContent=count>99?"99+":String(count);
+    button.setAttribute("aria-label",count>0?"Notifications, "+count+" unread":"Notifications");
+    button.setAttribute("title",count>0?count+" unread MOMIN notifications":"Notifications");
+    button.classList.toggle("has-unread",count>0);
+  }
   function sync(){
     syncPending=false;
     if(onLogin()){
@@ -643,6 +672,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     header.classList.toggle("is-sub",!isTabHeaderRoute(route));
     header.innerHTML=headerMarkup(route);
     nav.innerHTML=navMarkup(route);
+    updateNotificationBadge();
     nav.querySelectorAll("[data-shell-route]").forEach(function(button){
       button.onclick=function(){navigate(button.getAttribute("data-shell-route"));};
     });
@@ -736,7 +766,9 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
       },70);
     });
     window.addEventListener("hashchange",scheduleSync);
-    window.addEventListener("momin:auth-state-changed",scheduleSync);
+    window.addEventListener("momin:auth-state-changed",function(){scheduleSync();updateNotificationBadge()});
+    window.addEventListener("momin:notifications-updated",updateNotificationBadge);
+    window.addEventListener("momin:app-resumed",updateNotificationBadge);
   }
   window.MominSharedShellV1={
     initialized:true,sync:scheduleSync,navigate:navigate,currentRoute:routeNow,

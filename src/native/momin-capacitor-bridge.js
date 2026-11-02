@@ -108,6 +108,15 @@ function openMominNotificationRoute(rawRoute) {
 }
 
 async function initializeMominFcm() {
+  try {
+    await App.addListener("appStateChange", (state) => {
+      if (state && state.isActive) {
+        window.dispatchEvent(new CustomEvent("momin:app-resumed"));
+      }
+    });
+  } catch (error) {
+    console.warn("MOMIN app foreground listener:", error);
+  }
   PushNotifications.addListener("registration", (token) => {
     handleFcmRegistration(token).catch(() => {});
   });

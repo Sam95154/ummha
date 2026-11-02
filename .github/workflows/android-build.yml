@@ -100,13 +100,50 @@ jobs:
       - name: Generate Capacitor Android project and assets
         run: npm run android:prepare
 
+      - name: Verify Google Play target API level
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const source = fs.readFileSync("android/variables.gradle", "utf8");
+            const match = source.match(/targetSdkVersion\s*=\s*(\d+)/);
+            if (!match || Number(match[1]) !== 36) {
+              console.error("MOMIN must target Android 16 / API 36 for new Play Store submissions.");
+              process.exit(1);
+            }
+            console.log("MOMIN Android target SDK is API " + match[1] + ".");
+          '
+
       - name: Build Android debug APK
         working-directory: android
         run: ./gradlew --no-daemon --stacktrace assembleDebug
 
-      - name: Build unsigned release AAB with production Firebase config
-        if: steps.firebase-config.outputs.real_config == 'true'
+      - name: Prepare Android upload key (optional)
+        id: release-signing
+        env:
+          MOMIN_UPLOAD_KEYSTORE_BASE64: ${{ secrets.MOMIN_UPLOAD_KEYSTORE_BASE64 }}
+          MOMIN_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.MOMIN_UPLOAD_KEYSTORE_PASSWORD }}
+          MOMIN_UPLOAD_KEY_ALIAS: ${{ secrets.MOMIN_UPLOAD_KEY_ALIAS }}
+          MOMIN_UPLOAD_KEY_PASSWORD: ${{ secrets.MOMIN_UPLOAD_KEY_PASSWORD }}
+        run: |
+          if [ -z "${MOMIN_UPLOAD_KEYSTORE_BASE64:-}" ] || [ -z "${MOMIN_UPLOAD_KEYSTORE_PASSWORD:-}" ] || [ -z "${MOMIN_UPLOAD_KEY_ALIAS:-}" ] || [ -z "${MOMIN_UPLOAD_KEY_PASSWORD:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Signed Play Store AAB skipped. Configure all MOMIN_UPLOAD_KEYSTORE_* GitHub Actions secrets."
+            exit 0
+          fi
+          KEYSTORE_PATH="$RUNNER_TEMP/momin-upload.jks"
+          printf '%s' "$MOMIN_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          chmod 600 "$KEYSTORE_PATH"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          MOMIN_UPLOAD_KEYSTORE_PATH="$KEYSTORE_PATH" node scripts/configure-android-signing.mjs
+
+      - name: Build signed Play Store AAB
+        if: steps.firebase-config.outputs.real_config == 'true' && steps.release-signing.outputs.ready == 'true'
         working-directory: android
+        env:
+          MOMIN_UPLOAD_KEYSTORE_PATH: ${{ runner.temp }}/momin-upload.jks
+          MOMIN_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.MOMIN_UPLOAD_KEYSTORE_PASSWORD }}
+          MOMIN_UPLOAD_KEY_ALIAS: ${{ secrets.MOMIN_UPLOAD_KEY_ALIAS }}
+          MOMIN_UPLOAD_KEY_PASSWORD: ${{ secrets.MOMIN_UPLOAD_KEY_PASSWORD }}
         run: ./gradlew --no-daemon --stacktrace bundleRelease
 
       - name: Upload Android debug APK
@@ -117,8 +154,8 @@ jobs:
           retention-days: 14
           path: android/app/build/outputs/apk/debug/*.apk
 
-      - name: Upload unsigned release AAB
-        if: steps.firebase-config.outputs.real_config == 'true'
+      - name: Upload signed Play Store AAB
+        if: steps.firebase-config.outputs.real_config == 'true' && steps.release-signing.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: momin-android-release-aab
@@ -128,4 +165,4 @@ jobs:
 
       - name: Remove Firebase config from runner workspace
         if: always()
-        run: rm -f google-services.json android/app/google-services.json
+        run: rm -f google-services.json android/app/google-services.json "$RUNNER_TEMP/momin-upload.jks"

@@ -33,7 +33,7 @@ The outputs are:
 - Debug APK: android/app/build/outputs/apk/debug/
 - Release AAB: android/app/build/outputs/bundle/release/
 
-The release AAB is unsigned by default. A persistent upload key must be created and kept securely by the app owner, then configured in Android Studio or the release build pipeline before uploading to Play Console. Do not commit a keystore or signing passwords to Git.
+The release pipeline creates a signed AAB only when the real Firebase Android configuration and all four GitHub Actions upload-key secrets are present: `MOMIN_UPLOAD_KEYSTORE_BASE64`, `MOMIN_UPLOAD_KEYSTORE_PASSWORD`, `MOMIN_UPLOAD_KEY_ALIAS`, and `MOMIN_UPLOAD_KEY_PASSWORD`. The keystore must be created and retained securely by the app owner. Do not commit a keystore or signing passwords to Git. Without these secrets, CI builds a debug preview only and deliberately skips the Play Store AAB.
 
 ## Google sign-in redirect
 
@@ -52,6 +52,19 @@ The Android wrapper uses Capacitor 8 and the pinned `@capacitor/push-notificatio
 3. Run `npm install`, then `npm run android:prepare`. The preparation script copies the file into `android/app/google-services.json`, validates it exists, and generates the Android notification icon/channel metadata.
 4. Build and install the debug APK on a physical Android device. Sign in, allow Android notifications, then enable notifications in MOMIN Settings. The device FCM token is submitted to the authenticated Supabase Edge Function; it is never written to browser logs or returned to the Admin UI.
 
+### Notification inbox, badges, and Giving announcements
+
+The shared MOMIN home header displays a red unread counter on the notification bell. The count is refreshed when the signed-in user changes, when the app returns to the foreground, and whenever the notification inbox changes. The Notifications page supports opening an item and marking one or all items as read; reminder read timestamps and Admin announcement read timestamps are stored against the authenticated user.
+
+When an Admin creates a Giving campaign as Active, or changes a Draft/Paused campaign to Active, MOMIN publishes one announcement for that campaign. The announcement is written to each active user's in-app inbox and opens the Giving page when tapped. Repeated edits to an already-active campaign do not send another announcement. A failed announcement can be retried by moving the campaign out of Active and activating it again; previously accepted Web Push/FCM sends and in-app inbox rows are deduplicated.
+
+Apply these additional migrations before deploying the updated Admin API:
+
+- `20261102183000_momin_notification_release_readiness.sql`
+- `20261102183500_momin_fcm_delivery_idempotency.sql`
+
+Deploy the current `momin-push-register` and `momin-admin-api` Edge Functions from the same release commit. Users receive an in-app announcement regardless of push permission. Background Web Push and Android FCM announcements are sent only to devices/users that explicitly enabled announcements in MOMIN settings.
+
 ### Supabase setup before Admin sends can deliver Android pushes
 
 Apply `supabase/migrations/20261102000500_momin_native_fcm.sql`, deploy `momin-fcm-register`, and deploy the updated `momin-admin-api` function. The migration creates private token and send-audit tables with client access revoked.
@@ -64,7 +77,7 @@ Admin announcements continue to be written to the MOMIN user inbox. Android push
 
 The current web app registers browser Web Push through the service worker `momin-sw.js`. Standard Android WebView does not support service-worker push notifications. The web notification implementation is deliberately left unchanged, but it is not sufficient for the native Android build.
 
-Before a public Play Store launch, complete the release gates above: apply the migration, deploy both updated Supabase functions, set the Firebase service-account secrets, build with the real `google-services.json`, and test foreground, background, terminated-app delivery, notification taps, and prayer reminders on real Android devices. The feature branch contains the implementation; production remains unchanged until review and deployment.
+Before a public Play Store launch, complete the release gates above: apply the migration, deploy both updated Supabase functions, set the Firebase service-account secrets, build with the real `google-services.json`, and test foreground, background, terminated-app delivery, notification taps, and prayer reminders on real Android devices. The notification release branch contains the implementation. Deploy the matching migrations and Edge Functions with the app source so the inbox, unread badge, campaign publisher, and native delivery stay on the same version.
 
 Location permissions are declared for prayer-time and Qibla features. Test the location prompt, denied-permission experience, and location refresh on a real device.
 
