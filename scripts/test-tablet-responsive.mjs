@@ -100,7 +100,7 @@ for (const file of [
 for (const file of [
   "momin-prayer-page-v1.js", "momin-journey-page-v1.js",
   "momin-mosque-page-v1.js", "momin-duas-page-v2.js",
-  "momin-inspiration-page-v1.js", "momin-notifications-bridge-v1.js"
+  "momin-inspiration-page-v1.js", "momin-notifications-admin-inbox-v1.js"
 ]) {
   const content = fs.readFileSync(path.join(root, file), "utf8");
   assert.ok(content.includes("20261103-device-responsive-v1"), file + " iframe cache version was not refreshed.");
