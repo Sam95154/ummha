@@ -111,12 +111,20 @@ assert.ok(sharedShell.includes("data-momin-device"), "Automatic device-width det
 assert.ok(sharedShell.includes("syncDeviceClass"), "Device width synchronization is missing.");
 assert.ok(sharedShell.includes('window.addEventListener("resize",syncDeviceClass'), "Device detection must update when the viewport resizes.");
 assert.ok(sharedShell.includes('window.addEventListener("orientationchange",syncDeviceClass'), "Device detection must update when the screen rotates.");
-assert.ok(sharedShell.includes("body.momin-app-shell-active #view.content{\\n  width:calc(100% - 48px)!important"),
-  "Only the outer app canvas should receive tablet side gutters.");
-assert.ok(sharedShell.includes("body.momin-app-shell-active .app{\\n  width:100%!important"),
-  "The nested app must fill the content canvas without a second gutter.");
-assert.ok(deviceCss.includes("body.momin-app-shell-active #view.content {\\n    width: calc(100% - 48px) !important;"),
-  "The responsive stylesheet must apply side gutters to the outer app canvas.");
+assert.ok(
+  sharedShell.includes("body.momin-app-shell-active #view.content") &&
+  sharedShell.includes("width:calc(100% - 48px)!important") &&
+  sharedShell.includes("body.momin-app-shell-active .app") &&
+  sharedShell.includes("width:100%!important"),
+  "Outer shell should set tablet gutters and nested app content should fill that canvas."
+);
+assert.ok(
+  deviceCss.includes("body.momin-app-shell-active #view.content") &&
+  deviceCss.includes("width: calc(100% - 48px) !important;") &&
+  deviceCss.includes("body.momin-app-shell-active .app") &&
+  deviceCss.includes("width: 100% !important;"),
+  "Device stylesheet must reserve one outer gutter and let the nested page fill it."
+);
 
 const capacitorPrep = fs.readFileSync(path.join(root, "scripts/prepare-android-web.mjs"), "utf8");
 assert.ok(capacitorPrep.includes('copyAppFiles(root, webDir)'), "Android bundle must copy the shared stylesheet with app assets.");
