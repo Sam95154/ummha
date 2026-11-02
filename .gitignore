@@ -1,0 +1,17 @@
+node_modules/
+www/
+android/
+ios/
+dist/
+build/
+*.apk
+*.aab
+*.jks
+*.keystore
+*.pem
+*.p12
+.env
+.env.*
+!.env.example
+google-services.json
+**/google-services.json
