@@ -471,22 +471,53 @@ async function sendFcmNotifications(
   }
   if (!tokens.length) return { sent: 0, failed: 0, devices: 0, skipped: 0 };
 
+  // Reject tokens whose registered MOMIN device is revoked or no longer exists.
+  // This is a server-side safeguard if an offline client could not deactivate
+  // its FCM token when the device was removed or signed out.
+  const activeDeviceKeys = new Set<string>();
+  for (let offset = 0; offset < recipientIds.length; offset += 500) {
+    const { data, error } = await db.from("momin_devices")
+      .select("user_id,device_key")
+      .in("user_id", recipientIds.slice(offset, offset + 500))
+      .is("revoked_at", null);
+    if (error) throw error;
+    for (const device of data || []) {
+      activeDeviceKeys.add(String(device.user_id) + ":" + String(device.device_key));
+    }
+  }
+  const eligibleTokens = tokens.filter(row =>
+    activeDeviceKeys.has(String(row.user_id) + ":" + String(row.device_key))
+  );
+  const revokedTokens = tokens.filter(row =>
+    !activeDeviceKeys.has(String(row.user_id) + ":" + String(row.device_key))
+  );
+  for (const row of revokedTokens) {
+    await db.from("momin_fcm_tokens").update({
+      is_active: false,
+      last_error: "MOMIN device is revoked or no longer registered.",
+      updated_at: new Date().toISOString(),
+    }).eq("id", row.id);
+  }
+  if (!eligibleTokens.length) {
+    return { sent: 0, failed: 0, devices: 0, skipped: revokedTokens.length };
+  }
+
   let credentials: { accessToken: string; projectId: string };
   try {
     credentials = await getFcmCredentials();
   } catch (error) {
     const reason = String(error instanceof Error ? error.message : error).slice(0, 500);
-    for (const row of tokens) {
+    for (const row of eligibleTokens) {
       await recordFcmDelivery(row, notificationId, title, message, route, "failed", { error: reason });
       await db.from("momin_fcm_tokens").update({ last_error: reason, updated_at: new Date().toISOString() }).eq("id", row.id);
     }
-    return { sent: 0, failed: tokens.length, devices: tokens.length, skipped: 0, configuration_error: reason };
+    return { sent: 0, failed: eligibleTokens.length, devices: eligibleTokens.length, skipped: revokedTokens.length, configuration_error: reason };
   }
 
   let sent = 0;
   let failed = 0;
-  for (let offset = 0; offset < tokens.length; offset += 10) {
-    const batch = tokens.slice(offset, offset + 10);
+  for (let offset = 0; offset < eligibleTokens.length; offset += 10) {
+    const batch = eligibleTokens.slice(offset, offset + 10);
     const results = await Promise.all(batch.map(row =>
       sendFcmNotificationToToken(credentials, row, notificationId, title, message, route, imageUrl)
         .catch(async error => {
@@ -498,7 +529,7 @@ async function sendFcmNotifications(
     sent += results.reduce((sum, result) => sum + result.sent, 0);
     failed += results.reduce((sum, result) => sum + result.failed, 0);
   }
-  return { sent, failed, devices: tokens.length, skipped: 0 };
+  return { sent, failed, devices: eligibleTokens.length, skipped: revokedTokens.length };
 }
 
 async function sendNotification(body: Record<string, unknown>, adminId: string) {
