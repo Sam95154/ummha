@@ -173,7 +173,7 @@ nav a[aria-current]{color:var(--gold2);font-weight:700;background:var(--soft);bo
   </header>
   <p class="lead rise">Prayer reminders and updates</p>
 
-  <div class="sec rise" style="--d:1"><h3>Recent</h3><button id="clr" type="button">Clear all</button></div>
+  <div class="sec rise" style="--d:1"><h3>Recent</h3><button id="clr" type="button">Mark all read</button></div>
   <div id="recent"></div>
 
   <section class="hero rise" style="--d:2" id="hero" aria-live="polite">
@@ -397,7 +397,7 @@ function markCampaignRead(id){
   b.markInboxRead(id).then(function(){refreshPageFromBridge();toast("Message marked as read.")}).catch(function(){toast("Could not update this message. Try again.")});
 }
 function recent(){
-  $("clr").hidden=!inbox.length;
+  $("clr").hidden=!inbox.some(function(item){return item&&item.unread!==false&&item.read!==true});
   $("recent").innerHTML=inbox.length?inbox.map(function(m,i){
     var image=m.image?'<img loading="lazy" alt="" src="'+esc(m.image)+'" style="display:block;width:100%;max-height:150px;object-fit:cover;border-radius:14px;margin:0 0 10px">':"";
     var mark=m.inboxId&&m.unread?'<button class="text-btn" type="button" style="margin-top:7px" data-mark-read="'+esc(m.inboxId)+'">Mark as read</button>':"";
@@ -405,14 +405,20 @@ function recent(){
   }).join(""):'<div class="empty"><div class="ri"><svg class="i"><use href="#b"/></svg></div><b>You’re all caught up</b>New reminders and announcements you’ve opted into will appear here.</div>';
   $("recent").querySelectorAll("[data-mark-read]").forEach(function(button){button.addEventListener("click",function(){markCampaignRead(button.getAttribute("data-mark-read"))})});
 }
-$("clr").onclick=function(){
-  var old=inbox.slice(),b=bridge();
-  if(b&&b.clearInbox)b.clearInbox();else try{localStorage.removeItem("noor-notification-inbox")}catch(e){}
-  inbox=[];recent();
-  toast("Notifications cleared",{l:"Undo",f:function(){
-    inbox=old.slice();if(b&&b.restoreInbox)b.restoreInbox(inbox);else try{localStorage.setItem("noor-notification-inbox",JSON.stringify(inbox))}catch(e){}
-    recent();
-  }});
+$("clr").onclick=async function(){
+  var b=bridge(),button=$("clr");
+  if(!b||typeof b.markAllInboxRead!=="function"){
+    toast("Notification read sync is not available. Please reopen MOMIN.");
+    return;
+  }
+  button.disabled=true;
+  try{
+    var count=await b.markAllInboxRead();
+    refreshPageFromBridge();
+    toast(count?count+" notification"+(count===1?"":"s")+" marked as read.":"No unread notifications.");
+  }catch(error){
+    toast("Could not update notification read state. "+(error&&error.message||"Please try again."));
+  }finally{button.disabled=false}
 };
 
 /* navigation */
