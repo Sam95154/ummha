@@ -462,7 +462,7 @@ async function sendFcmNotifications(
   const tokens: Record<string, any>[] = [];
   for (let offset = 0; offset < recipientIds.length; offset += 500) {
     const { data, error } = await db.from("momin_fcm_tokens")
-      .select("id,user_id,fcm_token")
+      .select("id,user_id,device_key,fcm_token")
       .in("user_id", recipientIds.slice(offset, offset + 500))
       .eq("is_active", true)
       .eq("announcements_enabled", true);
