@@ -22,7 +22,7 @@ function response(body: unknown, status = 200) {
 
 function allowedEndpoint(value: string): boolean {
   try {
-    const url = new URL(value);
+    const url = new globalThis.URL(value);
     const host = url.hostname.toLowerCase();
     if (url.protocol !== "https:") return false;
     return host === "fcm.googleapis.com" ||
@@ -46,7 +46,7 @@ async function loadPushServer() {
 
 async function sendOne(subscription: Record<string, unknown>, payload: Record<string, unknown>) {
   const server = await loadPushServer();
-  const subscriber = server.subscribe(subscription as webpush.PushSubscription);
+  const subscriber = server.subscribe(subscription as unknown as webpush.PushSubscription);
   await subscriber.pushTextMessage(JSON.stringify(payload), {
     urgency: webpush.Urgency.High,
     ttl: 90,
@@ -189,7 +189,7 @@ Deno.serve(async (request: Request) => {
       Number(row.calculation_method || 3) !== method ||
       Number(row.asr_school || 0) !== asrSchool
     );
-    const record = {
+    const record: Record<string, unknown> = {
       user_id: user.id,
       device_key: deviceKey,
       device_name: String(body.device_name || device.device_name || "MOMIN device").slice(0,120),
