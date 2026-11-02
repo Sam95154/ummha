@@ -384,48 +384,107 @@
     node.innerHTML = '<div class="modal-backdrop" data-action="modal-close"><section class="modal">' + html + "</section></div>";
   }
   function closeModal() { document.getElementById("modal-root").innerHTML = ""; }
-  function complaintUserOption(user) {
-    const label = [user.user_id || "MOMIN User", user.name || "MOMIN User", user.email || ""]
-      .filter(Boolean).join(" · ");
-    return '<option value="' + escapeHtml(user.id) + '">' + escapeHtml(label) + "</option>";
-  }
-  async function searchComplaintUsers(button) {
+  let complaintSearchTimer = null;
+  let complaintSearchRequest = 0;
+  let complaintSuggestionUsers = [];
+  let complaintActiveSuggestion = -1;
+  function setComplaintSuggestionsOpen(open) {
     const input = document.getElementById("complaint-user-search");
-    const select = document.querySelector('#modal-root select[name="user_id"]');
+    const list = document.getElementById("complaint-user-suggestions");
+    if (list) list.hidden = !open;
+    if (input) input.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  function resetComplaintUserSelection() {
+    const selected = document.getElementById("complaint-user-id");
+    const preview = document.getElementById("complaint-user-selection");
+    if (selected) selected.value = "";
+    if (preview) {
+      preview.hidden = true;
+      preview.innerHTML = "";
+    }
+  }
+  function selectComplaintUser(index) {
+    const user = complaintSuggestionUsers[Number(index)];
+    const input = document.getElementById("complaint-user-search");
+    const selected = document.getElementById("complaint-user-id");
+    const preview = document.getElementById("complaint-user-selection");
     const status = document.getElementById("complaint-user-search-status");
-    if (!input || !select) return;
-
+    if (!user || !input || !selected || !preview) return;
+    selected.value = user.id;
+    input.value = user.name || "";
+    preview.innerHTML = '<span><b>Selected:</b> ' + escapeHtml(user.name || "MOMIN User") +
+      ' <span class="muted">· ' + escapeHtml(user.email || "No email") + ' · ' +
+      escapeHtml(user.user_id || "MOMIN User ID unavailable") + '</span></span>' +
+      '<button type="button" class="btn small" data-action="change-complaint-user">Change</button>';
+    preview.hidden = false;
+    if (status) status.textContent = "MOMIN user selected. You can now create the complaint.";
+    complaintSuggestionUsers = [];
+    complaintActiveSuggestion = -1;
+    setComplaintSuggestionsOpen(false);
+  }
+  function highlightComplaintSuggestion(index) {
+    const options = Array.from(document.querySelectorAll("#complaint-user-suggestions [data-user-index]"));
+    if (!options.length) return;
+    complaintActiveSuggestion = Math.max(0, Math.min(options.length - 1, index));
+    options.forEach((option, i) => {
+      option.setAttribute("aria-selected", i === complaintActiveSuggestion ? "true" : "false");
+      option.classList.toggle("is-active", i === complaintActiveSuggestion);
+    });
+    options[complaintActiveSuggestion].scrollIntoView({ block: "nearest" });
+  }
+  async function searchComplaintUsers(button, requestId) {
+    const input = document.getElementById("complaint-user-search");
+    const list = document.getElementById("complaint-user-suggestions");
+    const status = document.getElementById("complaint-user-search-status");
+    if (!input || !list) return;
     const query = input.value.trim();
-    const previousId = select.value;
+    const currentRequest = requestId || ++complaintSearchRequest;
+    if (query.length < 2) {
+      complaintSuggestionUsers = [];
+      list.innerHTML = '<div class="autocomplete-empty">Enter at least 2 characters to search MOMIN users.</div>';
+      setComplaintSuggestionsOpen(true);
+      if (status) status.textContent = "Type at least 2 characters to see matching names.";
+      return;
+    }
     if (button) {
       button.disabled = true;
       button.textContent = "Searching…";
     }
-    select.disabled = true;
-    if (status) status.textContent = "Searching MOMIN users…";
-
+    list.innerHTML = '<div class="autocomplete-empty">Searching MOMIN users…</div>';
+    setComplaintSuggestionsOpen(true);
+    if (status) status.textContent = "Searching by name, email, or permanent User ID…";
     try {
       const result = await api("users", { q: query, status: "all", page: 1 });
-      const users = Array.isArray(result.users) ? result.users : [];
-      select.innerHTML = '<option value="" disabled selected>Choose a MOMIN user...</option>' +
-        users.map(complaintUserOption).join("");
-      if (previousId && users.some(user => user.id === previousId)) select.value = previousId;
-      if (status) {
-        status.textContent = users.length
-          ? users.length + " matching user" + (users.length === 1 ? "" : "s") +
-            " found. Results include name, email, and permanent User ID."
-          : (query
-            ? 'No users found for "' + query + '". Try another name, email, or User ID.'
-            : "No MOMIN users found.");
+      if (currentRequest !== complaintSearchRequest) return;
+      complaintSuggestionUsers = Array.isArray(result.users) ? result.users : [];
+      complaintActiveSuggestion = -1;
+      if (!complaintSuggestionUsers.length) {
+        list.innerHTML = '<div class="autocomplete-empty">No matches for "' + escapeHtml(query) +
+          '". Try another part of the name, email, or MOMIN User ID.</div>';
+        if (status) status.textContent = "No matching MOMIN users found.";
+        return;
       }
+      const suggestions = complaintSuggestionUsers.slice(0, 8);
+      list.innerHTML = suggestions.map((user, index) =>
+        '<button type="button" class="autocomplete-option" role="option" aria-selected="false" data-user-index="' + index + '">' +
+        '<span class="autocomplete-name">' + escapeHtml(user.name || "MOMIN User") + '</span>' +
+        '<span class="autocomplete-meta">' + escapeHtml(user.email || "No email") + ' · ' +
+        escapeHtml(user.user_id || "MOMIN User ID unavailable") + '</span></button>'
+      ).join("");
+      if (status) status.textContent = suggestions.length + " suggestion" + (suggestions.length === 1 ? "" : "s") +
+        " found. Select the correct MOMIN user.";
     } catch (error) {
-      if (status) status.textContent = "Search failed. Please try again.";
+      if (currentRequest !== complaintSearchRequest) return;
+      complaintSuggestionUsers = [];
+      list.innerHTML = '<div class="autocomplete-empty">Search failed. Please try again.</div>';
+      if (status) status.textContent = "Unable to search MOMIN users. Please try again.";
       toast(error.message || "Could not search MOMIN users.", true);
     } finally {
-      select.disabled = false;
-      if (button) {
-        button.disabled = false;
-        button.textContent = "Search";
+      if (currentRequest === complaintSearchRequest) {
+        if (button) {
+          button.disabled = false;
+          button.textContent = "Search";
+        }
       }
     }
   }
@@ -609,18 +668,14 @@
         toast("Campaign status updated."); return await goto("giving");
       }
       if (action === "new-complaint") {
-        const result = await api("users", { q: "", status: "all", page: 1 });
-        const users = Array.isArray(result.users) ? result.users : [];
-        const userOptions = users.map(complaintUserOption).join("");
-        const totalUsers = Number(result.total ?? users.length);
         showModal('<h2>Create complaint for a user</h2><form data-form="create-complaint">' +
-          '<div class="field"><label for="complaint-user-search">Search by name, email, or permanent MOMIN User ID</label>' +
-          '<div class="toolbar"><input class="control" id="complaint-user-search" placeholder="Enter a name, email, or MOM-User ID" autocomplete="off">' +
+          '<div class="field"><label for="complaint-user-search">Find MOMIN user by name, email, or permanent User ID *</label>' +
+          '<div class="toolbar"><input class="control" id="complaint-user-search" placeholder="Start typing a name, email, or MOM-User ID" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="complaint-user-suggestions">' +
           '<button type="button" class="btn" data-action="search-complaint-user">Search</button></div>' +
-          '<small class="hint" id="complaint-user-search-status">Showing ' + users.length + ' of ' + totalUsers +
-          ' users. Search to find any account.</small></div>' +
-          '<div class="field"><label for="user_id">MOMIN user *</label><select class="control" id="user_id" name="user_id" required>' +
-          '<option value="" disabled selected>Choose a MOMIN user...</option>' + userOptions + '</select></div>' +
+          '<div class="autocomplete-suggestions" id="complaint-user-suggestions" role="listbox" aria-label="Matching MOMIN users" hidden></div>' +
+          '<input type="hidden" id="complaint-user-id" name="user_id">' +
+          '<div class="selected-user mt" id="complaint-user-selection" aria-live="polite" hidden></div>' +
+          '<small class="hint" id="complaint-user-search-status">Type at least 2 characters. Matching names will appear here as you type.</small></div>' +
           selectField("Category","category",["Login","Notifications","Giving","Quran","Prayer Times","Account","Other"].map(x=>({value:x,label:x})),"Other",true) +
           selectField("Priority","priority",["Low","Normal","High"].map(x=>({value:x,label:x})),"Normal") +
           '<div class="field"><label>Subject</label><input class="control" name="subject" maxlength="120" required></div>' +
@@ -637,17 +692,67 @@
       closeModal();
       return;
     }
+    const suggestion = event.target.closest("[data-user-index]");
+    if (suggestion && suggestion.closest("#complaint-user-suggestions")) {
+      selectComplaintUser(suggestion.dataset.userIndex);
+      return;
+    }
+    const changeUser = event.target.closest('[data-action="change-complaint-user"]');
+    if (changeUser) {
+      const input = document.getElementById("complaint-user-search");
+      resetComplaintUserSelection();
+      if (input) {
+        input.value = "";
+        input.focus();
+      }
+      complaintSuggestionUsers = [];
+      setComplaintSuggestionsOpen(false);
+      const status = document.getElementById("complaint-user-search-status");
+      if (status) status.textContent = "Type at least 2 characters to see matching names.";
+      return;
+    }
     const search = event.target.closest('[data-action="search-complaint-user"]');
     if (search) {
       event.preventDefault();
+      clearTimeout(complaintSearchTimer);
       await searchComplaintUsers(search);
     }
   });
+  modalRoot.addEventListener("input", event => {
+    if (!event.target || event.target.id !== "complaint-user-search") return;
+    const input = event.target;
+    const status = document.getElementById("complaint-user-search-status");
+    resetComplaintUserSelection();
+    clearTimeout(complaintSearchTimer);
+    const requestId = ++complaintSearchRequest;
+    complaintSuggestionUsers = [];
+    complaintActiveSuggestion = -1;
+    if (input.value.trim().length < 2) {
+      setComplaintSuggestionsOpen(false);
+      if (status) status.textContent = "Type at least 2 characters to see matching names.";
+      return;
+    }
+    complaintSearchTimer = setTimeout(() => searchComplaintUsers(null, requestId), 280);
+  });
   modalRoot.addEventListener("keydown", event => {
-    if (event.key !== "Enter" || !event.target || event.target.id !== "complaint-user-search") return;
-    event.preventDefault();
-    const search = modalRoot.querySelector('[data-action="search-complaint-user"]');
-    if (search && !search.disabled) searchComplaintUsers(search);
+    if (!event.target || event.target.id !== "complaint-user-search") return;
+    const options = modalRoot.querySelectorAll("#complaint-user-suggestions [data-user-index]");
+    if (event.key === "ArrowDown" && options.length) {
+      event.preventDefault();
+      highlightComplaintSuggestion(complaintActiveSuggestion + 1);
+    } else if (event.key === "ArrowUp" && options.length) {
+      event.preventDefault();
+      highlightComplaintSuggestion(complaintActiveSuggestion < 0 ? 0 : complaintActiveSuggestion - 1);
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      if (options.length) selectComplaintUser(complaintActiveSuggestion < 0 ? 0 : complaintActiveSuggestion);
+      else {
+        clearTimeout(complaintSearchTimer);
+        searchComplaintUsers(null);
+      }
+    } else if (event.key === "Escape") {
+      setComplaintSuggestionsOpen(false);
+    }
   });
   modalRoot.addEventListener("submit", async event => {
     const form = event.target.closest("form[data-form]");
@@ -655,6 +760,11 @@
     event.preventDefault();
     try {
       if (form.dataset.form === "create-complaint") {
+        if (!form.elements.user_id.value) {
+          toast("Select a MOMIN user from the search suggestions first.", true);
+          document.getElementById("complaint-user-search")?.focus();
+          return;
+        }
         const result = await api("create_complaint", {
           user_id: form.elements.user_id.value, category: form.elements.category.value,
           priority: form.elements.priority.value, subject: form.elements.subject.value.trim(),
