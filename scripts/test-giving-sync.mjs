@@ -41,7 +41,7 @@ console.log("PASS: User Giving list is backed by active, in-date Admin campaigns
 
 assert.ok(giving.includes('.from("momin_giving_totals_public")'),
   "User Giving must read the aggregate-only contribution totals.");
-assert.ok(giving.includes("[c.id, c.category, c.currency].join("|")"),
+assert.ok(giving.includes('[c.id, c.category, c.currency].join("|")'),
   "Totals must be matched to the same campaign, fund category, and currency.");
 assert.ok(!/\.from\(["']momin_giving_campaigns["']\)\s*\.(?:insert|update|upsert|delete)/i.test(giving),
   "The browser must not mutate Admin campaign records.");
