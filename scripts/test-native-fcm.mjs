@@ -42,7 +42,7 @@ contains(nativeBridge, 'addListener("registrationError"', "FCM registration erro
 contains(nativeBridge, 'addListener("pushNotificationReceived"', "Foreground push listener");
 contains(nativeBridge, 'addListener("pushNotificationActionPerformed"', "Notification tap listener");
 contains(nativeBridge, 'functions.invoke("momin-fcm-register"', "Authenticated token registration call");
-contains(nativeBridge, "notification_id", "Notification identity routing");
+contains(adminFunction, "notification_id: notificationId", "Notification identity in FCM data payload");
 contains(notificationBridge, "window.MominNativePush.register()", "Native FCM registration from settings");
 contains(notificationBridge, "window.MominNativePush.disable()", "Native FCM disable on opt-out");
 contains(authBridge, "syncIfEnabled()", "FCM token refresh after auth/device sync");
