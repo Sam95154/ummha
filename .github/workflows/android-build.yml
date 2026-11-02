@@ -105,7 +105,7 @@ jobs:
           node --input-type=module -e '
             import fs from "node:fs";
             const source = fs.readFileSync("android/variables.gradle", "utf8");
-            const match = source.match(/targetSdkVersion\\s*=\\s*(\\d+)/);
+            const match = source.match(/targetSdkVersion\s*=\s*(\d+)/);
             if (!match || Number(match[1]) !== 36) {
               console.error("MOMIN must target Android 16 / API 36 for new Play Store submissions.");
               process.exit(1);
