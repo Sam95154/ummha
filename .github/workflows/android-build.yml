@@ -100,6 +100,19 @@ jobs:
       - name: Generate Capacitor Android project and assets
         run: npm run android:prepare
 
+      - name: Verify Google Play target API level
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const source = fs.readFileSync("android/variables.gradle", "utf8");
+            const match = source.match(/targetSdkVersion\\s*=\\s*(\\d+)/);
+            if (!match || Number(match[1]) !== 36) {
+              console.error("MOMIN must target Android 16 / API 36 for new Play Store submissions.");
+              process.exit(1);
+            }
+            console.log("MOMIN Android target SDK is API " + match[1] + ".");
+          '
+
       - name: Build Android debug APK
         working-directory: android
         run: ./gradlew --no-daemon --stacktrace assembleDebug
@@ -152,4 +165,4 @@ jobs:
 
       - name: Remove Firebase config from runner workspace
         if: always()
-        run: rm -f google-services.json android/app/google-services.json
+        run: rm -f google-services.json android/app/google-services.json "$RUNNER_TEMP/momin-upload.jks"
