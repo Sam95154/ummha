@@ -80,11 +80,12 @@ async function requireAdmin(request: Request) {
   const { data, error } = await db.from("momin_admin_sessions")
     .select("token_hash,admin_id,expires_at,revoked_at,momin_admin_accounts!inner(id,login_id,display_name,is_active,force_password_change)")
     .eq("token_hash", tokenHash).is("revoked_at", null).gt("expires_at", new Date().toISOString()).maybeSingle();
-  if (error || !data || !data.momin_admin_accounts?.is_active) {
+  const account = data?.momin_admin_accounts?.[0];
+  if (error || !data || !account?.is_active) {
     return { error: "Admin session is invalid or expired. Please sign in again.", status: 401 as const };
   }
   await db.from("momin_admin_sessions").update({ last_seen_at: new Date().toISOString() }).eq("token_hash", tokenHash);
-  return { tokenHash, adminId: data.admin_id as string, account: data.momin_admin_accounts };
+  return { tokenHash, adminId: data.admin_id as string, account };
 }
 async function getAuthUsers(page = 1, perPage = 100) {
   const { data, error } = await db.auth.admin.listUsers({ page, perPage });
@@ -143,7 +144,7 @@ async function dashboard() {
   for (const row of weeklyProfiles || []) {
     if (!row.created_at) continue;
     const day = new Date(row.created_at).toISOString().slice(0, 10);
-    if (registrationsByDay.has(day)) registrationsByDay.set(day, registrationsByDay.get(day) + 1);
+    if (registrationsByDay.has(day)) registrationsByDay.set(day, (registrationsByDay.get(day) ?? 0) + 1);
   }
   const givingByFund = ["Zakat", "Sadaqah", "Charity"].map(category => ({
     label: category,
@@ -155,7 +156,8 @@ async function dashboard() {
     return { ...c, received_amount: received, contribution_count: campaignTx.length,
       progress: c.target_amount ? Math.min(100, Math.round(received / Number(c.target_amount) * 100)) : 0 };
   });
-  const readRate = (inboxCount || 0) > 0 ? Math.round((inboxReadCount || 0) / inboxCount * 100) : 0;
+  const inboxTotal = inboxCount ?? 0;
+  const readRate = inboxTotal > 0 ? Math.round((inboxReadCount || 0) / inboxTotal * 100) : 0;
   return {
     metrics: {
       total_users: totalUsers || 0, active_users: activeUsers || 0,
@@ -546,7 +548,7 @@ async function sendNotification(body: Record<string, unknown>, adminId: string) 
       }
     } else { errorText = "Push signing keys are unavailable."; failed++; }
     await db.from("momin_push_deliveries").insert({
-      subscription_id: row.id, user_id: row.user_id, event_key, title, body: message,
+      subscription_id: row.id, user_id: row.user_id, event_key: eventKey, title, body: message,
       icon_key: "b", route, image_url: imageUrl, status,
       sent_at: status === "sent" ? new Date().toISOString() : null,
       error: errorText,
