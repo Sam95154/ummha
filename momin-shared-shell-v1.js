@@ -293,6 +293,71 @@ body.momin-app-shell-active.momin-shell-enter #view :is(.card,.card2,.acc):nth-c
  .momin-shell-header__inner{min-height:76px}
  .momin-shell-bottom-nav{bottom:calc(10px + env(safe-area-inset-bottom,0px))}
 }
+/* Automatically size every authenticated MOMIN feature page to the viewport. */
+@media(min-width:701px){
+ body.momin-app-shell-active #view.content,
+ body.momin-app-shell-active .app{
+  width:calc(100% - 48px)!important;max-width:1120px!important;
+  margin-left:auto!important;margin-right:auto!important;min-width:0!important;
+ }
+ .momin-shell-header__inner{width:calc(100% - 48px)!important;max-width:1120px!important}
+ .momin-shell-bottom-nav{width:min(720px,calc(100% - 48px))!important;max-width:720px!important}
+ body.momin-app-shell-active .quran-library.qv-shell,
+ body.momin-app-shell-active .qv-juz-reader,
+ body.momin-app-shell-active .quran-reader,
+ body.momin-app-shell-active .momin-qibla-finder,
+ body.momin-app-shell-active .tsb,
+ body.momin-app-shell-active .momin-calendar-page-v1,
+ body.momin-app-shell-active .momin-calendar-frame-shell{
+  width:100%!important;max-width:1080px!important;margin-left:auto!important;margin-right:auto!important;
+ }
+ body.momin-app-shell-active .momin-prayer-page-frame-wrap,
+ body.momin-app-shell-active .momin-journey-frame-wrap,
+ body.momin-app-shell-active .momin-duas-page-v2-wrap,
+ body.momin-app-shell-active .momin-mosque-page-frame-wrap,
+ body.momin-app-shell-active .momin-inspiration-frame-wrap{
+  width:calc(100% - 48px)!important;max-width:1080px!important;margin-left:auto!important;margin-right:auto!important;
+ }
+ body.momin-app-shell-active.dua-app-mode .dua-page,
+ body.momin-app-shell-active.dua-app-mode .content{
+  width:100%!important;max-width:1080px!important;margin-left:auto!important;margin-right:auto!important;
+ }
+ body.momin-app-shell-active .momin-calendar-frame,
+ body.momin-app-shell-active .momin-prayer-page-frame-wrap iframe,
+ body.momin-app-shell-active .momin-journey-frame-wrap iframe,
+ body.momin-app-shell-active .momin-duas-page-v2-wrap iframe,
+ body.momin-app-shell-active .momin-mosque-page-frame-wrap iframe,
+ body.momin-app-shell-active .momin-inspiration-frame-wrap iframe{width:100%!important}
+}
+@media(min-width:701px) and (max-width:900px){
+ body.momin-app-shell-active #view.content,
+ body.momin-app-shell-active .app{width:calc(100% - 36px)!important;max-width:860px!important}
+ .momin-shell-header__inner{width:calc(100% - 36px)!important;max-width:860px!important}
+ .momin-shell-bottom-nav{width:min(680px,calc(100% - 40px))!important}
+}
+@media(min-width:901px) and (max-width:1366px){
+ body.momin-app-shell-active #view.content,
+ body.momin-app-shell-active .app{width:calc(100% - 64px)!important;max-width:1200px!important}
+ .momin-shell-header__inner{width:calc(100% - 64px)!important;max-width:1200px!important}
+ body.momin-app-shell-active .quran-library.qv-shell .qv-sura-list{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:start;
+ }
+ body.momin-app-shell-active .quran-library.qv-shell .qv-juz-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+@media(min-width:1367px){
+ body.momin-app-shell-active #view.content,
+ body.momin-app-shell-active .app{width:calc(100% - 80px)!important;max-width:1360px!important}
+ .momin-shell-header__inner{width:calc(100% - 80px)!important;max-width:1360px!important}
+ body.momin-app-shell-active .quran-library.qv-shell,
+ body.momin-app-shell-active .qv-juz-reader,
+ body.momin-app-shell-active .quran-reader,
+ body.momin-app-shell-active .momin-qibla-finder,
+ body.momin-app-shell-active .tsb,
+ body.momin-app-shell-active .momin-calendar-page-v1,
+ body.momin-app-shell-active .momin-calendar-frame-shell{max-width:1320px!important}
+ body.momin-app-shell-active .momin-shell-bottom-nav{width:min(760px,calc(100% - 80px))!important;max-width:760px!important}
+}
+
 @media(prefers-reduced-motion:reduce){
  .momin-shell-header,.momin-shell-header *,.momin-shell-bottom-nav,.momin-shell-bottom-nav *{
   animation:none!important;transition:none!important;scroll-behavior:auto!important;
@@ -629,7 +694,18 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
       window.render=function(){var result=originalRender.apply(this,arguments);scheduleSync();return result};
     }
   }
+  function syncDeviceClass(){
+    var width=window.innerWidth||document.documentElement.clientWidth||0;
+    var mode=width<=700?"phone":width<=1200?"tablet":"desktop";
+    var root=document.documentElement;
+    root.setAttribute("data-momin-device",mode);
+    root.classList.remove("momin-device-phone","momin-device-tablet","momin-device-desktop");
+    root.classList.add("momin-device-"+mode);
+  }
   function init(){
+    syncDeviceClass();
+    window.addEventListener("resize",syncDeviceClass,{passive:true});
+    window.addEventListener("orientationchange",syncDeviceClass,{passive:true});
     ensureStyle();ensureComponents();wrapNavigation();
     if(window.history&&window.history.replaceState){
       try{
