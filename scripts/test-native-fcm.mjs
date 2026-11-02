@@ -12,6 +12,7 @@ const authBridge = read("momin-auth-v1.js");
 const registerFunction = read("supabase/functions/momin-fcm-register/index.ts");
 const adminFunction = read("supabase/functions/momin-admin-api/index.ts");
 const migration = read("supabase/migrations/20261102000500_momin_native_fcm.sql");
+const serviceWorker = read("momin-sw.js");
 const ignore = read(".gitignore");
 const setup = read("ANDROID_SETUP.md");
 
@@ -67,6 +68,8 @@ contains(adminFunction, '.select("id,user_id,device_key,fcm_token")', "FCM devic
 contains(adminFunction, '.from("momin_devices")', "Active device ownership lookup");
 contains(adminFunction, '.is("revoked_at", null)', "Revoked device filter");
 contains(adminFunction, "momin_fcm_deliveries", "FCM delivery audit writes");
+contains(serviceWorker, '["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"]', "Push notification display route allowlist");
+contains(serviceWorker, '["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"]', "Push notification click route allowlist");
 excludes(nativeBridge, "FCM_SERVICE_ACCOUNT_JSON", "Native client Firebase credentials");
 excludes(nativeBridge, "private_key", "Native client private-key material");
 excludes(notificationBridge, "FCM_SERVICE_ACCOUNT_JSON", "Web notification bridge Firebase credentials");
