@@ -15,6 +15,17 @@ if (!fs.existsSync(androidDir)) {
   run("npx", ["cap", "add", "android"]);
 }
 
+const firebaseConfigSource = path.join(root, "google-services.json");
+const firebaseConfigTarget = path.join(androidDir, "app", "google-services.json");
+if (fs.existsSync(firebaseConfigSource)) {
+  fs.mkdirSync(path.dirname(firebaseConfigTarget), { recursive: true });
+  fs.copyFileSync(firebaseConfigSource, firebaseConfigTarget);
+} else if (!fs.existsSync(firebaseConfigTarget)) {
+  throw new Error(
+    "Firebase configuration is missing. Place the downloaded google-services.json in the repository root, then run npm run android:prepare."
+  );
+}
+
 const manifestPath = path.join(androidDir, "app", "src", "main", "AndroidManifest.xml");
 if (!fs.existsSync(manifestPath)) {
   throw new Error("Capacitor did not generate AndroidManifest.xml.");
