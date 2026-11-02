@@ -4,7 +4,7 @@
   if (window.MominDuasPageV2 && window.MominDuasPageV2.initialized) return;
 
   var FRAME_ID = "momin-duas-page-v2-frame";
-  var PAGE_URL = "./duas-page-v2.html?embed=1&v=20261101-duas-redesign-v4";
+  var PAGE_URL = "./duas-page-v2.html?embed=1&v=20261103-device-responsive-v1";
   var previousRender = window.render;
   var previousGo = window.go;
 

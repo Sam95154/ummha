@@ -479,7 +479,7 @@
     '@supports not selector(body:has(.momin-notifications-frame-shell)){.momin-notifications-frame-shell{height:100vh}.momin-notifications-frame{height:100vh;min-height:100vh}}';
   document.head.appendChild(styles);
   window.notificationsPage=function(){
-    return '<div class="momin-notifications-frame-shell"><iframe class="momin-notifications-frame" title="MOMIN notifications" src="./notifications.html?v=20261101-notifications-v4"></iframe></div>';
+    return '<div class="momin-notifications-frame-shell"><iframe class="momin-notifications-frame" title="MOMIN notifications" src="./notifications.html?v=20261103-device-responsive-v1"></iframe></div>';
   };
   try{
     var query=new URL(location.href),route=query.searchParams.get("mominPushRoute");
