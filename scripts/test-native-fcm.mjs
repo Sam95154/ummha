@@ -63,6 +63,9 @@ contains(adminFunction, "https://fcm.googleapis.com/v1/projects/", "FCM HTTP v1 
 contains(adminFunction, "announcements_enabled", "User announcement preference filter");
 contains(adminFunction, "UNREGISTERED", "Stale FCM token handling");
 contains(adminFunction, "2419200", "Four-week offline delivery TTL");
+contains(adminFunction, '.select("id,user_id,device_key,fcm_token")', "FCM device-key selection");
+contains(adminFunction, '.from("momin_devices")', "Active device ownership lookup");
+contains(adminFunction, '.is("revoked_at", null)', "Revoked device filter");
 contains(adminFunction, "momin_fcm_deliveries", "FCM delivery audit writes");
 excludes(nativeBridge, "FCM_SERVICE_ACCOUNT_JSON", "Native client Firebase credentials");
 excludes(nativeBridge, "private_key", "Native client private-key material");
