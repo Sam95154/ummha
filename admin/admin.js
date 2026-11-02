@@ -526,14 +526,30 @@
     let imageUrl = data.get("existing_image_url") || null;
     const image = data.get("image");
     if (image instanceof File && image.size) imageUrl = (await upload(image, "giving")).public_url;
-    await api("save_campaign", {
+    const result = await api("save_campaign", {
       id: data.get("id") || null,
       name: data.get("name"), category: data.get("category"), description: data.get("description"),
       target_amount: data.get("target_amount"), currency: data.get("currency"), starts_at: data.get("starts_at") || null,
       ends_at: data.get("ends_at") || null, donation_instructions: data.get("donation_instructions"),
       status: data.get("status"), image_url: imageUrl
     });
-    toast("Campaign saved.");
+    const announcement = result.announcement;
+    if (announcement?.announced) {
+      const details = [
+        (announcement.recipient_count || 0) + " in-app inbox notice(s)",
+        (announcement.push_sent || 0) + " push device(s) accepted",
+        announcement.push_failed ? (announcement.push_failed + " push delivery failure(s)") : ""
+      ].filter(Boolean).join("; ");
+      toast("Campaign published and announced. " + details + ".");
+    } else if (announcement?.already_announced) {
+      toast("Campaign saved. Its announcement was already sent; no duplicate was created.");
+    } else if (announcement?.in_progress) {
+      toast("Campaign saved. Its announcement is already being processed.");
+    } else if (data.get("status") === "Active") {
+      toast("Campaign saved. No new announcement was sent for this already-active campaign.");
+    } else {
+      toast("Campaign saved.");
+    }
     state.editCampaign = null;
     state.givingTab = "campaigns"; await goto("giving");
   }
