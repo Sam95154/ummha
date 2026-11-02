@@ -108,19 +108,6 @@ function openMominNotificationRoute(rawRoute) {
 }
 
 async function initializeMominFcm() {
-  try {
-    await PushNotifications.createChannel({
-      id: "momin-announcements",
-      name: "MOMIN announcements",
-      description: "Announcements and important updates from MOMIN",
-      importance: 5,
-      visibility: 1,
-      sound: "default"
-    });
-  } catch (error) {
-    console.warn("MOMIN notification channel:", error);
-  }
-
   PushNotifications.addListener("registration", (token) => {
     handleFcmRegistration(token).catch(() => {});
   });
@@ -145,6 +132,19 @@ async function initializeMominFcm() {
     const data = action && action.notification && action.notification.data || {};
     openMominNotificationRoute(data.route);
   });
+
+  try {
+    await PushNotifications.createChannel({
+      id: "momin-announcements",
+      name: "MOMIN announcements",
+      description: "Announcements and important updates from MOMIN",
+      importance: 5,
+      visibility: 1,
+      sound: "default"
+    });
+  } catch (error) {
+    console.warn("MOMIN notification channel:", error);
+  }
 
   window.MominNativePush = {
     isNative: true,
