@@ -156,7 +156,7 @@ Deno.serve(async (request: Request) => {
         icon_key: "b", route: "notifications", status: "sent", sent_at: new Date().toISOString(),
       });
       if (error) throw error;
-      return response({ success: true });
+      return response({ success: true }, 200, origin);
     }
 
     if (action !== "register") return response({ error: "Unknown action." }, 400, origin);
