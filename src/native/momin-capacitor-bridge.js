@@ -3,7 +3,7 @@ import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { PushNotifications } from "@capacitor/push-notifications";
 import "./momin-native-prayer-alarm.js";
-import "./momin-first-launch-permissions.js";
+// Ask for Android permissions only when the user enables the feature that needs them.
 
 const AUTH_REDIRECT = "com.momin.noorulislam://auth/callback";
 

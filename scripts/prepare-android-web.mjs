@@ -64,7 +64,7 @@ if (!indexHtml.includes(firstAppScript)) {
 if (!indexHtml.includes("momin-capacitor-bridge.js")) {
   indexHtml = indexHtml.replace(
     firstAppScript,
-    '<script src="./momin-capacitor-bridge.js?v=android-v2"></script>' + firstAppScript
+    '<script src="./momin-capacitor-bridge.js?v=android-v3"></script>' + firstAppScript
   );
 }
 fs.writeFileSync(indexPath, indexHtml, "utf8");
@@ -78,7 +78,7 @@ if (!loginHtml.includes(supabaseScriptTag)) {
 if (!loginHtml.includes("momin-capacitor-bridge.js")) {
   loginHtml = loginHtml.replace(
     supabaseScriptTag,
-    '<script src="./momin-capacitor-bridge.js?v=android-v1"></script>\\n' + supabaseScriptTag
+    '<script src="./momin-capacitor-bridge.js?v=android-v3"></script>\\n' + supabaseScriptTag
   );
 }
 
