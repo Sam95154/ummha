@@ -384,6 +384,51 @@
     node.innerHTML = '<div class="modal-backdrop" data-action="modal-close"><section class="modal">' + html + "</section></div>";
   }
   function closeModal() { document.getElementById("modal-root").innerHTML = ""; }
+  function complaintUserOption(user) {
+    const label = [user.user_id || "MOMIN User", user.name || "MOMIN User", user.email || ""]
+      .filter(Boolean).join(" · ");
+    return '<option value="' + escapeHtml(user.id) + '">' + escapeHtml(label) + "</option>";
+  }
+  async function searchComplaintUsers(button) {
+    const input = document.getElementById("complaint-user-search");
+    const select = document.querySelector('#modal-root select[name="user_id"]');
+    const status = document.getElementById("complaint-user-search-status");
+    if (!input || !select) return;
+
+    const query = input.value.trim();
+    const previousId = select.value;
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Searching…";
+    }
+    select.disabled = true;
+    if (status) status.textContent = "Searching MOMIN users…";
+
+    try {
+      const result = await api("users", { q: query, status: "all", page: 1 });
+      const users = Array.isArray(result.users) ? result.users : [];
+      select.innerHTML = '<option value="" disabled selected>Choose a MOMIN user...</option>' +
+        users.map(complaintUserOption).join("");
+      if (previousId && users.some(user => user.id === previousId)) select.value = previousId;
+      if (status) {
+        status.textContent = users.length
+          ? users.length + " matching user" + (users.length === 1 ? "" : "s") +
+            " found. Results include name, email, and permanent User ID."
+          : (query
+            ? 'No users found for "' + query + '". Try another name, email, or User ID.'
+            : "No MOMIN users found.");
+      }
+    } catch (error) {
+      if (status) status.textContent = "Search failed. Please try again.";
+      toast(error.message || "Could not search MOMIN users.", true);
+    } finally {
+      select.disabled = false;
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Search";
+      }
+    }
+  }
   async function openComplaint(id) {
     const data = await api("complaint_detail", { id });
     showModal(complaintModalHtml(data.complaint, data.replies || []));
@@ -563,21 +608,19 @@
         await api("campaign_status", { id: el.dataset.id, status: el.dataset.status });
         toast("Campaign status updated."); return await goto("giving");
       }
-      if (action === "search-complaint-user") {
-        const input = document.getElementById("complaint-user-search");
-        const result = await api("users", { q: input ? input.value.trim() : "", status: "all", page: 1 });
-        const select = document.querySelector('#modal-root select[name="user_id"]');
-        if (select) select.innerHTML = (result.users || []).map(u =>
-          '<option value="' + escapeHtml(u.id) + '">' + escapeHtml(u.user_id + " · " + u.name) + "</option>"
-        ).join("");
-        return;
-      }
       if (action === "new-complaint") {
-        const users = await api("users", { q: "", status: "all" });
+        const result = await api("users", { q: "", status: "all", page: 1 });
+        const users = Array.isArray(result.users) ? result.users : [];
+        const userOptions = users.map(complaintUserOption).join("");
+        const totalUsers = Number(result.total ?? users.length);
         showModal('<h2>Create complaint for a user</h2><form data-form="create-complaint">' +
-          '<div class="field"><label for="complaint-user-search">Find user by name, User ID, or email</label><div class="toolbar">' +
-          '<input class="control" id="complaint-user-search" placeholder="Search MOMIN users"><button type="button" class="btn" data-action="search-complaint-user">Search</button></div></div>' +
-          selectField("MOMIN user","user_id",(users.users || []).map(u=>({value:u.id,label:u.user_id+" · "+u.name})),"",true) +
+          '<div class="field"><label for="complaint-user-search">Search by name, email, or permanent MOMIN User ID</label>' +
+          '<div class="toolbar"><input class="control" id="complaint-user-search" placeholder="Enter a name, email, or MOM-User ID" autocomplete="off">' +
+          '<button type="button" class="btn" data-action="search-complaint-user">Search</button></div>' +
+          '<small class="hint" id="complaint-user-search-status">Showing ' + users.length + ' of ' + totalUsers +
+          ' users. Search to find any account.</small></div>' +
+          '<div class="field"><label for="user_id">MOMIN user *</label><select class="control" id="user_id" name="user_id" required>' +
+          '<option value="" disabled selected>Choose a MOMIN user...</option>' + userOptions + '</select></div>' +
           selectField("Category","category",["Login","Notifications","Giving","Quran","Prayer Times","Account","Other"].map(x=>({value:x,label:x})),"Other",true) +
           selectField("Priority","priority",["Low","Normal","High"].map(x=>({value:x,label:x})),"Normal") +
           '<div class="field"><label>Subject</label><input class="control" name="subject" maxlength="120" required></div>' +
@@ -588,9 +631,23 @@
     } catch (error) { toast(error.message, true); }
   });
   const modalRoot = document.getElementById("modal-root");
-  modalRoot.addEventListener("click", event => {
+  modalRoot.addEventListener("click", async event => {
     const close = event.target.closest('[data-action="modal-close"]');
-    if (close && (event.target === close || close.classList.contains("btn"))) closeModal();
+    if (close && (event.target === close || close.classList.contains("btn"))) {
+      closeModal();
+      return;
+    }
+    const search = event.target.closest('[data-action="search-complaint-user"]');
+    if (search) {
+      event.preventDefault();
+      await searchComplaintUsers(search);
+    }
+  });
+  modalRoot.addEventListener("keydown", event => {
+    if (event.key !== "Enter" || !event.target || event.target.id !== "complaint-user-search") return;
+    event.preventDefault();
+    const search = modalRoot.querySelector('[data-action="search-complaint-user"]');
+    if (search && !search.disabled) searchComplaintUsers(search);
   });
   modalRoot.addEventListener("submit", async event => {
     const form = event.target.closest("form[data-form]");
