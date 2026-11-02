@@ -30,6 +30,7 @@ contains(androidPrep, 'path.join(root, "google-services.json")', "Firebase confi
 contains(androidPrep, 'path.join(androidDir, "app", "google-services.json")', "Firebase app config destination");
 contains(androidPrep, "momin_notification_icon.xml", "Branded notification icon generation");
 contains(androidPrep, "com.google.firebase.messaging.default_notification_channel_id", "FCM channel metadata");
+excludes(androidPrep, "com.google.gms.google-services", "Unnecessary manual Google Services Gradle plugin setup");
 contains(webPrep, '"google-services.json"', "Firebase config exclusion from web bundle");
 contains(ignore, "google-services.json", "Firebase config Git ignore rule");
 contains(ignore, "*.jks", "Android signing key Git ignore rule");
