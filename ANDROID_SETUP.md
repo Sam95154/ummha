@@ -33,7 +33,7 @@ The outputs are:
 - Debug APK: android/app/build/outputs/apk/debug/
 - Release AAB: android/app/build/outputs/bundle/release/
 
-The release AAB is unsigned by default. A persistent upload key must be created and kept securely by the app owner, then configured in Android Studio or the release build pipeline before uploading to Play Console. Do not commit a keystore or signing passwords to Git.
+The release pipeline creates a signed AAB only when the real Firebase Android configuration and all four GitHub Actions upload-key secrets are present: `MOMIN_UPLOAD_KEYSTORE_BASE64`, `MOMIN_UPLOAD_KEYSTORE_PASSWORD`, `MOMIN_UPLOAD_KEY_ALIAS`, and `MOMIN_UPLOAD_KEY_PASSWORD`. The keystore must be created and retained securely by the app owner. Do not commit a keystore or signing passwords to Git. Without these secrets, CI builds a debug preview only and deliberately skips the Play Store AAB.
 
 ## Google sign-in redirect
 
