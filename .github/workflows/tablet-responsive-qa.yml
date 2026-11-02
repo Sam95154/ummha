@@ -14,6 +14,7 @@ on:
       - "momin-duas-page-v2.js"
       - "momin-inspiration-page-v1.js"
       - "momin-notifications-bridge-v1.js"
+      - "momin-notifications-admin-inbox-v1.js"
       - "journey-page-v1.html"
       - "mosques-page-v1.html"
       - "duas-page-v2.html"
