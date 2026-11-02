@@ -49,8 +49,8 @@
   .momin-duas-page-v2-wrap,
   .momin-mosque-page-frame-wrap,
   .momin-inspiration-frame-wrap {
-    width: calc(100% - 48px) !important;
-    max-width: 1120px !important;
+    width: 100% !important;
+    max-width: 1080px !important;
   }
 
   body.momin-prayer-embedded .wrap,
