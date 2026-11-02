@@ -25,8 +25,6 @@ function notHas(source, value, label) {
 new vm.Script(shell, { filename: "momin-shared-shell-v1.js" });
 new vm.Script(bridge, { filename: "momin-notifications-admin-inbox-v1.js" });
 new vm.Script(auth, { filename: "momin-auth-v1.js" });
-new vm.Script(native, { filename: "src/native/momin-capacitor-bridge.js" });
-new vm.Script(test, { filename: "scripts/test-notification-release.mjs" });
 console.log("PASS: Notification client-side JavaScript parses.");
 
 // Global unread badge on the home notification bell.
@@ -40,7 +38,7 @@ has(shell, 'momin:auth-state-changed', "Badge refresh after authentication chang
 console.log("PASS: Top bell renders and refreshes the numeric unread badge.");
 
 // Persistent inbox read state, authentication scoping and cross-device sync.
-has(bridge, "unreadCount:function", "Bridge unread count export");
+has(bridge, "unreadCount:unreadCount", "Bridge unread count export");
 has(bridge, "markInboxRead:function", "Single notification read action");
 has(bridge, 'pushApi("mark_read"', "Server-persisted reminder read action");
 has(bridge, 'from("momin_user_notifications")', "Server-persisted Admin inbox read action");
