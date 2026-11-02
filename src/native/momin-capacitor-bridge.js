@@ -15,6 +15,7 @@ const FCM_ROUTE_ALLOWLIST = new Set([
 let fcmTokenRegistration = Promise.resolve();
 let lastFcmToken = "";
 let fcmRegistrationWaiters = [];
+let fcmRegisterPromise = null;
 
 function currentFcmDeviceKey() {
   try {
@@ -148,35 +149,40 @@ async function initializeMominFcm() {
   window.MominNativePush = {
     isNative: true,
     register: async function () {
-      const permissions = await PushNotifications.checkPermissions();
-      let receive = permissions.receive;
-      if (receive === "prompt" || receive === "prompt-with-rationale") {
-        const asked = await PushNotifications.requestPermissions();
-        receive = asked.receive;
-      }
-      if (receive !== "granted") {
-        throw new Error("Allow notifications for MOMIN in Android settings.");
-      }
-      return await new Promise(async (resolve, reject) => {
-        const waiter = { resolve, reject };
-        fcmRegistrationWaiters.push(waiter);
-        const timer = window.setTimeout(() => {
-          const index = fcmRegistrationWaiters.indexOf(waiter);
-          if (index >= 0) fcmRegistrationWaiters.splice(index, 1);
-          reject(new Error("Firebase registration timed out. Check your internet connection and Firebase app configuration."));
-        }, 20000);
-        const done = (fn) => (value) => { window.clearTimeout(timer); fn(value); };
-        waiter.resolve = done(resolve);
-        waiter.reject = done(reject);
-        try {
-          await PushNotifications.register();
-        } catch (error) {
-          const index = fcmRegistrationWaiters.indexOf(waiter);
-          if (index >= 0) fcmRegistrationWaiters.splice(index, 1);
-          window.clearTimeout(timer);
-          reject(error);
+      if (fcmRegisterPromise) return await fcmRegisterPromise;
+      fcmRegisterPromise = (async function () {
+        const permissions = await PushNotifications.checkPermissions();
+        let receive = permissions.receive;
+        if (receive === "prompt" || receive === "prompt-with-rationale") {
+          const asked = await PushNotifications.requestPermissions();
+          receive = asked.receive;
         }
-      });
+        if (receive !== "granted") {
+          throw new Error("Allow notifications for MOMIN in Android settings.");
+        }
+        return await new Promise(async (resolve, reject) => {
+          const waiter = { resolve, reject };
+          fcmRegistrationWaiters.push(waiter);
+          const timer = window.setTimeout(() => {
+            const index = fcmRegistrationWaiters.indexOf(waiter);
+            if (index >= 0) fcmRegistrationWaiters.splice(index, 1);
+            reject(new Error("Firebase registration timed out. Check your internet connection and Firebase app configuration."));
+          }, 20000);
+          const done = (fn) => (value) => { window.clearTimeout(timer); fn(value); };
+          waiter.resolve = done(resolve);
+          waiter.reject = done(reject);
+          try {
+            await PushNotifications.register();
+          } catch (error) {
+            const index = fcmRegistrationWaiters.indexOf(waiter);
+            if (index >= 0) fcmRegistrationWaiters.splice(index, 1);
+            window.clearTimeout(timer);
+            reject(error);
+          }
+        });
+      })();
+      try { return await fcmRegisterPromise; }
+      finally { fcmRegisterPromise = null; }
     },
     disable: async function () {
       const client = await getFcmSupabaseClient();
