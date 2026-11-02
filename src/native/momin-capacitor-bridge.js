@@ -65,7 +65,7 @@ async function saveFcmToken(token) {
 async function handleFcmRegistration(tokenObject) {
   const token = tokenObject && String(tokenObject.value || "").trim();
   if (!token) throw new Error("Firebase returned an empty device token.");
-  fcmTokenRegistration = fcmTokenRegistration.then(async () => {
+  fcmTokenRegistration = fcmTokenRegistration.catch(() => {}).then(async () => {
     const saved = await saveFcmToken(token);
     lastFcmToken = token;
     const pending = fcmRegistrationWaiters.splice(0);
