@@ -5,9 +5,11 @@ on:
     branches:
       - responsive-layout
       - feature/momin-admin-panel
+      - feature/admin-campaign-notification-feedback
   pull_request:
     branches:
       - main
+      - feature/momin-admin-panel
   workflow_dispatch:
 
 permissions:
