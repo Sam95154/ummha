@@ -6,6 +6,9 @@ const root = process.cwd();
 const stylesheetPath = path.join(root, "momin-tablet-responsive-v1.css");
 const css = fs.readFileSync(stylesheetPath, "utf8");
 const stylesheetUrl = "momin-tablet-responsive-v1.css?v=20261102-tablet-v1";
+const deviceStylesheetPath = path.join(root, "momin-device-responsive-v1.css");
+const deviceCss = fs.readFileSync(deviceStylesheetPath, "utf8");
+const deviceStylesheetUrl = "momin-device-responsive-v1.css?v=20261103-device-responsive-v1";
 
 function assertBalancedCss(source) {
   let depth = 0;
@@ -58,6 +61,7 @@ function assertBalancedCss(source) {
 }
 
 assertBalancedCss(css);
+assertBalancedCss(deviceCss);
 
 for (const breakpoint of [
   "@media screen and (min-width: 701px)",
@@ -79,14 +83,37 @@ assert.ok(!/@media[^\{]*max-width\s*:\s*(?:700|600|520|480)px/i.test(css), "Tabl
 for (const file of ["index.html", "login.html", "founder.html", "prayers-page-v1.html"]) {
   const content = fs.readFileSync(path.join(root, file), "utf8");
   assert.ok(content.includes(stylesheetUrl), file + " is missing the shared tablet stylesheet.");
+  if (file === "index.html" || file === "prayers-page-v1.html") {
+    assert.ok(content.includes(deviceStylesheetUrl), file + " is missing the automatic device-responsive stylesheet.");
+  }
+}
+
+for (const file of [
+  "journey-page-v1.html", "prayers-page-v1.html", "mosques-page-v1.html",
+  "duas-page-v2.html", "duas-page-v1.html", "inspiration-page-v1.html",
+  "islamic-calendar-reference.html", "notifications.html"
+]) {
+  const content = fs.readFileSync(path.join(root, file), "utf8");
+  assert.ok(content.includes(deviceStylesheetUrl), file + " is missing device-responsive styles for its embedded view.");
+}
+
+for (const file of [
+  "momin-prayer-page-v1.js", "momin-journey-page-v1.js",
+  "momin-mosque-page-v1.js", "momin-duas-page-v2.js",
+  "momin-inspiration-page-v1.js", "momin-notifications-bridge-v1.js"
+]) {
+  const content = fs.readFileSync(path.join(root, file), "utf8");
+  assert.ok(content.includes("20261103-device-responsive-v1"), file + " iframe cache version was not refreshed.");
 }
 
 const capacitorPrep = fs.readFileSync(path.join(root, "scripts/prepare-android-web.mjs"), "utf8");
 assert.ok(capacitorPrep.includes('copyAppFiles(root, webDir)'), "Android bundle must copy the shared stylesheet with app assets.");
 
-console.log("MOMIN tablet responsive QA passed.");
+console.log("MOMIN automatic device-responsive QA passed.");
 console.log("- CSS syntax structure is balanced.");
 console.log("- Phone, tablet and desktop breakpoints are present.");
+console.log("- All requested feature views and embedded iframes load the responsive rules.");
+console.log("- Device width and orientation are detected automatically and refreshed on resize.");
 console.log("- Home, Settings, shared shell, Quran and Prayer layouts have tablet rules.");
 console.log("- Main, login, Founder and Prayer pages load the shared stylesheet.");
 console.log("- Android web bundling includes the stylesheet.");
