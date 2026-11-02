@@ -1,0 +1,44 @@
+name: MOMIN Tablet Responsive QA
+
+on:
+  pull_request:
+    branches:
+      - noor-ul-islam-live
+    paths:
+      - "momin-tablet-responsive-v1.css"
+      - "index.html"
+      - "login.html"
+      - "founder.html"
+      - "prayers-page-v1.html"
+      - "package.json"
+      - "scripts/test-tablet-responsive.mjs"
+      - ".github/workflows/tablet-responsive-qa.yml"
+  push:
+    branches:
+      - tablet-responsive
+    paths:
+      - "momin-tablet-responsive-v1.css"
+      - "index.html"
+      - "login.html"
+      - "founder.html"
+      - "prayers-page-v1.html"
+      - "package.json"
+      - "scripts/test-tablet-responsive.mjs"
+      - ".github/workflows/tablet-responsive-qa.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  tablet-responsive:
+    name: Verify responsive tablet layout
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out MOMIN
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run tablet responsive QA
+        run: npm run test:tablet

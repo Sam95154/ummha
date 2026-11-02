@@ -8,7 +8,8 @@
     "android:prepare": "npm run android:web && node scripts/prepare-android-project.mjs",
     "android:debug": "npm run android:prepare && cd android && ./gradlew assembleDebug",
     "android:bundle": "npm run android:prepare && cd android && ./gradlew bundleRelease",
-    "test:fcm": "node scripts/test-native-fcm.mjs"
+    "test:fcm": "node scripts/test-native-fcm.mjs",
+    "test:tablet": "node scripts/test-tablet-responsive.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",

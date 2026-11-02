@@ -1,0 +1,262 @@
+/* MOMIN adaptive layout
+   Breakpoints are based on CSS viewport width so the same app automatically adapts
+   to phones, tablets and desktop browsers/Android WebView without a device selector.
+   Phone rules (<=700px) are intentionally left to the existing mobile styles. */
+
+@media screen and (min-width: 701px) {
+  html { scroll-padding-top: 96px; }
+
+  /* Shared authenticated app shell */
+  body.momin-app-shell-active #view.content {
+    width: calc(100% - 56px) !important;
+    max-width: 1180px !important;
+    margin: 0 auto !important;
+    padding: 24px 0 0 !important;
+  }
+  body.momin-app-shell-active .app,
+  body.momin-app-shell-active.momin-home-v3-active .app,
+  body.momin-app-shell-active.momin-settings-v2-active .app {
+    width: 100% !important;
+    max-width: 1180px !important;
+    margin: 0 auto !important;
+  }
+  .momin-shell-header {
+    padding-left: max(24px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(24px, env(safe-area-inset-right, 0px)) !important;
+  }
+  .momin-shell-header__inner {
+    width: 100% !important;
+    max-width: 1180px !important;
+    min-height: 84px !important;
+    grid-template-columns: 52px minmax(0, 1fr) 112px !important;
+    gap: 16px !important;
+  }
+  .momin-shell-header__title h1 { font-size: 30px !important; }
+  .momin-shell-header__title p { font-size: 14px !important; }
+  .momin-shell-home-logo,
+  .momin-shell-back,
+  .momin-shell-action { width: 48px; height: 48px; }
+  .momin-shell-bottom-nav {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: min(700px, calc(100% - 64px)) !important;
+    max-width: 700px !important;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 8px !important;
+    gap: 8px !important;
+  }
+  .momin-shell-bottom-nav button {
+    min-height: 68px !important;
+    padding: 8px 6px !important;
+    gap: 6px !important;
+    font-size: 13px !important;
+  }
+  body.momin-app-shell-active .momin-shell-bottom-space {
+    height: calc(124px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Home: use the extra width for a dashboard instead of a narrow phone column. */
+  body.momin-home-v3-active .app {
+    width: calc(100% - 56px) !important;
+    max-width: 1180px !important;
+  }
+  body.momin-home-v3-active .app > main {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    column-gap: 24px !important;
+    row-gap: 4px !important;
+    align-items: start !important;
+  }
+  body.momin-home-v3-active .app > main > .greet,
+  body.momin-home-v3-active .app > main > .sec:has(+ .railwrap),
+  body.momin-home-v3-active .app > main > .railwrap {
+    grid-column: 1 / -1 !important;
+  }
+  body.momin-home-v3-active .app > main > .hero { grid-column: 1 !important; }
+  body.momin-home-v3-active .app > main > .card { grid-column: 2 !important; align-self: stretch !important; }
+  body.momin-home-v3-active .app > main > .sec:has(+ .quran),
+  body.momin-home-v3-active .app > main > .quran { grid-column: 1 !important; }
+  body.momin-home-v3-active .app > main > .sec:has(+ .reflect),
+  body.momin-home-v3-active .app > main > .reflect { grid-column: 2 !important; }
+  body.momin-home-v3-active .app > main > .hero {
+    min-height: 100% !important;
+    padding: 30px !important;
+  }
+  body.momin-home-v3-active .app > main > .card {
+    height: 100% !important;
+    padding: 24px !important;
+  }
+  body.momin-home-v3-active .greet { padding-top: 32px !important; }
+  body.momin-home-v3-active .greet h1 { font-size: clamp(34px, 4vw, 48px) !important; }
+  body.momin-home-v3-active .rail {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    overflow: visible !important;
+    scroll-snap-type: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 8px 0 14px !important;
+    gap: 14px !important;
+  }
+  body.momin-home-v3-active .tile {
+    width: auto !important;
+    min-width: 0 !important;
+    height: 132px !important;
+  }
+  body.momin-home-v3-active .tabs nav {
+    max-width: 700px !important;
+  }
+  body.momin-home-v3-active .cal .week { gap: 9px !important; }
+  body.momin-home-v3-active .cal .day { min-height: 76px !important; }
+
+  /* Settings and profile panels */
+  body.momin-settings-v2-active .app {
+    width: calc(100% - 56px) !important;
+    max-width: 1180px !important;
+  }
+  body.momin-settings-v2-active .momin-settings-center-v1 {
+    width: 100% !important;
+    max-width: 1180px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  body.momin-settings-v2-active .momin-sc-groups {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    align-items: start !important;
+  }
+  body.momin-settings-v2-active .momin-sc-group { min-width: 0 !important; }
+  body.momin-settings-v2-active .momin-sc-hero { padding: 28px !important; }
+  body.momin-settings-v2-active .momin-founder-entry { padding: 22px !important; }
+
+  /* Prayer, Qibla, Mosques and journey views */
+  body.momin-app-shell-active .momin-prayer-page-frame-wrap {
+    width: 100% !important;
+    max-width: 1120px !important;
+    margin: 0 auto !important;
+  }
+  body.momin-app-shell-active .momin-prayer-page-frame-wrap iframe {
+    width: 100% !important;
+  }
+  body.momin-app-shell-active .momin-qibla-finder .mq-wrap,
+  body.momin-app-shell-active .momin-mosque-design-v2 .wrap,
+  body.momin-app-shell-active .dua-page,
+  body.momin-app-shell-active .dua-library,
+  body.momin-app-shell-active .journey-page {
+    width: 100% !important;
+    max-width: 1120px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Quran reader and library */
+  body.momin-app-shell-active .quran-reader {
+    width: 100% !important;
+    padding-left: clamp(28px, 4vw, 64px) !important;
+    padding-right: clamp(28px, 4vw, 64px) !important;
+  }
+  body.momin-app-shell-active .quran-toolbar,
+  body.momin-app-shell-active .reading-goal {
+    max-width: 1080px !important;
+  }
+  body.momin-app-shell-active .ayah-list { max-width: 1040px !important; }
+  body.momin-app-shell-active .surah-banner,
+  body.momin-app-shell-active .reader-loadstatus { max-width: 960px !important; }
+  body.momin-app-shell-active .surah-catalog { max-width: 1040px !important; }
+  body.momin-app-shell-active .quran-audio-bar {
+    width: min(940px, calc(100% - 64px)) !important;
+  }
+  body.momin-app-shell-active .quran-library.qv-shell {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* Founder page (also used in the embedded Founder iframe). */
+  body:not(.momin-app-shell-active) .app,
+  html.momin-founder-embedded .app {
+    width: 100% !important;
+    max-width: 1080px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  body:not(.momin-app-shell-active) .bar {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+  .hero > .stars { position: absolute !important; inset: 0 !important; pointer-events: none !important; }
+  .frame { width: min(100%, 390px) !important; }
+  .quote, .stats, .sec-h, .pil, .feat, .end {
+    width: 100% !important;
+    max-width: 1000px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .feat { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 14px !important; }
+  .stats { gap: 16px !important; }
+  .tabs nav { max-width: 700px !important; }
+  html.momin-founder-embedded body { padding-bottom: 142px !important; }
+  html.momin-founder-embedded .app { max-width: 1080px !important; }
+  html.momin-founder-embedded .tabs { display: none !important; }
+
+  /* Login page: give the form a tablet-friendly width without stretching controls. */
+  .col { width: min(100%, 540px) !important; max-width: 540px !important; }
+  .panel { padding: 28px !important; }
+}
+
+/* Tablet portrait: generous two-column cards, with safe side gutters. */
+@media screen and (min-width: 701px) and (max-width: 900px) {
+  body.momin-app-shell-active #view.content,
+  body.momin-home-v3-active .app,
+  body.momin-settings-v2-active .app {
+    width: calc(100% - 36px) !important;
+  }
+  .momin-shell-header__inner { max-width: 860px !important; }
+  .momin-shell-bottom-nav { width: min(680px, calc(100% - 40px)) !important; }
+  body.momin-home-v3-active .app > main { column-gap: 16px !important; }
+  body.momin-home-v3-active .rail { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  body.momin-home-v3-active .tile { height: 122px !important; }
+  body.momin-app-shell-active .quran-reader { padding-left: 22px !important; padding-right: 22px !important; }
+  .feat { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  html.momin-founder-embedded body { padding-bottom: 132px !important; }
+}
+
+/* Tablet landscape and compact desktop. */
+@media screen and (min-width: 901px) and (max-width: 1366px) {
+  body.momin-app-shell-active #view.content,
+  body.momin-home-v3-active .app,
+  body.momin-settings-v2-active .app {
+    width: calc(100% - 64px) !important;
+  }
+  body.momin-home-v3-active .rail { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  body.momin-settings-v2-active .momin-sc-groups { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .momin-shell-header__inner { max-width: 1180px !important; }
+}
+
+/* Large desktop: retain the same adaptive components but allow a wider working canvas. */
+@media screen and (min-width: 1367px) {
+  body.momin-app-shell-active #view.content,
+  body.momin-home-v3-active .app,
+  body.momin-settings-v2-active .app {
+    max-width: 1360px !important;
+    width: calc(100% - 80px) !important;
+  }
+  .momin-shell-header__inner { max-width: 1360px !important; }
+  body.momin-settings-v2-active .momin-sc-groups { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+
+/* Prayer page is an iframe, so it loads this file independently as well. */
+@media screen and (min-width: 701px) {
+  body.momin-prayer-embedded .wrap {
+    width: 100% !important;
+    max-width: 1080px !important;
+    padding-left: 28px !important;
+    padding-right: 28px !important;
+  }
+  body.momin-prayer-embedded .title { margin-top: 24px !important; }
+  body.momin-prayer-embedded .grid,
+  body.momin-prayer-embedded .prayer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
