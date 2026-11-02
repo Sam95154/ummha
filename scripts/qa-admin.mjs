@@ -67,7 +67,7 @@ check(js.includes("async function searchComplaintUsers") && js.includes("modalRo
 check(js.includes("complaint-user-search-status") && js.includes("No users found for"), "Complaint user search reports matching and empty-result states");
 check(js.includes('event.target.id !== "complaint-user-search"') && js.includes("searchComplaintUsers(search)"), "Complaint user search supports Enter-key submission");
 check(api.includes("public_user_id.ilike.%"+'"+safe+"') && api.includes("display_name.ilike.%"+'"+safe+"') && api.includes("email.ilike.%"+'"+safe+"'), "Admin user API searches permanent User ID, display name, and email");
-check(js.includes("user.email || \"\"") === false || js.includes("user.email || \"\""), "Admin complaint results can display the email address");
+check(js.includes('user.email || ""') && js.includes('user.user_id || "MOMIN User"'), "Admin complaint search results show email and permanent User ID");
 
 check(!/as\s+\$\s*\n/i.test(migration), "Migration contains no malformed anonymous dollar-quote block");
 
