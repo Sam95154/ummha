@@ -28,10 +28,16 @@
 @media screen and (min-width: 701px) {
   /* Shared app routes: Prayer, Quran, Journey, Qibla, Duas, Masjid,
      Tasbih, Giving, Inspiration, Calendar and Notifications. */
-  body.momin-app-shell-active #view.content,
+  body.momin-app-shell-active #view.content {
+    width: 100% !important;
+    max-width: 1080px !important;
+    min-width: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
   body.momin-app-shell-active .app {
-    width: calc(100% - 48px) !important;
-    max-width: 1120px !important;
+    width: 100% !important;
+    max-width: 1080px !important;
     min-width: 0 !important;
     margin-left: auto !important;
     margin-right: auto !important;
@@ -163,15 +169,18 @@
 
 /* Tablet portrait: spacious single-column reading surfaces and two-column tools. */
 @media screen and (min-width: 701px) and (max-width: 900px) {
-  body.momin-app-shell-active #view.content,
+  body.momin-app-shell-active #view.content {
+    width: calc(100% - 36px) !important;
+    max-width: 860px !important;
+  }
   body.momin-app-shell-active .app,
   .momin-prayer-page-frame-wrap,
   .momin-journey-frame-wrap,
   .momin-duas-page-v2-wrap,
   .momin-mosque-page-frame-wrap,
   .momin-inspiration-frame-wrap {
-    width: calc(100% - 36px) !important;
-    max-width: 860px !important;
+    width: 100% !important;
+    max-width: 820px !important;
   }
 
   body.momin-prayer-embedded .wrap,
@@ -210,15 +219,18 @@
 
 /* Tablet landscape and compact desktop. */
 @media screen and (min-width: 901px) and (max-width: 1366px) {
-  body.momin-app-shell-active #view.content,
+  body.momin-app-shell-active #view.content {
+    width: calc(100% - 64px) !important;
+    max-width: 1200px !important;
+  }
   body.momin-app-shell-active .app,
   .momin-prayer-page-frame-wrap,
   .momin-journey-frame-wrap,
   .momin-duas-page-v2-wrap,
   .momin-mosque-page-frame-wrap,
   .momin-inspiration-frame-wrap {
-    width: calc(100% - 64px) !important;
-    max-width: 1200px !important;
+    width: 100% !important;
+    max-width: 1160px !important;
   }
 
   body.momin-prayer-embedded .wrap,
@@ -266,15 +278,18 @@
 
 /* Large desktop work area. */
 @media screen and (min-width: 1367px) {
-  body.momin-app-shell-active #view.content,
+  body.momin-app-shell-active #view.content {
+    width: calc(100% - 80px) !important;
+    max-width: 1360px !important;
+  }
   body.momin-app-shell-active .app,
   .momin-prayer-page-frame-wrap,
   .momin-journey-frame-wrap,
   .momin-duas-page-v2-wrap,
   .momin-mosque-page-frame-wrap,
   .momin-inspiration-frame-wrap {
-    width: calc(100% - 80px) !important;
-    max-width: 1360px !important;
+    width: 100% !important;
+    max-width: 1320px !important;
   }
   body.momin-prayer-embedded .wrap,
   body.momin-journey-embedded .wrap,
