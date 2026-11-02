@@ -6,6 +6,7 @@ on:
       - feature/native-fcm-push
     paths:
       - "package.json"
+      - "ANDROID_SETUP.md"
       - "capacitor.config.json"
       - "scripts/**"
       - "src/native/**"
@@ -20,6 +21,7 @@ on:
       - noor-ul-islam-live
     paths:
       - "package.json"
+      - "ANDROID_SETUP.md"
       - "capacitor.config.json"
       - "scripts/**"
       - "src/native/**"
