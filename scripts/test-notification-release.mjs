@@ -14,6 +14,7 @@ const native = read("src/native/momin-capacitor-bridge.js");
 const page = read("notifications.html");
 const androidWorkflow = read(".github/workflows/android-build.yml");
 const nativeQa = read(".github/workflows/native-fcm-qa.yml");
+const signingHelper = read("scripts/configure-android-signing.mjs");
 
 function has(source, value, label) {
   assert.ok(source.includes(value), label + " missing: " + value);
@@ -94,6 +95,9 @@ has(androidWorkflow, "if: steps.firebase-config.outputs.real_config == 'true'", 
 has(androidWorkflow, "Prepare Android upload key (optional)", "Android upload key preparation step");
 has(androidWorkflow, "MOMIN_UPLOAD_KEYSTORE_BASE64", "Play Store upload keystore secret");
 has(androidWorkflow, "Build signed Play Store AAB", "Signed Play Store app bundle build");
+has(signingHelper, "MOMIN_UPLOAD_KEYSTORE_PATH", "Release signing helper reads upload key safely");
+has(signingHelper, "signingConfig signingConfigs.release", "Release signing helper attaches the upload signature");
+has(androidWorkflow, "targetSdkVersion", "Android build enforces Play Store target API level");
 has(androidWorkflow, "steps.release-signing.outputs.ready == 'true'", "Signed Play Store AAB requires upload key and real Firebase config");
 has(nativeQa, "npm run test:notifications", "Notification regression suite runs in CI");
 has(nativeQa, "deno check --node-modules-dir=auto --no-lock supabase/functions/momin-push-register/index.ts", "Push registration function type-checks in CI");
