@@ -29,8 +29,8 @@
   /* Shared app routes: Prayer, Quran, Journey, Qibla, Duas, Masjid,
      Tasbih, Giving, Inspiration, Calendar and Notifications. */
   body.momin-app-shell-active #view.content {
-    width: 100% !important;
-    max-width: 1080px !important;
+    width: calc(100% - 48px) !important;
+    max-width: 1120px !important;
     min-width: 0 !important;
     margin-left: auto !important;
     margin-right: auto !important;
