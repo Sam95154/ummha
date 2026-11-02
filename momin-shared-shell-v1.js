@@ -319,7 +319,7 @@ body.momin-app-shell-active.momin-shell-enter #view :is(.card,.card2,.acc):nth-c
  body.momin-app-shell-active .momin-duas-page-v2-wrap,
  body.momin-app-shell-active .momin-mosque-page-frame-wrap,
  body.momin-app-shell-active .momin-inspiration-frame-wrap{
-  width:calc(100% - 48px)!important;max-width:1080px!important;margin-left:auto!important;margin-right:auto!important;
+  width:100%!important;max-width:1080px!important;margin-left:auto!important;margin-right:auto!important;
  }
  body.momin-app-shell-active.dua-app-mode .dua-page,
  body.momin-app-shell-active.dua-app-mode .content{
