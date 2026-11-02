@@ -76,7 +76,7 @@ Deno.serve(async (request: Request) => {
 
     if (action !== "register") return reply({ error: "Unknown FCM registration action." }, 400, origin);
     const token = String(body.fcm_token || "").trim();
-    if (token.length < 40 || token.length > 8192 || /\\s/.test(token)) {
+    if (token.length < 40 || token.length > 8192 || /\s/.test(token)) {
       return reply({ error: "Firebase returned an invalid device token." }, 400, origin);
     }
     const appId = String(body.app_id || "com.momin.noorulislam");
