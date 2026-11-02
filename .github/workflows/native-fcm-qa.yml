@@ -51,6 +51,8 @@ jobs:
         run: npm run test:fcm
       - name: Run notification release QA
         run: npm run test:notifications
+      - name: Check Android signing helper syntax
+        run: node --check scripts/configure-android-signing.mjs
       - name: Set up Deno
         uses: denoland/setup-deno@v2
         with:
