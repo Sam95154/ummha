@@ -2,21 +2,31 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import * as webpush from "jsr:@negrel/webpush@0.5.0";
 
 const APP_ORIGIN = "https://noor-ul-islam-dua.onrender.com";
-const corsHeaders = {
-  "Access-Control-Allow-Origin": APP_ORIGIN,
-  "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Vary": "Origin",
-};
+// Capacitor's Android WebView uses https://localhost by default. Keep these
+// exact origins allowlisted and continue requiring a valid Supabase user JWT.
+const ALLOWED_ORIGINS = new Set([
+  APP_ORIGIN,
+  "https://localhost",
+  "capacitor://localhost",
+]);
+function corsHeadersFor(origin: string | null) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.has(origin) ? origin : APP_ORIGIN;
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+}
 
 const URL = Deno.env.get("SUPABASE_URL")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(URL, SERVICE, { auth: { persistSession: false, autoRefreshToken: false } });
 
-function response(body: unknown, status = 200) {
+function response(body: unknown, status = 200, origin: string | null = null) {
   return new Response(JSON.stringify(body), {
-    status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status, headers: { ...corsHeadersFor(origin), "Content-Type": "application/json" },
   });
 }
 
@@ -55,21 +65,23 @@ async function sendOne(subscription: Record<string, unknown>, payload: Record<st
 }
 
 Deno.serve(async (request: Request) => {
-  if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (request.method !== "POST") return response({ error: "Method not allowed" }, 405);
-
   const origin = request.headers.get("origin");
-  if (origin && origin !== APP_ORIGIN) return response({ error: "Origin not allowed" }, 403);
+  if (request.method === "OPTIONS") {
+    if (origin && !ALLOWED_ORIGINS.has(origin)) return new Response("Origin not allowed", { status: 403 });
+    return new Response("ok", { headers: corsHeadersFor(origin) });
+  }
+  if (request.method !== "POST") return response({ error: "Method not allowed" }, 405, origin);
+  if (origin && !ALLOWED_ORIGINS.has(origin)) return response({ error: "Origin not allowed" }, 403, null);
 
   const authHeader = request.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) return response({ error: "Authentication required" }, 401);
+  if (!authHeader?.startsWith("Bearer ")) return response({ error: "Authentication required" }, 401, origin);
 
   const userClient = createClient(URL, ANON, {
     global: { headers: { Authorization: authHeader } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const { data: authData, error: authError } = await userClient.auth.getUser();
-  if (authError || !authData.user) return response({ error: "Your MOMIN session is invalid or expired." }, 401);
+  if (authError || !authData.user) return response({ error: "Your MOMIN session is invalid or expired." }, 401, origin);
   const user = authData.user;
 
   try {
@@ -82,19 +94,19 @@ Deno.serve(async (request: Request) => {
         .eq("user_id", user.id).eq("status", "sent")
         .order("created_at", { ascending: false }).limit(50);
       if (error) throw error;
-      return response({ items: data || [] });
+      return response({ items: data || [] }, 200, origin);
     }
 
     if (action === "mark_read") {
       const inboxId = String(body.inbox_id || "");
-      if (!/^[0-9a-f-]{36}$/i.test(inboxId)) return response({ error: "Invalid inbox item." }, 400);
+      if (!/^[0-9a-f-]{36}$/i.test(inboxId)) return response({ error: "Invalid inbox item." }, 400, origin);
       const { data, error } = await admin.from("momin_push_deliveries")
         .update({ read_at: new Date().toISOString() })
         .eq("id", inboxId).eq("user_id", user.id).eq("status", "sent")
         .select("id").maybeSingle();
       if (error) throw error;
-      if (!data) return response({ error: "Notification was not found." }, 404);
-      return response({ success: true });
+      if (!data) return response({ error: "Notification was not found." }, 404, origin);
+      return response({ success: true }, 200, origin);
     }
 
     if (action === "mark_all_read") {
@@ -103,16 +115,16 @@ Deno.serve(async (request: Request) => {
         .eq("user_id", user.id).eq("status", "sent").is("read_at", null)
         .select("id");
       if (error) throw error;
-      return response({ success: true, updated: (data || []).length });
+      return response({ success: true, updated: (data || []).length }, 200, origin);
     }
 
     const deviceKey = String(body.device_key || "").trim();
-    if (deviceKey.length < 8 || deviceKey.length > 200) return response({ error: "Invalid MOMIN device identifier." }, 400);
+    if (deviceKey.length < 8 || deviceKey.length > 200) return response({ error: "Invalid MOMIN device identifier." }, 400, origin);
     const { data: device, error: deviceError } = await admin.from("momin_devices")
       .select("id,revoked_at,device_name").eq("user_id", user.id)
       .eq("device_key", deviceKey).maybeSingle();
     if (deviceError) throw deviceError;
-    if (!device) return response({ error: "This device is not registered. Please sign in again." }, 403);
+    if (!device) return response({ error: "This device is not registered. Please sign in again." }, 403, origin);
 
     /* The owner can always deactivate a subscription, including after revoking this device. */
     if (action === "unsubscribe") {
@@ -120,9 +132,9 @@ Deno.serve(async (request: Request) => {
         .update({ is_active: false, updated_at: new Date().toISOString() })
         .eq("user_id", user.id).eq("device_key", deviceKey);
       if (error) throw error;
-      return response({ success: true, subscribed: false });
+      return response({ success: true, subscribed: false }, 200, origin);
     }
-    if (device.revoked_at) return response({ error: "This device has been revoked. Please sign in again." }, 403);
+    if (device.revoked_at) return response({ error: "This device has been revoked. Please sign in again." }, 403, origin);
 
     const { data: row, error: rowError } = await admin.from("momin_push_subscriptions")
       .select("id,subscription,latitude,longitude,city,country,timezone,calculation_method,asr_school").eq("user_id", user.id)
@@ -130,7 +142,7 @@ Deno.serve(async (request: Request) => {
     if (rowError) throw rowError;
 
     if (action === "test") {
-      if (!row?.subscription) return response({ error: "This device has not enabled background notifications yet." }, 409);
+      if (!row?.subscription) return response({ error: "This device has not enabled background notifications yet." }, 409, origin);
       await sendOne(row.subscription, {
         title: "MOMIN notification test",
         body: "Background notifications are connected to this device.",
@@ -144,15 +156,15 @@ Deno.serve(async (request: Request) => {
         icon_key: "b", route: "notifications", status: "sent", sent_at: new Date().toISOString(),
       });
       if (error) throw error;
-      return response({ success: true });
+      return response({ success: true }, 200, origin);
     }
 
-    if (action !== "register") return response({ error: "Unknown action." }, 400);
+    if (action !== "register") return response({ error: "Unknown action." }, 400, origin);
 
     const sub = body.subscription;
     if (!sub || typeof sub.endpoint !== "string" || !allowedEndpoint(sub.endpoint) ||
         !sub.keys || typeof sub.keys.p256dh !== "string" || typeof sub.keys.auth !== "string") {
-      return response({ error: "The browser returned an invalid push subscription." }, 400);
+      return response({ error: "The browser returned an invalid push subscription." }, 400, origin);
     }
 
     const prefs = body.preferences && typeof body.preferences === "object" ? body.preferences : {};
@@ -224,9 +236,9 @@ Deno.serve(async (request: Request) => {
       success: true, subscribed: true, subscription_id: saved.id,
       location_ready: hasCoords || !!(city && country),
       message: hasCoords || (city && country) ? "Background notifications are enabled." : "Notifications are enabled, but add your location in MOMIN for accurate prayer times.",
-    });
+    }, 200, origin);
   } catch (error) {
     console.error("momin-push-register:", error);
-    return response({ error: error instanceof Error ? error.message : "Push registration failed." }, 500);
+    return response({ error: error instanceof Error ? error.message : "Push registration failed." }, 500, origin);
   }
 });

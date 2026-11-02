@@ -46,6 +46,9 @@ has(bridge, 'from("momin_user_notifications")', "Server-persisted Admin inbox re
 has(bridge, "markAllInboxRead:async function()", "Mark all read action");
 has(bridge, 'pushApi("mark_all_read"', "Server-persisted mark all reminder reads");
 has(bridge, "refreshInboxForLifecycle(true)", "Inbox refresh on app lifecycle");
+has(bridge, 'loading Admin inbox independently', "Admin inbox is not blocked by unavailable mobile push inbox");
+has(bridge, 'client.from("momin_user_notifications")', "Admin inbox is queried independently of Web Push");
+
 has(bridge, "momin:auth-state-changed", "Inbox refresh on sign-in");
 has(bridge, "read_at:item.read_at||null", "Push delivery read timestamp");
 has(pushRegister, 'if (action === "mark_all_read")', "Authenticated mark-all read endpoint");
