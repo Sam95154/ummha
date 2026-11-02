@@ -46,6 +46,6 @@ jobs:
         with:
           deno-version: v2.x
       - name: Type-check FCM registration function
-        run: deno check --no-lock supabase/functions/momin-fcm-register/index.ts
+        run: deno check --node-modules-dir=auto --no-lock supabase/functions/momin-fcm-register/index.ts
       - name: Type-check Admin FCM sender
-        run: deno check --no-lock supabase/functions/momin-admin-api/index.ts
+        run: deno check --node-modules-dir=auto --no-lock supabase/functions/momin-admin-api/index.ts
