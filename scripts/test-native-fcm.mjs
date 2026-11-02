@@ -50,7 +50,6 @@ contains(registerFunction, 'auth.getUser()', "Server-side user authentication");
 contains(registerFunction, 'from("momin_devices")', "Registered device ownership check");
 contains(registerFunction, 'from("momin_fcm_tokens")', "Private token write");
 contains(registerFunction, 'onConflict: "fcm_token"', "Token refresh/upsert behavior");
-excludes(registerFunction, "SUPABASE_SERVICE_ROLE_KEY\");\\nconst SUPABASE_SERVICE_ROLE_KEY = \"", ""); // no-op guard for source formatting
 
 contains(migration, "enable row level security", "FCM table RLS");
 contains(migration, "revoke all on public.momin_fcm_tokens from anon, authenticated", "Token table client access revocation");
