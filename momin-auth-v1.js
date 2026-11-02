@@ -163,11 +163,12 @@
   async function updateSession(session){
     if(!profileApi)return;
     if(!session||!session.user){
-      lastUserId=null;profileApi.clearSession();return;
+      lastUserId=null;profileApi.clearSession();try{window.dispatchEvent(new CustomEvent("momin:auth-state-changed",{detail:{user:null}}))}catch(_){}return;
     }
     var user=session.user;
     lastUserId=user.id;
     profileApi.setSession({user:user,access_token:session.access_token});
+    try{window.dispatchEvent(new CustomEvent("momin:auth-state-changed",{detail:{user:{id:user.id}}}))}catch(_){}
     if(syncInFlight)return;
     syncInFlight=true;
     try{
