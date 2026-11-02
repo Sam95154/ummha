@@ -103,12 +103,18 @@
     await pushApi("test",{});try{await refreshPushInbox()}catch(_){}return true;
   }
   async function refreshPushInbox(){
-    var previous=readInbox(),readIds={};
+    var previous=readInbox(),readIds={},items=[];
     previous.forEach(function(item){if(item&&item.inboxId&&item.unread===false)readIds[String(item.inboxId)]=true;});
-    var result=await pushApi("inbox",{}),items=(result.data&&result.data.items||[]).map(function(item){
-      var at=item.sent_at||item.created_at||new Date().toISOString(),date=new Date(at),id=item.id||null;
-      return {t:item.title||"MOMIN reminder",s:item.body||"",w:date.toLocaleDateString([],{month:"short",day:"numeric"}),i:item.icon_key||"b",at:at,route:item.route||"home",image:item.image_url||null,inboxId:id,read_at:item.read_at||null,unread:id?(item.read_at?false:!readIds[String(id)]):true};
-    });
+    /* Reminder/Web Push inbox is optional for showing Admin announcements.
+       A missing push subscription or mobile WebView origin must never block
+       the authenticated Admin inbox query below. */
+    try{
+      var result=await pushApi("inbox",{});
+      items=(result.data&&result.data.items||[]).map(function(item){
+        var at=item.sent_at||item.created_at||new Date().toISOString(),date=new Date(at),id=item.id||null;
+        return {t:item.title||"MOMIN reminder",s:item.body||"",w:date.toLocaleDateString([],{month:"short",day:"numeric"}),i:item.icon_key||"b",at:at,route:item.route||"home",image:item.image_url||null,inboxId:id,read_at:item.read_at||null,unread:id?(item.read_at?false:!readIds[String(id)]):true};
+      });
+    }catch(error){console.warn("MOMIN reminder inbox unavailable; loading Admin inbox independently:",error&&error.message||error);}
     /* Admin announcements are persisted per user in Supabase and are also shown
        in the same MOMIN inbox, including when push permission is disabled. */
     try{
