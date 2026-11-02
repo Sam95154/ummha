@@ -106,6 +106,16 @@ for (const file of [
   assert.ok(content.includes("20261103-device-responsive-v1"), file + " iframe cache version was not refreshed.");
 }
 
+const sharedShell = fs.readFileSync(path.join(root, "momin-shared-shell-v1.js"), "utf8");
+assert.ok(sharedShell.includes("data-momin-device"), "Automatic device-width detection is missing.");
+assert.ok(sharedShell.includes("syncDeviceClass"), "Device width synchronization is missing.");
+assert.ok(sharedShell.includes('window.addEventListener("resize",syncDeviceClass'), "Device detection must update when the viewport resizes.");
+assert.ok(sharedShell.includes('window.addEventListener("orientationchange",syncDeviceClass'), "Device detection must update when the screen rotates.");
+assert.ok(/body\\.momin-app-shell-active #view\\.content\\{\\s*width:calc\\(100% - 48px\\)!important/.test(sharedShell),
+  "Only the outer app canvas should receive tablet side gutters.");
+assert.ok(/body\\.momin-app-shell-active \\.app\\{\\s*width:100%!important/.test(sharedShell),
+  "The nested app must fill the content canvas without a second gutter.");
+
 const capacitorPrep = fs.readFileSync(path.join(root, "scripts/prepare-android-web.mjs"), "utf8");
 assert.ok(capacitorPrep.includes('copyAppFiles(root, webDir)'), "Android bundle must copy the shared stylesheet with app assets.");
 
