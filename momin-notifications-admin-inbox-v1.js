@@ -236,6 +236,12 @@
     var value=parseJSON(get("noor-notification-inbox","[]"),[]);
     return Array.isArray(value)?value:[];
   }
+  function unreadCount(){
+    return readInbox().filter(function(item){return item&&item.unread!==false&&item.read!==true}).length;
+  }
+  function notifyInboxChanged(){
+    try{window.dispatchEvent(new CustomEvent("momin:notifications-updated"))}catch(_){}
+  }
   function writeInbox(items){put("noor-notification-inbox",JSON.stringify(items.slice(0,100)))}
   function record(title,body,icon){
     var now=new Date(),items=readInbox();
@@ -395,26 +401,46 @@
     syncPushPreferences:syncPushPreferences,
     sendPushTest:sendPushTest,
     refreshInbox:refreshPushInbox,
+    unreadCount:unreadCount,
     markInboxRead:function(id){
-      var key=String(id||""),items=readInbox(),found=false;
-      items=items.map(function(item){
-        if(String(item&&item.inboxId||"")===key){
-          item.unread=false;item.read=true;found=true;
-        }
-        return item;
-      });
-      if(found){writeInbox(items);try{window.dispatchEvent(new CustomEvent("momin:notifications-updated"))}catch(_){}}
+      var key=String(id||""),items=readInbox(),found=items.some(function(item){return String(item&&item.inboxId||"")===key});
+      if(!found)return Promise.resolve(false);
+      var markLocal=function(){
+        var next=readInbox().map(function(item){
+          if(String(item&&item.inboxId||"")===key){item.unread=false;item.read=true;}
+          return item;
+        });
+        writeInbox(next);notifyInboxChanged();return true;
+      };
       if(key.indexOf("admin:")===0&&window.mominSupabase){
         var rowId=key.slice(6);
         return window.mominSupabase.auth.getUser().then(function(auth){
           var user=auth&&auth.data&&auth.data.user;
-          if(!user)return found;
+          if(!user)throw new Error("Sign in to MOMIN to update notification read state.");
           return window.mominSupabase.from("momin_user_notifications")
             .update({read_at:new Date().toISOString()}).eq("id",rowId).eq("user_id",user.id)
-            .then(function(result){if(result.error)console.warn("MOMIN notification read state:",result.error.message);return found;});
+            .then(function(result){
+              if(result.error)throw result.error;
+              return markLocal();
+            });
         });
       }
-      return Promise.resolve(found);
+      return Promise.resolve(markLocal());
+    },
+    markAllInboxRead:async function(){
+      var client=window.mominSupabase,now=new Date().toISOString();
+      if(client&&client.auth){
+        var auth=await client.auth.getUser(),user=auth&&auth.data&&auth.data.user;
+        if(user){
+          var result=await client.from("momin_user_notifications")
+            .update({read_at:now}).eq("user_id",user.id).is("read_at",null);
+          if(result.error)throw result.error;
+        }
+      }
+      var items=readInbox(),count=items.filter(function(item){return item&&item.unread!==false&&item.read!==true}).length;
+      items=items.map(function(item){item.unread=false;item.read=true;return item;});
+      writeInbox(items);notifyInboxChanged();
+      return count;
     },
     disableBackgroundPush:disableBackgroundPush,
     sendTest:function(){
@@ -431,6 +457,27 @@
     navigate:navigate,
     currentRoute:currentRoute
   };
+
+  var inboxRefreshInFlight=null,lastInboxRefreshAt=0;
+  function refreshInboxForLifecycle(force){
+    if(document.visibilityState==="hidden")return;
+    var now=Date.now();
+    if(!force&&now-lastInboxRefreshAt<8000)return;
+    if(inboxRefreshInFlight)return;
+    lastInboxRefreshAt=now;
+    inboxRefreshInFlight=refreshPushInbox().catch(function(error){
+      console.warn("MOMIN lifecycle inbox refresh:",error&&error.message||error);
+    }).finally(function(){inboxRefreshInFlight=null});
+  }
+  window.addEventListener("load",function(){window.setTimeout(function(){refreshInboxForLifecycle(true)},250)},{once:true});
+  window.addEventListener("momin:auth-state-changed",function(event){
+    var user=event&&event.detail&&event.detail.user;
+    if(user)refreshInboxForLifecycle(true);
+    else{writeInbox([]);notifyInboxChanged();}
+  });
+  window.addEventListener("momin:app-resumed",function(){refreshInboxForLifecycle(true)});
+  window.addEventListener("focus",function(){refreshInboxForLifecycle(false)});
+  document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshInboxForLifecycle(false)});
 
   window.saveNotificationPrefsV1=async function(){
     var master=document.getElementById("settingsPrayerNotificationsV1"),prefs=readPrefs();
