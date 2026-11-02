@@ -15,6 +15,9 @@ on:
       - "momin-inspiration-page-v1.js"
       - "momin-notifications-bridge-v1.js"
       - "momin-notifications-admin-inbox-v1.js"
+      - "momin-giving-complaints-v1.js"
+      - "supabase/migrations/20261102152955_momin_giving_user_read_access.sql"
+      - "scripts/test-giving-sync.mjs"
       - "journey-page-v1.html"
       - "mosques-page-v1.html"
       - "duas-page-v2.html"
@@ -58,3 +61,5 @@ jobs:
           node-version: "22"
       - name: Run tablet responsive QA
         run: npm run test:tablet
+      - name: Run Admin-to-User Giving integration QA
+        run: npm run test:giving
