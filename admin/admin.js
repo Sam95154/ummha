@@ -723,6 +723,11 @@
     const input = event.target;
     const status = document.getElementById("complaint-user-search-status");
     resetComplaintUserSelection();
+    const searchButton = modalRoot.querySelector('[data-action="search-complaint-user"]');
+    if (searchButton) {
+      searchButton.disabled = false;
+      searchButton.textContent = "Search";
+    }
     clearTimeout(complaintSearchTimer);
     const requestId = ++complaintSearchRequest;
     complaintSuggestionUsers = [];
