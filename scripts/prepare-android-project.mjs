@@ -26,6 +26,20 @@ if (fs.existsSync(firebaseConfigSource)) {
   );
 }
 
+const rootGradlePath = path.join(androidDir, "build.gradle");
+const appGradlePath = path.join(androidDir, "app", "build.gradle");
+if (!fs.existsSync(rootGradlePath) || !fs.existsSync(appGradlePath)) {
+  throw new Error("The generated Android project is missing its expected Groovy Gradle files.");
+}
+const rootGradle = fs.readFileSync(rootGradlePath, "utf8");
+const appGradle = fs.readFileSync(appGradlePath, "utf8");
+if (!rootGradle.includes("com.google.gms:google-services")) {
+  throw new Error("The generated Android Gradle project does not declare the Google Services plugin.");
+}
+if (!appGradle.includes("com.google.gms.google-services")) {
+  throw new Error("The generated Android app Gradle file does not apply the Google Services plugin.");
+}
+
 const manifestPath = path.join(androidDir, "app", "src", "main", "AndroidManifest.xml");
 if (!fs.existsSync(manifestPath)) {
   throw new Error("Capacitor did not generate AndroidManifest.xml.");
