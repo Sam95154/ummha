@@ -150,6 +150,11 @@
     try{
       await syncProfile(user);
       await inspectCurrentDevice(user,session);
+      if(window.MominNativePush&&localStorage.getItem("momin-push-enabled")==="true"){
+        window.MominNativePush.syncIfEnabled().catch(function(error){
+          console.warn("MOMIN FCM token refresh:",error&&error.message||error);
+        });
+      }
       var devices=await profileApi.getDevices();
       var result=await supabase.from("momin_devices").select("id,device_key,device_name,last_seen_at,is_current,revoked_at")
         .eq("user_id",user.id).is("revoked_at",null).order("last_seen_at",{ascending:false});
