@@ -63,6 +63,9 @@ contains(adminFunction, "FCM_SERVICE_ACCOUNT_JSON", "Server-only Firebase creden
 contains(adminFunction, "https://fcm.googleapis.com/v1/projects/", "FCM HTTP v1 endpoint");
 contains(adminFunction, "announcements_enabled", "User announcement preference filter");
 contains(adminFunction, "UNREGISTERED", "Stale FCM token handling");
+contains(adminFunction, "const linkedAccount = data?.momin_admin_accounts;", "Admin session account relationship read");
+contains(adminFunction, "Array.isArray(linkedAccount) ? linkedAccount[0] : linkedAccount", "Admin session relationship object/array compatibility");
+contains(adminFunction, "account?.is_active", "Admin account active-state validation");
 contains(adminFunction, "2419200", "Four-week offline delivery TTL");
 contains(adminFunction, '.select("id,user_id,device_key,fcm_token")', "FCM device-key selection");
 contains(adminFunction, '.from("momin_devices")', "Active device ownership lookup");

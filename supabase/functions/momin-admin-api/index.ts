@@ -80,7 +80,11 @@ async function requireAdmin(request: Request) {
   const { data, error } = await db.from("momin_admin_sessions")
     .select("token_hash,admin_id,expires_at,revoked_at,momin_admin_accounts!inner(id,login_id,display_name,is_active,force_password_change)")
     .eq("token_hash", tokenHash).is("revoked_at", null).gt("expires_at", new Date().toISOString()).maybeSingle();
-  const account = data?.momin_admin_accounts?.[0];
+  // PostgREST returns a single object for this many-to-one foreign-key relation.
+  // Accept an array as well so session validation remains compatible with any
+  // generated relationship shape returned by older/deployed client schemas.
+  const linkedAccount = data?.momin_admin_accounts;
+  const account = Array.isArray(linkedAccount) ? linkedAccount[0] : linkedAccount;
   if (error || !data || !account?.is_active) {
     return { error: "Admin session is invalid or expired. Please sign in again.", status: 401 as const };
   }
