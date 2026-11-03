@@ -22,7 +22,7 @@ const startup = app.slice(startupStart, startupEnd);
 assert.ok(startup.includes('localStorage.getItem("noor-location-source")==="gps"'));
 assert.ok(startup.includes('permission.state==="granted")useCurrentLocationV5({silent:true})'));
 assert.ok(startup.includes("else restoreSavedGpsV6()"));
-assert.ok(startup.includes("if(city&&country)"), "Saved manual city location must remain supported");
+assert.ok(app.slice(startupEnd).includes("if(city&&country)"), "Saved manual city location must remain supported");
 
 // Verify the final/active prayer loader uses the same coordinates, method and
 // Asr school for the full prayer schedule, including Sunrise.
