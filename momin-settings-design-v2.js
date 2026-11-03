@@ -76,7 +76,7 @@ function initState(){
   nIsha:get("noor-notify-isha",get("noor-notifications","true"))!=="false",
   lead:get("noor-prayer-reminder-minutes","0"),
   festivals:get("noor-islamic-event-reminders","false")==="true",
-  admin:get("momin-announcements-enabled","false")==="true",
+  admin:true,
   translation:get("noor-quran-edition","en.sahih"),
   arSize:qSize(),
   showTr:get("noor-quran-show-translation-v8","true")!=="false",
@@ -97,6 +97,7 @@ function initState(){
   lang:get("noor-language","en"),
   onlineTr:get("momin-privacy-online-translation","true")!=="false"
  };
+ try{localStorage.setItem("momin-announcements-enabled","true")}catch(_){}
  saved=Object.assign({},defaults);
  draft=Object.assign({},saved);
 }
@@ -110,8 +111,8 @@ function label(title,desc){return '<div class="rl"><b>'+esc(title)+'</b>'+(desc?
 function selectRow(k,title,desc,items,id){
  return '<div class="row">'+label(title,desc)+'<div class="sel"><select '+(id?'id="'+id+'" ':"")+'data-k="'+k+'" aria-label="'+esc(title)+'">'+optionHtml(items,draft[k])+'</select><svg class="i"><use href="#ic-chev"/></svg></div></div>';
 }
-function switchRow(k,title,desc,dep,id){
- return '<div class="row sw"'+(dep?' data-dep="'+dep+'"':"")+'>'+label(title,desc)+'<button type="button" class="swt" '+(id?'id="'+id+'" ':"")+'role="switch" data-k="'+k+'" aria-checked="'+!!draft[k]+'" aria-label="'+esc(title)+'"><i></i></button></div>';
+function switchRow(k,title,desc,dep,id,locked){
+ return '<div class="row sw"'+(dep?' data-dep="'+dep+'"':"")+'>'+label(title,desc)+'<button type="button" class="swt" '+(id?'id="'+id+'" ':"")+(locked?'disabled aria-disabled="true" tabindex="-1" ':"")+'role="switch" data-k="'+k+'" aria-checked="'+!!draft[k]+'" aria-label="'+esc(title)+'"><i></i></button></div>';
 }
 function textRow(k,title,desc,placeholder,id){
  return '<div class="row">'+label(title,desc)+'<input class="txt" '+(id?'id="'+id+'" ':"")+'data-k="'+k+'" type="text" autocomplete="off" placeholder="'+esc(placeholder||"")+'" value="'+esc(draft[k]||"")+'" aria-label="'+esc(title)+'"></div>';
@@ -180,8 +181,8 @@ function buildSections(){
   selectRow("lead","Advance reminder","A normal alert before prayer; it never plays the full Azan",[["0","At prayer time only"],["5","5 minutes before"],["10","10 minutes before"],["15","15 minutes before"],["30","30 minutes before"]],"settingsReminderMinutesV1")+
   note("<b>2 · Festival and Islamic-date reminders</b><br>Normal phone notifications for occasions such as Ramadan, Ashura and the two Eids. They do not play the Azan.")+
   switchRow("festivals","Festival reminders","Receive Islamic occasion reminders on this phone","","settingsFestivalNotificationsV1")+
-  note("<b>3 · Admin announcements</b><br>Admin announcements have their own phone notification category and never play the Azan. Remote delivery will be enabled when the replacement MOMIN admin message service is connected.")+
-  switchRow("admin","Admin notifications","Allow announcements from the MOMIN admin service","","settingsAdminNotificationsV1")+
+  note("<b>3 · Admin announcements</b><br>Important announcements from MOMIN are always enabled and cannot be turned off. They are separate from prayer reminders and never play the Azan.")+
+  switchRow("admin","Admin notifications","Required for important MOMIN updates · Always on","","settingsAdminNotificationsV1",true)+
   saveButton("Save notification settings","notif")+
   actions(button("Send test notification","ghost","testnote")+button("Preview Makkah Azan","ghost","azan"))});
  sections.push({id:"quran",ic:"book",title:"Quran Reading & Audio",sub:"Translation, text size, reciter and playback",body:
@@ -325,7 +326,8 @@ function applyNotifications(){
   var el=document.getElementById("settingsNotify-"+p[0]);if(el)el.checked=!!draft[p[1]];
  });
  var festivals=document.getElementById("settingsFestivalNotificationsV1");if(festivals)festivals.setAttribute("aria-checked",!!draft.festivals);
- var admin=document.getElementById("settingsAdminNotificationsV1");if(admin)admin.setAttribute("aria-checked",!!draft.admin);
+ draft.admin=true;try{localStorage.setItem("momin-announcements-enabled","true")}catch(_){}
+  var admin=document.getElementById("settingsAdminNotificationsV1");if(admin){admin.setAttribute("aria-checked","true");admin.disabled=true;admin.setAttribute("aria-disabled","true");}
  var sound=document.getElementById("settingsAdhanSound");if(sound)sound.value=draft.sound;
  var lead=document.getElementById("settingsReminderMinutesV1");if(lead)lead.value=String(draft.lead);
  if(typeof window.saveNotificationPrefsV1==="function"){window.saveNotificationPrefsV1();return true;}
@@ -406,7 +408,8 @@ window.refreshMominSettingsProfileV2=function(){
  if(window.MominSharedShellV1&&typeof window.MominSharedShellV1.sync==="function")window.MominSharedShellV1.sync();
 };
 function updateDraft(k,v){
- draft[k]=v;if(k==="calc")window.settingsMethodModeDraftV6=v==="auto"?"auto":"manual";
+  if(k==="admin")v=true;
+  draft[k]=v;if(k==="calc")window.settingsMethodModeDraftV6=v==="auto"?"auto":"manual";
  refresh();
 }
 function openSheet(title,body,ok,action,danger){
