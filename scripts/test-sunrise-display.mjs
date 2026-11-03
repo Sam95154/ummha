@@ -17,6 +17,19 @@ assert.match(home, /aria-label="Sunrise time, informational only"/);
 // The tracker still counts only the five salah names.
 assert.match(home, /function prayerNames\(\)\{return \['Fajr','Dhuhr','Asr','Maghrib','Isha'\];\}/);
 assert.match(home, /function doneCount\(\)\{var done=doneMap\(\);return prayerNames\(\)\.filter/);
+const trackerStart = home.indexOf("function trackerMarkup(state){");
+const featureStart = home.indexOf("function featureMarkup(){", trackerStart);
+assert.ok(trackerStart >= 0 && featureStart > trackerStart, "Home prayer tracker renderer must exist");
+const homeTracker = home.slice(trackerStart, featureStart);
+assert.match(homeTracker, /var sunrise=parsePrayerDate\(timings\.Sunrise,0\)/);
+assert.ok(homeTracker.includes('class="row sunrise-info" role="group"'), "Home tracker must insert Sunrise as an informational row");
+const homeSunriseStart = homeTracker.indexOf("rows.splice(1,0,");
+const homeSunriseEnd = homeTracker.indexOf(");", homeSunriseStart);
+assert.ok(homeSunriseStart >= 0 && homeSunriseEnd > homeSunriseStart, "Home tracker Sunrise row must be present");
+const homeSunriseRow = homeTracker.slice(homeSunriseStart, homeSunriseEnd);
+assert.ok(homeSunriseRow.includes("Sunrise"));
+assert.doesNotMatch(homeSunriseRow, /<button|role="checkbox"|class="chk"|togglePrayer/);
+
 
 // Prayer page renders Sunrise as a separate informational row, not a checkbox.
 assert.match(prayer, /var P=\[\],sunriseM=null;/);
@@ -37,7 +50,7 @@ assert.doesNotMatch(sunriseRowMarkup, /<button|role="checkbox"|class="ck"|toggle
 assert.match(prayer, /function stats\(fx\)\{var n=done\.length;.*n\+" of 5"/);
 
 // All client entry points use the new cache version so the UI refreshes.
-assert.match(index, /momin-home-design-v2\.js\?v=20261103-sunrise-time-v1/);
+assert.match(index, /momin-home-design-v2\.js\?v=20261103-sunrise-home-tracker-v1/);
 assert.match(index, /momin-prayer-page-v1\.js\?v=20261103-sunrise-time-v1/);
 assert.match(prayerPage, /prayers-page-v1\.html\?embed=1&amp;v=20261103-sunrise-time-v1/);
 
