@@ -24,6 +24,27 @@ const excludedNames = new Set([
   ".gitignore"
 ]);
 
+
+function configureNativePkceAuth(source, fileName) {
+  // The native callback handler exchanges an authorization code, so the
+  // Capacitor WebView must initiate OAuth with PKCE. Keep the website's
+  // existing implicit flow unchanged.
+  const existing = 'auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}';
+  const native = 'auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:(window.MominNative&&window.MominNative.isNative)?"pkce":"implicit"}';
+  if (source.includes(native)) return source;
+
+  const occurrences = source.split(existing).length - 1;
+  if (occurrences !== 1) {
+    throw new Error("Could not safely configure native PKCE in " + fileName + "; expected exactly one Supabase auth config, found " + occurrences + ".");
+  }
+
+  const updated = source.replace(existing, native);
+  if (!updated.includes(native)) {
+    throw new Error("Native PKCE configuration was not applied to " + fileName + ".");
+  }
+  return updated;
+}
+
 function copyAppFiles(source, destination) {
   fs.mkdirSync(destination, { recursive: true });
   for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
@@ -100,6 +121,7 @@ if (!loginHtml.includes(oldLoginOAuth)) {
   throw new Error("Could not safely locate the Google sign-in block in login.html; refusing to patch it.");
 }
 loginHtml = loginHtml.replace(oldLoginOAuth, nativeLoginOAuth);
+loginHtml = configureNativePkceAuth(loginHtml, "login.html");
 fs.writeFileSync(loginPath, loginHtml, "utf8");
 
 const authPath = path.join(webDir, "momin-auth-v1.js");
@@ -116,6 +138,7 @@ if (!authJs.includes(oldOAuth)) {
   throw new Error("Could not safely locate the Google sign-in block in momin-auth-v1.js; refusing to patch it.");
 }
 authJs = authJs.replace(oldOAuth, nativeOAuth);
+authJs = configureNativePkceAuth(authJs, "momin-auth-v1.js");
 fs.writeFileSync(authPath, authJs, "utf8");
 
 if (!fs.existsSync(path.join(webDir, "index.html"))) {
