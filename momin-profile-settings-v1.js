@@ -30,17 +30,26 @@
     var provider=appMeta.provider||user.provider||
       (identities[0]&&identities[0].provider)||
       (firebaseProviders[0]&&String(firebaseProviders[0].providerId||"").replace(".com",""))||"";
-    var name=user.name||user.displayName||meta.full_name||meta.name||meta.display_name||"";
-    var email=user.email||"";
-    var avatar=meta.avatar_url||meta.picture||meta.photo_url||user.picture||user.photoURL||"";
-    var verified=!!(user.email_verified||user.emailVerified||user.email_confirmed_at||meta.email_verified);
+    var saved=input.profile||user.profile||{};
+    var name=saved.display_name||user.name||user.displayName||meta.full_name||meta.name||meta.display_name||"";
+    var email=user.email||saved.email||"";
+    var avatar=saved.avatar_url||saved.profile_image_url||meta.avatar_url||meta.picture||meta.photo_url||user.picture||user.photoURL||"";
+    var verified=!!(saved.email_verified||user.email_verified||user.emailVerified||user.email_confirmed_at||meta.email_verified);
+    var googleLinked=String(saved.auth_provider||provider||"").toLowerCase()==="google"||
+      identities.some(function(identity){return String(identity&&identity.provider||"").toLowerCase()==="google";});
     return {
       id:String(user.id||user.sub||""),
       name:String(name||"").trim(),
       email:String(email||"").trim(),
       avatar:String(avatar||""),
-      provider:String(provider||"").toLowerCase(),
-      emailVerified:verified
+      provider:String(saved.auth_provider||provider||"").toLowerCase(),
+      googleLinked:googleLinked,
+      emailVerified:verified,
+      birthday:String(saved.birthday||""),
+      gender:String(saved.gender||""),
+      profileImagePath:String(saved.profile_image_path||""),
+      profileCompleted:!!saved.profile_completed,
+      publicUserId:String(saved.public_user_id||"")
     };
   }
   function firstInitial(){

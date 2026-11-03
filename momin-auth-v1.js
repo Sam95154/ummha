@@ -43,18 +43,38 @@
     )||"";
   }
   async function syncProfile(user){
-    if(!user)return;
+    if(!user)return null;
     var meta=user.user_metadata||{};
-    var {error}=await supabase.from("momin_profiles").upsert({
+    var existingResult=await supabase.from("momin_profiles")
+      .select("display_name,email,avatar_url,profile_image_path,birthday,gender,profile_completed,profile_completed_at,public_user_id,account_status,announcements_enabled,phone,created_at")
+      .eq("user_id",user.id).maybeSingle();
+    if(existingResult.error)throw existingResult.error;
+    var existing=existingResult.data||{};
+    var avatar=existing.avatar_url||meta.avatar_url||meta.picture||meta.photo_url||null;
+    var payload={
       user_id:user.id,
-      display_name:userName(user),
-      email:user.email||null,
-      avatar_url:meta.avatar_url||meta.picture||meta.photo_url||null,
+      display_name:existing.display_name||userName(user),
+      email:user.email||existing.email||null,
+      avatar_url:avatar,
+      profile_image_path:existing.profile_image_path||null,
+      birthday:existing.birthday||null,
+      gender:existing.gender||null,
+      profile_completed:!!existing.profile_completed,
+      profile_completed_at:existing.profile_completed_at||null,
+      public_user_id:existing.public_user_id||undefined,
+      account_status:existing.account_status||"Active",
+      announcements_enabled:!!existing.announcements_enabled,
+      phone:existing.phone||null,
+      created_at:existing.created_at||undefined,
       auth_provider:providerFor(user),
-      email_verified:!!user.email_confirmed_at,
+      email_verified:!!(user.email_confirmed_at||meta.email_verified),
       updated_at:new Date().toISOString()
-    },{onConflict:"user_id"});
-    if(error)console.warn("MOMIN profile sync:",error.message);
+    };
+    var saved=await supabase.from("momin_profiles").upsert(payload,{onConflict:"user_id"})
+      .select("user_id,display_name,email,avatar_url,profile_image_path,auth_provider,email_verified,birthday,gender,profile_completed,profile_completed_at,public_user_id,account_status,phone,created_at,updated_at")
+      .single();
+    if(saved.error)throw saved.error;
+    return saved.data;
   }
   function refreshNativeFcmWhenReady(){
     if(localStorage.getItem("momin-push-enabled")!=="true")return;
@@ -167,15 +187,15 @@
     }
     var user=session.user;
     lastUserId=user.id;
-    profileApi.setSession({user:user,access_token:session.access_token});
+    profileApi.setSession({user:user,access_token:session.access_token},[]);
     try{window.dispatchEvent(new CustomEvent("momin:auth-state-changed",{detail:{user:{id:user.id}}}))}catch(_){}
     if(syncInFlight)return;
     syncInFlight=true;
     try{
-      await syncProfile(user);
+      var savedProfile=await syncProfile(user);
+      if(savedProfile)profileApi.setSession({user:user,profile:savedProfile,access_token:session.access_token},[]);
       await inspectCurrentDevice(user,session);
       refreshNativeFcmWhenReady();
-      var devices=await profileApi.getDevices();
       var result=await supabase.from("momin_devices").select("id,device_key,device_name,last_seen_at,is_current,revoked_at")
         .eq("user_id",user.id).is("revoked_at",null).order("last_seen_at",{ascending:false});
       if(!result.error){

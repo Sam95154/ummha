@@ -190,7 +190,7 @@ async function listUsers(body: Record<string, unknown>) {
   const query = String(body.q || "").trim().slice(0, 100);
   const status = String(body.status || "all");
   let request = db.from("momin_profiles")
-    .select("user_id,public_user_id,display_name,email,phone,account_status,created_at,avatar_url", { count: "exact" })
+    .select("user_id,public_user_id,display_name,email,phone,account_status,created_at,avatar_url,birthday,gender,auth_provider,email_verified,profile_completed", { count: "exact" })
     .order("created_at", { ascending: false })
     .range((page - 1) * pageSize, page * pageSize - 1);
   if (status === "Active" || status === "Inactive") request = request.eq("account_status", status);
@@ -210,6 +210,11 @@ async function listUsers(body: Record<string, unknown>) {
     last_sign_in_at: null,
     status: p.account_status || "Active",
     avatar_url: p.avatar_url || null,
+    birthday: p.birthday || null,
+    gender: p.gender || null,
+    auth_provider: p.auth_provider || "email",
+    email_verified: !!p.email_verified,
+    profile_completed: !!p.profile_completed,
   }));
   return { users, page, page_size: pageSize, total: count || 0, has_more: page * pageSize < (count || 0) };
 }
@@ -967,7 +972,7 @@ Deno.serve(async (request: Request) => {
           { data: inbox, error: inboxError }, { data: contributions, error: contributionError },
           { data: complaints, error: complaintsError }] = await Promise.all([
           db.auth.admin.getUserById(id),
-          db.from("momin_profiles").select("user_id,public_user_id,display_name,email,avatar_url,account_status,created_at,updated_at,profile_completed").eq("user_id", id).maybeSingle(),
+          db.from("momin_profiles").select("user_id,public_user_id,display_name,email,avatar_url,profile_image_path,birthday,gender,auth_provider,email_verified,account_status,created_at,updated_at,profile_completed,profile_completed_at").eq("user_id", id).maybeSingle(),
           db.from("momin_user_notifications").select("id,title,message,route,read_at,created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
           db.from("momin_contributions").select("transaction_ref,campaign_id,amount,currency,fund_category,payment_status,receipt_status,created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
           db.from("momin_complaints").select("id,ticket_id,category,subject,priority,status,created_at,updated_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
@@ -981,7 +986,12 @@ Deno.serve(async (request: Request) => {
             email: authData.user.email || "", phone: authData.user.phone || "",
             registered_at: authData.user.created_at, last_active: authData.user.last_sign_in_at || null,
             status: profile?.account_status || "Active", avatar_url: profile?.avatar_url || null,
+            profile_image_path: profile?.profile_image_path || null,
+            birthday: profile?.birthday || null, gender: profile?.gender || null,
+            auth_provider: profile?.auth_provider || authData.user.app_metadata?.provider || "email",
+            email_verified: !!(profile?.email_verified || authData.user.email_confirmed_at),
             profile_completed: !!profile?.profile_completed,
+            profile_completed_at: profile?.profile_completed_at || null,
           },
           notifications: inbox || [], contributions: contributions || [], complaints: complaints || [],
         }, 200, origin);

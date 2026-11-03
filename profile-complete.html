@@ -226,19 +226,39 @@ async function saveProfile(){
  if(dob){var d=new Date(dob+"T00:00:00"),today=new Date();today.setHours(23,59,59,999);if(Number.isNaN(d.getTime())||d.getFullYear()<1900||d>today){show("Enter a valid birthday that is not in the future.","error");return}}
  var button=$("save");button.disabled=true;button.textContent="Saving…";
  try{
+  var previousImagePath=profile&&profile.profile_image_path||null;
   var avatar=await uploadAvatar();
   var meta=await client.auth.updateUser({data:{full_name:name,name:name,display_name:name}});
   if(meta.error)throw meta.error;
+  var now=new Date().toISOString();
   var data={
    user_id:user.id,display_name:name,email:user.email||null,
-   avatar_url:avatar||null,auth_provider:(user.app_metadata&&user.app_metadata.provider)||"email",
+   avatar_url:avatar||(profile&&profile.avatar_url)||null,auth_provider:(user.app_metadata&&user.app_metadata.provider)||"email",
    email_verified:verified(user),birthday:dob,gender:gender,
-   profile_image_path:uploadedAvatarPath||(profile&&profile.profile_image_path)||null,
-   profile_completed:true,profile_completed_at:new Date().toISOString(),updated_at:new Date().toISOString()
+   profile_image_path:uploadedAvatarPath||previousImagePath,
+   public_user_id:(profile&&profile.public_user_id)||undefined,
+   account_status:(profile&&profile.account_status)||"Active",
+   announcements_enabled:profile?!!profile.announcements_enabled:false,
+   phone:(profile&&profile.phone)||null,
+   created_at:(profile&&profile.created_at)||undefined,
+   profile_completed:true,
+   profile_completed_at:(profile&&profile.profile_completed_at)||now,
+   updated_at:now
   };
-  var result=await client.from("momin_profiles").upsert(data,{onConflict:"user_id"});
+  var result=await client.from("momin_profiles").upsert(data,{onConflict:"user_id"})
+   .select("user_id,public_user_id,display_name,email,avatar_url,profile_image_path,birthday,gender,auth_provider,email_verified,profile_completed,profile_completed_at,account_status,announcements_enabled,phone,created_at,updated_at")
+   .single();
   if(result.error)throw result.error;
-  show("Profile saved. Welcome to MOMIN!","success");
+  var saved=result.data;
+  if(!saved||saved.user_id!==user.id||saved.display_name!==name||String(saved.birthday||"")!==String(dob||"")||String(saved.gender||"")!==String(gender||"")){
+   throw new Error("MOMIN could not verify that all profile details were saved. Please try again.");
+  }
+  profile=saved;
+  if(uploadedAvatarPath&&previousImagePath&&previousImagePath!==uploadedAvatarPath){
+   var cleanup=await client.storage.from("avatars").remove([previousImagePath]);
+   if(cleanup.error)console.warn("MOMIN previous avatar cleanup:",cleanup.error.message);
+  }
+  show("Profile saved. Your details are now linked to your MOMIN account.","success");
   setTimeout(goApp,500);
  }catch(error){show(error.message||"We could not save your profile. Try again.","error")}
  finally{button.disabled=false;button.textContent="Save Changes"}
