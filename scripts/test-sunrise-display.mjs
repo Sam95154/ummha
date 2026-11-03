@@ -22,7 +22,7 @@ const featureStart = home.indexOf("function featureMarkup(){", trackerStart);
 assert.ok(trackerStart >= 0 && featureStart > trackerStart, "Home prayer tracker renderer must exist");
 const homeTracker = home.slice(trackerStart, featureStart);
 assert.match(homeTracker, /var sunrise=parsePrayerDate\(timings\.Sunrise,0\)/);
-assert.ok(homeTracker.includes('rows.splice(1,0,\\'<li class="row sunrise-info" role="group"'), "Home tracker must insert Sunrise after Fajr");
+assert.ok(homeTracker.includes('class="row sunrise-info" role="group"'), "Home tracker must insert Sunrise as an informational row");
 const homeSunriseStart = homeTracker.indexOf("rows.splice(1,0,");
 const homeSunriseEnd = homeTracker.indexOf(");", homeSunriseStart);
 assert.ok(homeSunriseStart >= 0 && homeSunriseEnd > homeSunriseStart, "Home tracker Sunrise row must be present");
