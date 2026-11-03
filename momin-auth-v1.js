@@ -142,8 +142,11 @@
         form=form||{};
         var name=String(form.name||"").trim();
         var birthday=form.birthday?String(form.birthday):null;
+        var requestedEmail=String(form.email||user.email||"").trim();
+        var emailChanged=requestedEmail.toLowerCase()!==String(user.email||"").trim().toLowerCase();
         var gender=["male","female","prefer_not_to_say"].indexOf(String(form.gender||""))>=0?String(form.gender):null;
         if(name.length<2||name.length>80)throw new Error("Enter a name between 2 and 80 characters.");
+        if(emailChanged&&(requestedEmail.length>254||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(requestedEmail)))throw new Error("Enter a valid email address.");
         if(birthday){
           var dob=new Date(birthday+"T00:00:00");
           var today=new Date();today.setHours(23,59,59,999);
@@ -188,7 +191,17 @@
           var removed=await supabase.storage.from("avatars").remove([oldProfile.profile_image_path]);
           if(removed.error)console.warn("MOMIN old profile image cleanup:",removed.error.message);
         }
-        return {user:updatedAuth.data&&updatedAuth.data.user||user,profile:saved.data};
+        var emailNotice=null;
+        if(emailChanged){
+          var emailUpdate=await supabase.auth.updateUser({email:requestedEmail});
+          if(emailUpdate.error){
+            console.warn("MOMIN email change request:",emailUpdate.error.message);
+            emailNotice="Your profile was saved, but the email address was not changed. MOMIN could not send the confirmation email. Please contact Support.";
+          }else{
+            emailNotice="Your profile was saved. Please confirm the email change using the link sent to "+requestedEmail+".";
+          }
+        }
+        return {user:updatedAuth.data&&updatedAuth.data.user||user,profile:saved.data,notice:emailNotice};
       },
       listDevices:async function(){
         var {data,error}=await supabase.from("momin_devices")
