@@ -194,7 +194,7 @@ nav a[aria-current]{color:var(--gold2);font-weight:700;background:var(--soft);bo
     <div class="rows" id="rows"></div>
   </section>
 
-  <section class="card rise" style="--d:5"><h2>Updates</h2><p class="sub">Choose the updates you would like MOMIN to send. App announcements are optional and separate from prayer reminders.</p><div class="rows" id="ups"></div></section>
+  <section class="card rise" style="--d:5"><h2>Updates</h2><p class="sub">Prayer and personal reminders remain under your control. Important Admin announcements from MOMIN are always enabled.</p><div class="rows" id="ups"></div></section>
 
 
   <section class="card note rise" style="--d:6"><h2>Prayer reminders</h2><p id="mominReminderHelpV1">MOMIN can send prayer reminders while notifications are enabled.</p>
@@ -215,7 +215,7 @@ var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"
 /* ===== DATA: replace with real prayer times and the real notification inbox ===== */
 var PRAYER_NAMES=["Fajr","Dhuhr","Asr","Maghrib","Isha"];var P=PRAYER_NAMES.map(function(n){return {n:n,m:null}});
 var RECENT=[];
-var UPS=[{k:"jumuah",t:"Jumuʿah reminder",s:"A gentle reminder on Fridays",i:"cal"},{k:"adhkar",t:"Morning and evening adhkar",s:"Daily remembrance prompts",i:"mo"},{k:"dates",t:"Islamic dates and occasions",s:"Important days in the Hijri calendar",i:"bk"},{k:"announcements",t:"App announcements",s:"Optional news, giving campaigns and community updates",i:"b"}];
+var UPS=[{k:"jumuah",t:"Jumuʿah reminder",s:"A gentle reminder on Fridays",i:"cal"},{k:"adhkar",t:"Morning and evening adhkar",s:"Daily remembrance prompts",i:"mo"},{k:"dates",t:"Islamic dates and occasions",s:"Important days in the Hijri calendar",i:"bk"},{k:"announcements",t:"Admin announcements",s:"Important MOMIN updates · Always on",i:"b",required:true}];
 var LEADS=[0,5,10,15,30];
 (function updateReminderHelp(){
   try{
@@ -229,9 +229,10 @@ var LEADS=[0,5,10,15,30];
 /* ===== end of data ===== */
 function fmt(m){m=((m%1440)+1440)%1440;var h=Math.floor(m/60),mm=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+(mm<10?"0":"")+mm+" "+ap}
 function bridge(){try{return window.parent!==window&&window.parent.MominNotificationsBridgeV1||null}catch(e){return null}}
-var prefs={on:true,lead:0,pr:[1,1,1,1,1],jumuah:1,adhkar:0,dates:1};
+var prefs={on:true,lead:0,pr:[1,1,1,1,1],jumuah:1,adhkar:0,dates:1,announcements:1};
 var inbox=[],tt,pushReady=false,nativeStatus=null;
 function ls(key,fallback){try{var v=localStorage.getItem(key);return v===null?fallback:v}catch(e){return fallback}}
+function forceAdminAnnouncements(){prefs.announcements=1;try{localStorage.setItem("momin-announcements-enabled","true")}catch(e){}}
 function parseMinute(value){var m=String(value||"").match(/(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):null}
 function refreshNativeNotificationStatus(){
   if(!isNativePrayerApp())return;
@@ -253,7 +254,7 @@ function syncFromBridge(){
   if(x){
     prefs.on=!!x.on;prefs.lead=Number(x.lead)||0;
     prefs.pr=Array.isArray(x.pr)?x.pr.map(Boolean):[1,1,1,1,1];
-    prefs.jumuah=!!x.jumuah;prefs.adhkar=!!x.adhkar;prefs.dates=!!x.dates;prefs.announcements=!!x.announcements;
+    prefs.jumuah=!!x.jumuah;prefs.adhkar=!!x.adhkar;prefs.dates=!!x.dates;prefs.announcements=1;
   }else{
     prefs.on=ls("noor-notifications","true")!=="false";
     prefs.lead=Math.max(0,Math.min(60,Number(ls("noor-prayer-reminder-minutes","0"))||0));
@@ -261,8 +262,9 @@ function syncFromBridge(){
     prefs.jumuah=ls("noor-jumuah-reminders","true")!=="false";
     prefs.adhkar=ls("noor-adhkar-reminders","false")==="true";
     prefs.dates=ls("noor-islamic-event-reminders","true")!=="false";
-    prefs.announcements=ls("momin-announcements-enabled","false")==="true";
+    prefs.announcements=1;
   }
+  forceAdminAnnouncements();
   var times=snap&&snap.prayerTimes;
   if(!times){
     try{var cache=JSON.parse(ls("noor-prayer-cache","null")||"null");times=cache&&cache.data&&cache.data.timings||{}}catch(e){times={}}
@@ -272,6 +274,7 @@ function syncFromBridge(){
   else{try{inbox=JSON.parse(ls("noor-notification-inbox","[]")||"[]")||[]}catch(e){inbox=[]}}
 }
 function save(){
+  forceAdminAnnouncements();
   var b=bridge();
   if(b&&b.savePrefs){b.savePrefs(prefs);return}
   try{
@@ -352,9 +355,10 @@ function segHTML(){
 }
 $("rows").onclick=function(e){var b=e.target.closest(".sw");if(!b)return;var i=+b.dataset.p;prefs.pr[i]=prefs.pr[i]?0:1;save();rowsHTML();tick();toast(P[i].n+" reminder "+(prefs.pr[i]?"on":"off"))};
 function upsHTML(){
-  $("ups").innerHTML=UPS.map(function(u){return '<div class="row"><span class="ri"><svg class="i"><use href="#'+u.i+'"/></svg></span><div class="tx"><b>'+u.t+"</b><span>"+u.s+'</span></div><button class="sw" role="switch" aria-checked="'+!!prefs[u.k]+'" aria-label="'+u.t+'" data-u="'+u.k+'"></button></div>'}).join("");
+  forceAdminAnnouncements();
+  $("ups").innerHTML=UPS.map(function(u){var required=u.k==="announcements",on=required||!!prefs[u.k];return '<div class="row"><span class="ri"><svg class="i"><use href="#'+u.i+'"/></svg></span><div class="tx"><b>'+u.t+"</b><span>"+u.s+'</span></div><button class="sw" role="switch" aria-checked="'+on+'" aria-label="'+u.t+'" data-u="'+u.k+'" '+(required?'disabled aria-disabled="true"':"")+'></button></div>'}).join("");
 }
-$("ups").onclick=function(e){var b=e.target.closest(".sw");if(!b)return;var k=b.dataset.u;prefs[k]=prefs[k]?0:1;save();b.setAttribute("aria-checked",!!prefs[k])};
+$("ups").onclick=function(e){var b=e.target.closest(".sw");if(!b)return;var k=b.dataset.u;if(k==="announcements"){forceAdminAnnouncements();save();return}prefs[k]=prefs[k]?0:1;save();b.setAttribute("aria-checked",!!prefs[k])};
 
 /* clock: next reminder, timeline progress */
 function tick(){
@@ -402,7 +406,7 @@ function recent(){
     var image=m.image?'<img loading="lazy" alt="" src="'+esc(m.image)+'" style="display:block;width:100%;max-height:150px;object-fit:cover;border-radius:14px;margin:0 0 10px">':"";
     var mark=m.inboxId&&m.unread?'<button class="text-btn" type="button" style="margin-top:7px" data-mark-read="'+esc(m.inboxId)+'">Mark as read</button>':"";
     return '<article class="msg" style="--d:'+i+';padding:14px;border:1px solid var(--line);border-radius:18px;margin:9px 0;background:var(--card)">'+image+'<div style="display:flex;gap:10px;align-items:flex-start"><span class="ri"><svg class="i"><use href="#'+esc(m.i||"b")+'"/></svg></span><div style="flex:1;min-width:0"><b>'+esc(m.t)+"</b><p>"+esc(m.s)+"</p>"+mark+"</div><time>"+esc(m.w)+"</time></div></article>";
-  }).join(""):'<div class="empty"><div class="ri"><svg class="i"><use href="#b"/></svg></div><b>You’re all caught up</b>New reminders and announcements you’ve opted into will appear here.</div>';
+  }).join(""):'<div class="empty"><div class="ri"><svg class="i"><use href="#b"/></svg></div><b>You’re all caught up</b>New reminders and important Admin announcements from MOMIN will appear here.</div>';
   $("recent").querySelectorAll("[data-mark-read]").forEach(function(button){button.addEventListener("click",function(){markCampaignRead(button.getAttribute("data-mark-read"))})});
 }
 $("clr").onclick=async function(){

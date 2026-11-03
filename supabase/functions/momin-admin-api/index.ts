@@ -473,8 +473,7 @@ async function sendFcmNotifications(
     const { data, error } = await db.from("momin_fcm_tokens")
       .select("id,user_id,device_key,fcm_token")
       .in("user_id", recipientIds.slice(offset, offset + 500))
-      .eq("is_active", true)
-      .eq("announcements_enabled", true);
+      .eq("is_active", true);
     if (error) throw error;
     tokens.push(...(data || []));
   }
@@ -682,7 +681,7 @@ async function sendNotification(body: Record<string, unknown>, adminId: string, 
       .select("id,user_id,device_key,subscription,is_active,preferences")
       .in("user_id", userBatch).eq("is_active", true);
     if (subError) throw subError;
-    for (const row of (subscriptions || []).filter((item: any) => item.preferences?.announcements === true)) {
+    for (const row of subscriptions || []) {
     const eventKey = "admin:" + campaign.id + ":" + row.id;
     const { data: priorDelivery, error: priorError } = await db.from("momin_push_deliveries")
       .select("id,status").eq("event_key", eventKey).maybeSingle();

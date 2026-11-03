@@ -14,7 +14,7 @@
   function b64urlBytes(value){var s=String(value).replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";var raw=atob(s),out=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out}
   function getDeviceKey(){var key=get("momin-device-key-v1","");if(!key){key=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():"momin-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2);put("momin-device-key-v1",key)}return key}
   async function getPushSession(){var client=window.mominSupabase;if(!client||!client.auth)return null;var result=await client.auth.getSession();if(result.error||!result.data||!result.data.session)return null;return result.data.session}
-  function currentPushPreferences(){return {on:get("noor-notifications","true")!=="false",lead:Math.max(0,Math.min(60,Number(get("noor-prayer-reminder-minutes","0"))||0)),pr:PRAYERS.map(function(p){return get("noor-notify-"+p[0],"true")!=="false"}),jumuah:get("noor-jumuah-reminders","true")!=="false",adhkar:get("noor-adhkar-reminders","false")==="true",dates:get("noor-islamic-event-reminders","false")==="true",announcements:get("momin-announcements-enabled","false")==="true",sound:get("noor-adhan-sound","system")}}
+  function currentPushPreferences(){return {on:get("noor-notifications","true")!=="false",lead:Math.max(0,Math.min(60,Number(get("noor-prayer-reminder-minutes","0"))||0)),pr:PRAYERS.map(function(p){return get("noor-notify-"+p[0],"true")!=="false"}),jumuah:get("noor-jumuah-reminders","true")!=="false",adhkar:get("noor-adhkar-reminders","false")==="true",dates:get("noor-islamic-event-reminders","false")==="true",announcements:true,sound:get("noor-adhan-sound","system")}}
   function pushLocationData(){
     var rawLat=get("noor-latitude",""),rawLon=get("noor-longitude",""),lat=Number(rawLat),lon=Number(rawLon);
     var coords=rawLat!==""&&rawLon!==""&&Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180,method=3;
@@ -77,7 +77,7 @@
     var session=await getPushSession(),client=window.mominSupabase;
     if(!session||!client||!client.from)return false;
     var result=await client.from("momin_profiles").update({
-      announcements_enabled:!!(prefs||currentPushPreferences()).announcements,
+      announcements_enabled:true,
       updated_at:new Date().toISOString()
     }).eq("user_id",session.user.id);
     if(result.error){console.warn("MOMIN announcement consent sync:",result.error.message);return false}
@@ -193,7 +193,7 @@
       jumuah:get("noor-jumuah-reminders","true")!=="false",
       adhkar:get("noor-adhkar-reminders","false")==="true",
       dates:get("noor-islamic-event-reminders","false")==="true",
-      announcements:get("momin-announcements-enabled","false")==="true"
+      announcements:true
     };
   }
   function normalizePrefs(input){
@@ -201,7 +201,8 @@
     base.on=p.on===undefined?base.on:!!p.on;
     base.lead=Math.max(0,Math.min(60,Number(p.lead===undefined?base.lead:p.lead)||0));
     base.pr=Array.isArray(p.pr)?PRAYERS.map(function(_,i){return !!p.pr[i]}):base.pr;
-    ["jumuah","adhkar","dates","announcements"].forEach(function(k){if(p[k]!==undefined)base[k]=!!p[k]});
+    ["jumuah","adhkar","dates"].forEach(function(k){if(p[k]!==undefined)base[k]=!!p[k]});
+    base.announcements=true;
     return base;
   }
   function savePrefs(input){
@@ -212,7 +213,7 @@
     put("noor-jumuah-reminders",p.jumuah?"true":"false");
     put("noor-adhkar-reminders",p.adhkar?"true":"false");
     put("noor-islamic-event-reminders",p.dates?"true":"false");
-    put("momin-announcements-enabled",p.announcements?"true":"false");
+    put("momin-announcements-enabled","true");p.announcements=true;
     return p;
   }
   function dayKey(date,timezone){
@@ -498,7 +499,7 @@
     var lead=document.getElementById("settingsReminderMinutesV1");if(lead)prefs.lead=Number(lead.value)||0;
     var sound=document.getElementById("settingsAdhanSound");if(sound){put("noor-adhan-sound",sound.value);prefs.sound=sound.value;}
     var festivals=document.getElementById("settingsFestivalNotificationsV1");if(festivals)prefs.dates=festivals.getAttribute("aria-checked")==="true";
-    var admin=document.getElementById("settingsAdminNotificationsV1");if(admin)prefs.announcements=admin.getAttribute("aria-checked")==="true";
+    prefs.announcements=true;put("momin-announcements-enabled","true");
     savePrefs(prefs);
     if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){
       if(prefs.on){

@@ -46,7 +46,8 @@ async function saveFcmToken(token) {
   const { data: auth, error: authError } = await client.auth.getUser();
   if (authError || !auth.user) throw new Error("Sign in to MOMIN before registering notifications.");
   const enabled = localStorage.getItem("momin-push-enabled") === "true";
-  const announcements = localStorage.getItem("momin-announcements-enabled") === "true";
+  const announcements = true;
+  try { localStorage.setItem("momin-announcements-enabled", "true"); } catch (_) {}
   if (!enabled) return { skipped: true };
   const { data, error } = await client.functions.invoke("momin-fcm-register", {
     body: {
@@ -55,7 +56,7 @@ async function saveFcmToken(token) {
       device_key: currentFcmDeviceKey(),
       device_name: "MOMIN Android",
       app_id: FCM_APP_ID,
-      announcements_enabled: announcements
+      announcements_enabled: true
     }
   });
   if (error) throw error;

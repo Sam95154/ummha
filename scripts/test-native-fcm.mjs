@@ -61,7 +61,7 @@ contains(migration, "grant all on public.momin_fcm_tokens to service_role", "Tru
 contains(migration, "momin_fcm_deliveries", "FCM delivery audit table");
 contains(adminFunction, "FCM_SERVICE_ACCOUNT_JSON", "Server-only Firebase credential");
 contains(adminFunction, "https://fcm.googleapis.com/v1/projects/", "FCM HTTP v1 endpoint");
-contains(adminFunction, "announcements_enabled", "User announcement preference filter");
+excludes(adminFunction, "announcements_enabled", "FCM sender must not filter by user announcement preference");
 contains(adminFunction, "UNREGISTERED", "Stale FCM token handling");
 contains(adminFunction, "const linkedAccount = data?.momin_admin_accounts;", "Admin session account relationship read");
 contains(adminFunction, "Array.isArray(linkedAccount) ? linkedAccount[0] : linkedAccount", "Admin session relationship object/array compatibility");
