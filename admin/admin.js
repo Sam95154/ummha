@@ -365,11 +365,12 @@
     const birthday = u.birthday
       ? new Date(String(u.birthday).slice(0, 10) + "T00:00:00").toLocaleDateString("en-IN", { dateStyle: "long" })
       : "Not provided";
-    const gender = String(u.gender || "").replaceAll("_", " ").replace(/\\b\\w/g, c => c.toUpperCase()) || "Not provided";
-    const provider = String(u.auth_provider || "email").replaceAll("_", " ").replace(/\\b\\w/g, c => c.toUpperCase());
+    const pretty = value => String(value || "").replaceAll("_", " ").split(" ").filter(Boolean).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+    const gender = pretty(u.gender) || "Not provided";
+    const provider = pretty(u.auth_provider || "email");
     const verified = u.email_verified ? "Verified" : "Not verified";
     const completion = u.profile_completed ? "Completed" : "Incomplete";
-    const avatar = typeof u.avatar_url === "string" && /^https:\\/\\//i.test(u.avatar_url)
+    const avatar = typeof u.avatar_url === "string" && u.avatar_url.startsWith("https://")
       ? '<img class="user-profile-avatar" src="' + escapeHtml(u.avatar_url) + '" alt="User profile photo" loading="lazy" referrerpolicy="no-referrer">'
       : '<div class="user-profile-avatar is-empty" aria-label="No profile photo">—</div>';
     return '<h2>User details</h2><p class="muted">Permanent User ID: <b>' + escapeHtml(u.user_id) + '</b></p>' +
