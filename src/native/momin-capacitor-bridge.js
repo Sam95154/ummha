@@ -2,6 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { PushNotifications } from "@capacitor/push-notifications";
+import { SocialLogin } from "@capgo/capacitor-social-login";
 import "./momin-native-prayer-alarm.js";
 // Ask for Android permissions only when the user enables the feature that needs them.
 
@@ -214,9 +215,38 @@ async function initializeMominFcm() {
 
 if (Capacitor.isNativePlatform()) {
   initializeMominFcm().catch((error) => console.warn("MOMIN FCM initialization:", error));
+  let googleLoginInitialized = false;
+  let googleLoginPromise = null;
   window.MominNative = {
     isNative: true,
     authRedirectUrl: AUTH_REDIRECT,
+    signInWithGoogle: async function () {
+      if (googleLoginPromise) return await googleLoginPromise;
+      googleLoginPromise = (async function () {
+        const client = await waitForSupabaseClient();
+        const webClientId = window.MOMIN_GOOGLE_WEB_CLIENT_ID;
+        if (!webClientId || !/^[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(webClientId)) {
+          throw new Error("Native Google sign-in is not configured. Rebuild the APK with the MOMIN Google Web OAuth client in google-services.json.");
+        }
+        if (!googleLoginInitialized) {
+          await SocialLogin.initialize({
+            google: {
+              webClientId: webClientId,
+              mode: "online"
+            }
+          });
+          googleLoginInitialized = true;
+        }
+        const response = await SocialLogin.login({ provider: "google", options: {} });
+        const idToken = response && response.result && response.result.idToken;
+        if (!idToken) throw new Error("Google did not return a sign-in token. Please choose your Google account again.");
+        const result = await client.auth.signInWithIdToken({ provider: "google", token: idToken });
+        if (result.error) throw result.error;
+        return result.data;
+      })();
+      try { return await googleLoginPromise; }
+      finally { googleLoginPromise = null; }
+    },
     openOAuth: async function (url) {
       if (!url || !/^https:\/\//i.test(url)) {
         throw new Error("MOMIN received an invalid sign-in URL.");
@@ -257,7 +287,9 @@ if (Capacitor.isNativePlatform()) {
 
       try { await Browser.close(); } catch (_) {}
 
-      if (window.location.pathname.endsWith("/login.html")) {
+      if (callback.searchParams.get("next") === "reset-password") {
+        window.location.replace("/reset-password.html");
+      } else if (window.location.pathname.endsWith("/login.html")) {
         const requestedNext = new URLSearchParams(window.location.search).get("next") || "/";
         let safeNext = "/";
         try {

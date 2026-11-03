@@ -35,13 +35,18 @@ The outputs are:
 
 The release pipeline creates a signed AAB only when the real Firebase Android configuration and all four GitHub Actions upload-key secrets are present: `MOMIN_UPLOAD_KEYSTORE_BASE64`, `MOMIN_UPLOAD_KEYSTORE_PASSWORD`, `MOMIN_UPLOAD_KEY_ALIAS`, and `MOMIN_UPLOAD_KEY_PASSWORD`. The keystore must be created and retained securely by the app owner. Do not commit a keystore or signing passwords to Git. Without these secrets, CI builds a debug preview only and deliberately skips the Play Store AAB.
 
-## Google sign-in redirect
+## Google sign-in (native Android)
 
-The Android build uses this app link:
+The Android APK uses Google's native Android account picker (Capacitor Social Login / Credential Manager) and passes the returned ID token directly to Supabase Auth. It does not open Chrome or a Custom Tab for Google sign-in. The browser website continues to use Supabase's normal browser OAuth flow.
 
-`com.momin.noorulislam://auth/callback`
+1. In the same Google Cloud project as the Firebase Android app, configure the Android OAuth client for package `com.momin.noorulislam` with the app's signing SHA-1 certificate fingerprint(s), and create a Web application OAuth client.
+2. Download the matching Android `google-services.json`. It must contain the MOMIN Android client. The build script will use a Web client ID from this file when one is present.
+3. Keep the Android app's real Firebase configuration in the GitHub Actions secret `MOMIN_GOOGLE_SERVICES_JSON` for CI builds.
+4. Add a GitHub Actions repository secret named `MOMIN_GOOGLE_WEB_CLIENT_ID` containing the **Web application OAuth client ID** (ending in `.apps.googleusercontent.com`) from the same Google Cloud project. This separate secret is required when the Web client ID is not included in `google-services.json`. The secret is injected only during the build and is not committed to source control. CI can use a placeholder to compile when it is missing, but native Google sign-in will not work in that preview APK.
+5. Add this exact deep link to Supabase Dashboard → Authentication → URL Configuration → Redirect URLs for account recovery:
+   `com.momin.noorulislam://auth/callback`
 
-Add this exact value to Supabase Dashboard → Authentication → URL Configuration → Redirect URLs. The existing website redirect remains unchanged. Google sign-in must then be tested on a physical Android device.
+The website redirect remains unchanged. Test Google sign-in, account linking, and password recovery on a physical Android device with the real Firebase/Google OAuth configuration.
 
 ## Native Android push notifications (Firebase Cloud Messaging)
 

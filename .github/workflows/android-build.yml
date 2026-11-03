@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - noor-ul-islam-live
+      - feature/returning-user-profile-data
   workflow_dispatch:
 
 permissions:
@@ -69,7 +70,10 @@ jobs:
                   "package_name": "com.momin.noorulislam"
                 }
               },
-              "oauth_client": [],
+              "oauth_client": [{
+                "client_id": "123456789012-preview.apps.googleusercontent.com",
+                "client_type": 3
+              }],
               "api_key": [{
                 "current_key": "AIzaSyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
               }],
@@ -99,6 +103,8 @@ jobs:
 
       - name: Generate Capacitor Android project and assets
         run: npm run android:prepare
+        env:
+          MOMIN_GOOGLE_WEB_CLIENT_ID: ${{ secrets.MOMIN_GOOGLE_WEB_CLIENT_ID }}
 
       - name: Verify Google Play target API level
         run: |

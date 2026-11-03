@@ -51,6 +51,8 @@ jobs:
         run: npm run test:fcm
       - name: Run notification release QA
         run: npm run test:notifications
+      - name: Run user profile and authentication QA
+        run: npm run test:user-profile-auth
       - name: Check Android signing helper syntax
         run: node --check scripts/configure-android-signing.mjs
       - name: Set up Deno
@@ -102,7 +104,10 @@ jobs:
                   "package_name": "com.momin.noorulislam"
                 }
               },
-              "oauth_client": [],
+              "oauth_client": [{
+                "client_id": "123456789012-preview.apps.googleusercontent.com",
+                "client_type": 3
+              }],
               "api_key": [{
                 "current_key": "AIzaSyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
               }],
@@ -117,5 +122,7 @@ jobs:
           JSON
       - name: Generate the Capacitor Android project
         run: npm run android:prepare
+        env:
+          MOMIN_GOOGLE_WEB_CLIENT_ID: ${{ secrets.MOMIN_GOOGLE_WEB_CLIENT_ID }}
       - name: Compile Android debug APK
         run: cd android && ./gradlew assembleDebug --no-daemon
