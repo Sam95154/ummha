@@ -95,15 +95,16 @@
           emailRedirectTo: window.location.origin + "/delete-account.html"
         }
       });
-      if (response.error) {
-        showStatus(requestStatus, "We could not send a verification link right now. Check the address and try again later, or contact MOMIN Support.", true);
-      } else {
+      // Keep the response identical for known, unknown, and rate-limited addresses.
+      if (!response.error) {
         try { window.sessionStorage.setItem(pendingEmailKey, email); } catch (_) {}
-        emailInput.value = "";
-        showStatus(requestStatus, "If this email is linked to an eligible MOMIN account, a one-time verification link will be sent. Open it, then review the verified account and confirm the deletion.", false);
       }
+      emailInput.value = "";
+      showStatus(requestStatus, "If this email is linked to an eligible MOMIN account, a one-time verification link will be sent. Open it, then review the verified account and confirm the deletion. If it does not arrive, wait before retrying or contact MOMIN Support.", false);
     } catch (_) {
-      showStatus(requestStatus, "We could not send a verification link right now. Try again later or contact MOMIN Support.", true);
+      // Network failures use the same response so the page does not disclose account existence.
+      emailInput.value = "";
+      showStatus(requestStatus, "If this email is linked to an eligible MOMIN account, a one-time verification link will be sent. Open it, then review the verified account and confirm the deletion. If it does not arrive, wait before retrying or contact MOMIN Support.", false);
     } finally {
       sendButton.disabled = false;
       sendButton.textContent = "Send verification link";
