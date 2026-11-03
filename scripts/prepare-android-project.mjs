@@ -104,18 +104,29 @@ for (const permission of permissions) {
 if (!manifest.includes('android:usesCleartextTraffic=')) {
   manifest = manifest.replace("<application", '<application android:usesCleartextTraffic="false"');
 }
-const deepLink = `
+const authCallbackDeepLink = `
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="com.momin.noorulislam" android:host="auth" android:path="/callback" />
             </intent-filter>`;
-if (!manifest.includes('android:scheme="com.momin.noorulislam"')) {
-  if (!manifest.includes("</activity>")) {
-    throw new Error("Could not safely locate MainActivity in AndroidManifest.xml.");
-  }
-  manifest = manifest.replace("</activity>", deepLink + "\n        </activity>");
+const authRecoveryDeepLink = `
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.momin.noorulislam" android:host="auth" android:path="/recovery" />
+            </intent-filter>`;
+if (!manifest.includes("</activity>") &&
+    (!manifest.includes('android:path="/callback"') || !manifest.includes('android:path="/recovery"'))) {
+  throw new Error("Could not safely locate MainActivity in AndroidManifest.xml.");
+}
+if (!manifest.includes('android:path="/callback"')) {
+  manifest = manifest.replace("</activity>", authCallbackDeepLink + "\n        </activity>");
+}
+if (!manifest.includes('android:path="/recovery"')) {
+  manifest = manifest.replace("</activity>", authRecoveryDeepLink + "\n        </activity>");
 }
 
 const fcmMetadata = `
