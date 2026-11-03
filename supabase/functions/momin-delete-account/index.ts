@@ -69,8 +69,9 @@ Deno.serve(async (request: Request) => {
     }
 
     const { data: complaints, error: complaintError } = await admin
-      .from("momin_complaints").select("attachment_path").eq("user_id", userId);
+      .from("momin_complaints").select("id,attachment_path").eq("user_id", userId);
     if (complaintError) throw complaintError;
+    const complaintIds = (complaints || []).map((row) => row.id).filter(Boolean);
     const complaintPaths = (complaints || [])
       .map((row) => row.attachment_path)
       .filter((path): path is string => typeof path === "string" && path.length > 0);
@@ -78,6 +79,38 @@ Deno.serve(async (request: Request) => {
       const { error } = await admin.storage.from("momin-complaint-attachments").remove(complaintPaths);
       if (error) throw error;
     }
+
+    // This schema intentionally has no auth.users foreign-key cascades. Remove
+    // user-owned application data explicitly before hard-deleting the Auth row.
+    // Retain the financial ledger but detach it from the deleted account.
+    if (complaintIds.length) {
+      const { error } = await admin.from("momin_complaint_replies").delete().in("complaint_id", complaintIds);
+      if (error) throw error;
+    }
+    const { error: authoredRepliesError } = await admin
+      .from("momin_complaint_replies").delete().eq("author_user_id", userId);
+    if (authoredRepliesError) throw authoredRepliesError;
+
+    const userOwnedTables = [
+      "momin_complaints",
+      "momin_user_notifications",
+      "momin_fcm_deliveries",
+      "momin_push_deliveries",
+      "momin_fcm_tokens",
+      "momin_push_subscriptions",
+      "momin_devices",
+    ];
+    for (const table of userOwnedTables) {
+      const { error } = await admin.from(table).delete().eq("user_id", userId);
+      if (error) throw error;
+    }
+
+    const { error: contributionsError } = await admin
+      .from("momin_contributions").update({ user_id: null }).eq("user_id", userId);
+    if (contributionsError) throw contributionsError;
+
+    const { error: profileError } = await admin.from("momin_profiles").delete().eq("user_id", userId);
+    if (profileError) throw profileError;
 
     const { error: deleteError } = await admin.auth.admin.deleteUser(userId, false);
     if (deleteError) throw deleteError;
