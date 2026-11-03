@@ -14,7 +14,7 @@
   function b64urlBytes(value){var s=String(value).replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";var raw=atob(s),out=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out}
   function getDeviceKey(){var key=get("momin-device-key-v1","");if(!key){key=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():"momin-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2);put("momin-device-key-v1",key)}return key}
   async function getPushSession(){var client=window.mominSupabase;if(!client||!client.auth)return null;var result=await client.auth.getSession();if(result.error||!result.data||!result.data.session)return null;return result.data.session}
-  function currentPushPreferences(){return {on:get("noor-notifications","true")!=="false",lead:Math.max(0,Math.min(60,Number(get("noor-prayer-reminder-minutes","0"))||0)),pr:PRAYERS.map(function(p){return get("noor-notify-"+p[0],"true")!=="false"}),jumuah:get("noor-jumuah-reminders","true")!=="false",adhkar:get("noor-adhkar-reminders","false")==="true",dates:get("noor-islamic-event-reminders","false")==="true",announcements:get("momin-announcements-enabled","false")==="true",sound:get("noor-adhan-sound","system")}}
+  function currentPushPreferences(){return {on:get("noor-notifications","true")!=="false",lead:Math.max(0,Math.min(60,Number(get("noor-prayer-reminder-minutes","0"))||0)),pr:PRAYERS.map(function(p){return get("noor-notify-"+p[0],"true")!=="false"}),jumuah:get("noor-jumuah-reminders","true")!=="false",adhkar:get("noor-adhkar-reminders","false")==="true",dates:get("noor-islamic-event-reminders","false")==="true",announcements:get("momin-announcements-enabled","true")!=="false",sound:get("noor-adhan-sound","system")}}
   function pushLocationData(){
     var rawLat=get("noor-latitude",""),rawLon=get("noor-longitude",""),lat=Number(rawLat),lon=Number(rawLon);
     var coords=rawLat!==""&&rawLon!==""&&Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180,method=3;
@@ -193,7 +193,7 @@
       jumuah:get("noor-jumuah-reminders","true")!=="false",
       adhkar:get("noor-adhkar-reminders","false")==="true",
       dates:get("noor-islamic-event-reminders","false")==="true",
-      announcements:get("momin-announcements-enabled","false")==="true"
+      announcements:get("momin-announcements-enabled","true")!=="false"
     };
   }
   function normalizePrefs(input){
@@ -359,9 +359,9 @@
         var prayerBody="It is time for "+pair[1]+".";
         if(!showNotification("MOMIN · "+pair[1]+" time",prayerBody,"momin-prayer-time-"+keyDay+"-"+pair[0],ICONS[pair[1]]))return;
         put(timeKey,"true");
-        var sound=get("noor-adhan-sound","azan");
-        if(sound==="azan")playAzan();
-        else if(sound==="chime")playChime();
+        // Full Makkah Azan is tied to the actual prayer time, not the
+        // advance-reminder tone preference. Advance reminders never play it.
+        playAzan();
       }
       });
       checkUpdateReminders(prefs,data,now,keyDay,nowMin);
@@ -399,7 +399,8 @@
       if(window.MominNativePrayerAlarm&&window.MominNativePrayerAlarm.isNative){
         if(saved.on)window.MominNativePrayerAlarm.scheduleFromPreferences(saved).catch(function(error){console.warn("MOMIN Android notification preferences:",error)});
         else window.MominNativePrayerAlarm.cancel().catch(function(error){console.warn("MOMIN Android notification cancel:",error)});
-      }else syncPushPreferences();
+      }
+      syncPushPreferences();
       return saved;
     },
     requestPermission:requestPermission,

@@ -194,7 +194,7 @@ nav a[aria-current]{color:var(--gold2);font-weight:700;background:var(--soft);bo
     <div class="rows" id="rows"></div>
   </section>
 
-  <section class="card rise" style="--d:5"><h2>Updates</h2><p class="sub">Choose the updates you would like MOMIN to send. App announcements are optional and separate from prayer reminders.</p><div class="rows" id="ups"></div></section>
+  <section class="card rise" style="--d:5"><h2>Updates</h2><p class="sub">Choose the updates you would like MOMIN to send. Admin announcements are enabled by default and can be turned off separately from prayer reminders.</p><div class="rows" id="ups"></div></section>
 
 
   <section class="card note rise" style="--d:6"><h2>Prayer reminders</h2><p id="mominReminderHelpV1">MOMIN can send prayer reminders while notifications are enabled.</p>
@@ -222,14 +222,14 @@ var LEADS=[0,5,10,15,30];
     var nativeMode=window.parent!==window&&window.parent.MominNativePrayerAlarm&&window.parent.MominNativePrayerAlarm.isNative;
     var help=$("mominReminderHelpV1");
     if(help)help.textContent=nativeMode
-      ?"Android schedules prayer alarms on this device. Allow Notifications and Alarms & reminders. The Makkah Azan plays at the actual prayer time when selected; advance reminders are separate."
+      ?"Android schedules prayer alarms on this device. Allow Notifications and Alarms & reminders. The full Makkah Azan plays at each enabled prayer time; advance reminders never play the Azan."
       :"Web reminders depend on browser notification permission, push support and network access. Full Azan audio cannot be guaranteed after the browser is closed.";
   }catch(_){}
 })();
 /* ===== end of data ===== */
 function fmt(m){m=((m%1440)+1440)%1440;var h=Math.floor(m/60),mm=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+(mm<10?"0":"")+mm+" "+ap}
 function bridge(){try{return window.parent!==window&&window.parent.MominNotificationsBridgeV1||null}catch(e){return null}}
-var prefs={on:true,lead:0,pr:[1,1,1,1,1],jumuah:1,adhkar:0,dates:1};
+var prefs={on:true,lead:0,pr:[1,1,1,1,1],jumuah:1,adhkar:0,dates:1,announcements:1};
 var inbox=[],tt,pushReady=false,nativeStatus=null;
 function ls(key,fallback){try{var v=localStorage.getItem(key);return v===null?fallback:v}catch(e){return fallback}}
 function parseMinute(value){var m=String(value||"").match(/(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):null}
@@ -261,7 +261,7 @@ function syncFromBridge(){
     prefs.jumuah=ls("noor-jumuah-reminders","true")!=="false";
     prefs.adhkar=ls("noor-adhkar-reminders","false")==="true";
     prefs.dates=ls("noor-islamic-event-reminders","true")!=="false";
-    prefs.announcements=ls("momin-announcements-enabled","false")==="true";
+    prefs.announcements=ls("momin-announcements-enabled","true")!=="false";
   }
   var times=snap&&snap.prayerTimes;
   if(!times){
@@ -281,6 +281,7 @@ function save(){
     localStorage.setItem("noor-jumuah-reminders",prefs.jumuah?"true":"false");
     localStorage.setItem("noor-adhkar-reminders",prefs.adhkar?"true":"false");
     localStorage.setItem("noor-islamic-event-reminders",prefs.dates?"true":"false");
+    localStorage.setItem("momin-announcements-enabled",prefs.announcements?"true":"false");
   }catch(e){}
 }
 function toast(m,a){var t=$("toast");t.innerHTML="<span>"+esc(m)+"</span>"+(a?'<button type="button">'+esc(a.l)+"</button>":"");if(a)t.querySelector("button").onclick=function(){a.f();t.classList.remove("on")};t.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){t.classList.remove("on")},a?4200:2200)}
