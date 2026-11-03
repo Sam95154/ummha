@@ -103,6 +103,8 @@ jobs:
 
       - name: Generate Capacitor Android project and assets
         run: npm run android:prepare
+        env:
+          MOMIN_GOOGLE_WEB_CLIENT_ID: ${{ secrets.MOMIN_GOOGLE_WEB_CLIENT_ID }}
 
       - name: Verify Google Play target API level
         run: |
