@@ -478,11 +478,11 @@ render();
     var hasGps=API_STORE.latitude!==null&&Number.isFinite(Number(API_STORE.latitude))&&API_STORE.longitude!==null&&Number.isFinite(Number(API_STORE.longitude));
     var city=String(API_STORE.city||"").trim(),country=String(API_STORE.country||"").trim();
     if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
-    var method=String(API_STORE.method||"3"),url;
+    var method=String(API_STORE.method||"3"),school=localStorage.getItem("noor-asr-method")==="hanafi"?"1":"0",url;
     if(hasGps){
-      url="https://api.aladhan.com/v1/timings/"+apiDate()+"?latitude="+encodeURIComponent(API_STORE.latitude)+"&longitude="+encodeURIComponent(API_STORE.longitude)+"&method="+encodeURIComponent(method);
+      url="https://api.aladhan.com/v1/timings/"+apiDate()+"?latitude="+encodeURIComponent(API_STORE.latitude)+"&longitude="+encodeURIComponent(API_STORE.longitude)+"&method="+encodeURIComponent(method)+"&school="+encodeURIComponent(school);
     }else if(city&&country){
-      url="https://api.aladhan.com/v1/timingsByCity/"+apiDate()+"?city="+encodeURIComponent(city)+"&country="+encodeURIComponent(country)+"&method="+encodeURIComponent(method);
+      url="https://api.aladhan.com/v1/timingsByCity/"+apiDate()+"?city="+encodeURIComponent(city)+"&country="+encodeURIComponent(country)+"&method="+encodeURIComponent(method)+"&school="+encodeURIComponent(school);
     }else{
       livePrayer=null;syncLocationLabels();
       if(page==="prayers")setLocationStatusV5("Use current location or enter a city and country to calculate prayer times.");
@@ -495,7 +495,7 @@ render();
       localStorage.setItem("noor-prayer-cache",JSON.stringify({
         at:Date.now(),data:result.data,city:API_STORE.city,country:API_STORE.country,
         latitude:hasGps?Number(API_STORE.latitude):null,longitude:hasGps?Number(API_STORE.longitude):null,
-        method:method,methodMode:API_STORE.methodMode||"auto"
+        method:method,school:school,methodMode:API_STORE.methodMode||"auto"
       }));
       if(result.data.meta&&result.data.meta.latitude!=null){
         try{var qibla=await getJSON("https://api.aladhan.com/v1/qibla/"+result.data.meta.latitude+"/"+result.data.meta.longitude);liveQibla=qibla.data.direction;localStorage.setItem("noor-qibla",String(liveQibla))}catch(_){}
@@ -512,8 +512,8 @@ render();
     }catch(error){
       var cached=null,match=false;try{cached=JSON.parse(localStorage.getItem("noor-prayer-cache")||"null")}catch(_){}
       if(cached&&cached.data&&cached.data.timings){
-        if(hasGps&&cached.latitude!=null&&cached.longitude!=null)match=Math.abs(Number(cached.latitude)-Number(API_STORE.latitude))<0.00001&&Math.abs(Number(cached.longitude)-Number(API_STORE.longitude))<0.00001&&String(cached.method)===method;
-        else if(!hasGps)match=String(cached.city||"").toLowerCase()===city.toLowerCase()&&String(cached.country||"").toLowerCase()===country.toLowerCase()&&String(cached.method||"")===method;
+        if(hasGps&&cached.latitude!=null&&cached.longitude!=null)match=Math.abs(Number(cached.latitude)-Number(API_STORE.latitude))<0.00001&&Math.abs(Number(cached.longitude)-Number(API_STORE.longitude))<0.00001&&String(cached.method)===method&&String(cached.school||"0")===school;
+        else if(!hasGps)match=String(cached.city||"").toLowerCase()===city.toLowerCase()&&String(cached.country||"").toLowerCase()===country.toLowerCase()&&String(cached.method||"")===method&&String(cached.school||"0")===school;
       }
       livePrayer=match?cached.data:null;syncLocationLabels();
       if(page==="prayers")setLocationStatusV5(match?"Network refresh failed. Showing saved times for this same location and method.":"Could not update prayer times. Check your connection and try again.");
@@ -558,11 +558,15 @@ render();
       // If the saved location came from GPS and permission remains granted,
       // refresh the device coordinates on each app launch. Manual city choices
       // continue to use their selected city without being overridden by GPS.
-      if(localStorage.getItem("noor-location-source")==="gps"&&navigator.permissions&&typeof navigator.permissions.query==="function"){
-        navigator.permissions.query({name:"geolocation"}).then(function(permission){
-          if(permission&&permission.state==="granted")useCurrentLocationV5({silent:true});
-          else restoreSavedGpsV6();
-        }).catch(restoreSavedGpsV6);
+      if(localStorage.getItem("noor-location-source")==="gps"){
+        if(navigator.permissions&&typeof navigator.permissions.query==="function"){
+          navigator.permissions.query({name:"geolocation"}).then(function(permission){
+            if(permission&&permission.state==="granted")useCurrentLocationV5({silent:true});
+            else restoreSavedGpsV6();
+          }).catch(function(){useCurrentLocationV5({silent:true});});
+        }else if(navigator.geolocation){
+          useCurrentLocationV5({silent:true});
+        }else restoreSavedGpsV6();
       }else restoreSavedGpsV6();
       return;
     }
