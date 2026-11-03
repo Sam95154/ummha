@@ -65,7 +65,11 @@ const googleConfig = JSON.parse(fs.readFileSync(googleServicesPath, "utf8"));
 const androidClient = (googleConfig.client || []).find((entry) =>
   entry.client_info?.android_client_info?.package_name === "com.momin.noorulislam"
 );
-const googleWebClient = (androidClient?.oauth_client || []).find((entry) => Number(entry.client_type) === 3);
+const googleOAuthClients = [
+  ...(androidClient?.oauth_client || []),
+  ...(androidClient?.services?.appinvite_service?.other_platform_oauth_client || [])
+];
+const googleWebClient = googleOAuthClients.find((entry) => Number(entry.client_type) === 3);
 if (!googleWebClient?.client_id || !/^[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(googleWebClient.client_id)) {
   throw new Error("The MOMIN Web OAuth client ID (client_type 3) is missing from google-services.json. Configure the Web OAuth client in the same Google Cloud project as the Android app.");
 }
