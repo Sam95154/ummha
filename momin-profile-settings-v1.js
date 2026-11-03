@@ -37,12 +37,16 @@
     var email=user.email||saved.email||"";
     var avatar=saved.avatar_url||saved.profile_image_url||meta.avatar_url||meta.picture||meta.photo_url||user.picture||user.photoURL||"";
     var verified=!!(saved.email_verified||user.email_verified||user.emailVerified||user.email_confirmed_at||meta.email_verified);
+    var identities=Array.isArray(user.identities)?user.identities:[];
+    var googleLinked=String(saved.auth_provider||provider||"").toLowerCase()==="google"||
+      identities.some(function(identity){return String(identity&&identity.provider||"").toLowerCase()==="google";});
     return {
       id:String(user.id||user.sub||""),
       name:String(name||"").trim(),
       email:String(email||"").trim(),
       avatar:String(avatar||""),
       provider:String(saved.auth_provider||provider||"").toLowerCase(),
+      googleLinked:googleLinked,
       emailVerified:verified,
       birthday:String(saved.birthday||""),
       gender:String(saved.gender||""),
@@ -87,7 +91,7 @@
     var email=loggedIn?(authUser.email||"Email not available"):"Available after sign-in";
     var name=loggedIn?(authUser.name||""):"";
     var verified=authUser&&authUser.emailVerified?"Verified email":"Verification status not confirmed";
-    var google=authUser&&authUser.provider==="google";
+    var google=authUser&&authUser.googleLinked;
     var birthday=authUser&&authUser.birthday||"";
     var gender=authUser&&authUser.gender||"";
     var birthdayValue=esc(birthday);
