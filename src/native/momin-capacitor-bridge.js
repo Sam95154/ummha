@@ -240,7 +240,9 @@ if (Capacitor.isNativePlatform()) {
   }
 
   async function handleAuthReturn(rawUrl) {
-    if (typeof rawUrl !== "string" || !rawUrl.startsWith(AUTH_REDIRECT)) return;
+    if (typeof rawUrl !== "string") return;
+    const isPasswordRecovery = rawUrl.startsWith(AUTH_RECOVERY_REDIRECT);
+    if (!isPasswordRecovery && !rawUrl.startsWith(AUTH_REDIRECT)) return;
 
     try {
       const callback = new URL(rawUrl);
