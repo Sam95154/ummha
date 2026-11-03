@@ -46,7 +46,7 @@
     if(!user)return null;
     var meta=user.user_metadata||{};
     var existingResult=await supabase.from("momin_profiles")
-      .select("display_name,avatar_url,profile_image_path,birthday,gender,profile_completed,profile_completed_at")
+      .select("display_name,email,avatar_url,profile_image_path,birthday,gender,profile_completed,profile_completed_at,public_user_id,account_status,announcements_enabled,phone,created_at")
       .eq("user_id",user.id).maybeSingle();
     if(existingResult.error)throw existingResult.error;
     var existing=existingResult.data||{};
@@ -56,6 +56,16 @@
       display_name:existing.display_name||userName(user),
       email:user.email||null,
       avatar_url:avatar,
+      profile_image_path:existing.profile_image_path||null,
+      birthday:existing.birthday||null,
+      gender:existing.gender||null,
+      profile_completed:!!existing.profile_completed,
+      profile_completed_at:existing.profile_completed_at||null,
+      public_user_id:existing.public_user_id||undefined,
+      account_status:existing.account_status||"Active",
+      announcements_enabled:!!existing.announcements_enabled,
+      phone:existing.phone||null,
+      created_at:existing.created_at||undefined,
       auth_provider:providerFor(user),
       email_verified:!!(user.email_confirmed_at||meta.email_verified),
       updated_at:new Date().toISOString()
