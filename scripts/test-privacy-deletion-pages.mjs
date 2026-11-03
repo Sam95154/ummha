@@ -30,6 +30,9 @@ assert.match(deletionJs, /emailRedirectTo:\s*window\.location\.origin\s*\+\s*"\/
 assert.match(deletionJs, /functions\.invoke\("momin-delete-account"/);
 assert.match(deletionJs, /response\.data\.success\s*!==\s*true/);
 assert.match(deletionJs, /confirm-checkbox/);
+assert.match(deletionJs, /callbackInUrl/);
+assert.match(deletionJs, /pendingEmail !== verifiedAddress/);
+assert.match(deletionJs, /use a fresh email or Google verification link/);
 assert.doesNotMatch(deletionJs, /SUPABASE_SERVICE_ROLE_KEY|service_role|secret_key/i);
 assert.doesNotMatch(deletionPage, /service_role|SUPABASE_SERVICE_ROLE_KEY/i);
 new Script(deletionJs, { filename: "momin-public-account-deletion-v1.js" });
