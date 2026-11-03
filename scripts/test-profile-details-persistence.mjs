@@ -28,7 +28,7 @@ check("Password changes use Supabase Auth rather than the profile row", /auth\.u
 check("Session sync loads existing MOMIN profile fields before upsert", /from\("momin_profiles"\)[\s\S]*?select\("display_name,email,avatar_url,profile_image_path,birthday,gender,profile_completed/.test(auth));
 check("Session sync preserves birthday, gender and completion state", /birthday:existing\.birthday[\s\S]*?gender:existing\.gender[\s\S]*?profile_completed:!!existing\.profile_completed/.test(auth));
 check("Session sync returns and injects the saved profile into Settings", /\.select\("user_id,display_name,email[\s\S]*?birthday,gender,profile_completed[\s\S]*?return saved\.data/.test(auth) && /profileApi\.setSession\(\{user:user,profile:savedProfile/.test(auth));
-check("The profile model consumes saved database values", /var saved=input\.profile\|\|user\.profile\|\|\{\}/.test(profile) && /birthday:String\(saved\.birthday\|\|"\)/.test(profile) && /gender:String\(saved\.gender\|\|"\)/.test(profile));
+check("The profile model consumes saved database values", /var saved=input\.profile\|\|user\.profile\|\|\{\}/.test(profile) && /birthday:String\(saved\.birthday\|\|""\)/.test(profile) && /gender:String\(saved\.gender\|\|""\)/.test(profile));
 
 // The user-facing Settings profile explicitly renders the saved values.
 check("Settings renders a readable birthday", /function profileBirthday\(value\)/.test(settings) && /profileBirthday\(u\.birthday\)/.test(settings));
