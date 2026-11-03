@@ -6,6 +6,7 @@ import "./momin-native-prayer-alarm.js";
 // Ask for Android permissions only when the user enables the feature that needs them.
 
 const AUTH_REDIRECT = "com.momin.noorulislam://auth/callback";
+const AUTH_RECOVERY_REDIRECT = "com.momin.noorulislam://auth/recovery";
 
 const FCM_APP_ID = "com.momin.noorulislam";
 const FCM_ROUTE_ALLOWLIST = new Set([
