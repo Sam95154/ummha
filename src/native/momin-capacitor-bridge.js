@@ -225,7 +225,7 @@ if (Capacitor.isNativePlatform()) {
       googleLoginPromise = (async function () {
         const client = await waitForSupabaseClient();
         const webClientId = window.MOMIN_GOOGLE_WEB_CLIENT_ID;
-        if (!webClientId || !/^[0-9]+-[A-Za-z0-9_-]+\\.apps\\.googleusercontent\\.com$/.test(webClientId)) {
+        if (!webClientId || !/^[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(webClientId)) {
           throw new Error("Native Google sign-in is not configured. Rebuild the APK with the MOMIN Google Web OAuth client in google-services.json.");
         }
         if (!googleLoginInitialized) {
@@ -288,7 +288,9 @@ if (Capacitor.isNativePlatform()) {
 
       try { await Browser.close(); } catch (_) {}
 
-      if (window.location.pathname.endsWith("/login.html")) {
+      if (callback.searchParams.get("next") === "reset-password") {
+        window.location.replace("/reset-password.html");
+      } else if (window.location.pathname.endsWith("/login.html")) {
         const requestedNext = new URLSearchParams(window.location.search).get("next") || "/";
         let safeNext = "/";
         try {
