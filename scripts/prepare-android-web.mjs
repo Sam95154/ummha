@@ -122,12 +122,8 @@ if (!loginHtml.includes(oldLoginOAuth)) {
 }
 loginHtml = loginHtml.replace(oldLoginOAuth, nativeLoginOAuth);
 loginHtml = configureNativePkceAuth(loginHtml, "login.html");
-const oldResetPasswordRedirect = `redirectTo:location.origin+"/reset-password.html"`;
-const nativeResetPasswordRedirect = `redirectTo:(window.MominNative&&window.MominNative.isNative)?window.MominNative.authRecoveryRedirectUrl:location.origin+"/reset-password.html"`;
-if (!loginHtml.includes(oldResetPasswordRedirect)) {
-  throw new Error("Could not safely locate the password reset redirect in login.html; refusing to patch it.");
-}
-loginHtml = loginHtml.replace(oldResetPasswordRedirect, nativeResetPasswordRedirect);
+// Password recovery uses a one-time code entered in the app. Do not
+// rewrite the recovery email to a browser or custom-scheme callback.
 fs.writeFileSync(loginPath, loginHtml, "utf8");
 
 const authPath = path.join(webDir, "momin-auth-v1.js");
