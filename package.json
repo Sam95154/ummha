@@ -15,7 +15,8 @@
     "android:signing:prepare": "node scripts/configure-android-signing.mjs",
     "test:sunrise": "node scripts/test-sunrise-display.mjs",
     "test:prayer-location": "node scripts/test-prayer-location-sync.mjs",
-    "test:prayer-alarm-timing": "node scripts/test-prayer-alarm-timing.mjs"
+    "test:prayer-alarm-timing": "node scripts/test-prayer-alarm-timing.mjs",
+    "test:profile-details": "node scripts/test-profile-details-persistence.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",
