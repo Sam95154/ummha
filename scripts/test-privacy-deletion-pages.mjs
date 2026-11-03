@@ -36,6 +36,6 @@ new Script(deletionJs, { filename: "momin-public-account-deletion-v1.js" });
 
 assert.match(login, /href=["']\/privacy\.html["']/);
 assert.match(login, /href=["']\/delete-account\.html["']/);
-assert.match(profile, /href=["']\/privacy\.html["']/);
-assert.match(profile, /href=["']\/delete-account\.html["']/);
+assert.match(profile, /https:\/\/noor-ul-islam-dua\.onrender\.com\/privacy\.html/);
+assert.match(profile, /https:\/\/noor-ul-islam-dua\.onrender\.com\/delete-account\.html/);
 console.log("MOMIN privacy and external account-deletion static QA passed.");
