@@ -303,6 +303,12 @@ $("g").onclick=async function(){
   var button=this;if(button.disabled)return;
   hideMessage();setBusy(button,true);
   try{
+    if(window.MominNative&&window.MominNative.isNative&&typeof window.MominNative.signInWithGoogle==="function"){
+      var nativeResult=await window.MominNative.signInWithGoogle();
+      if(!nativeResult||!nativeResult.user)throw new Error("Google sign-in did not return a MOMIN account.");
+      finish("Welcome back","You’re signed in. Opening MOMIN…");
+      return;
+    }
     var result=await supabaseClient.auth.signInWithOAuth({
       provider:"google",
       options:{
@@ -360,8 +366,12 @@ $("forgot").onclick=async function(){
   if(!okMail(email)){bad("fe","ee","Enter your email first");$("email").focus();return;}
   var button=this;button.disabled=true;
   try{
+    var isNative=!!(window.MominNative&&window.MominNative.isNative);
+    var recoveryRedirect=isNative
+      ?"com.momin.noorulislam://auth/callback?next=reset-password"
+      :location.origin+"/reset-password.html";
     var result=await supabaseClient.auth.resetPasswordForEmail(email,{
-      redirectTo:location.origin+"/reset-password.html"
+      redirectTo:recoveryRedirect
     });
     if(result.error)throw result.error;
     showMessage("If an account exists for this email, a password-reset link has been sent.","success");
