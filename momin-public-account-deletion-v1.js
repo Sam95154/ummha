@@ -66,7 +66,7 @@
       return;
     }
     if (result.data && result.data.session && result.data.session.user && !callbackInUrl) {
-      showStatus(requestStatus, "For your security, use a fresh email or Google verification link from this page before requesting deletion.", false);
+      showStatus(requestStatus, "For your security, use a fresh email verification link from this page before requesting deletion.", false);
     } else if (callbackInUrl) {
       showStatus(requestStatus, "The verification link was not accepted. It may have expired or been opened in a different browser. Request a new link and open it in the browser where you started.", true);
     }
