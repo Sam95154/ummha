@@ -78,6 +78,7 @@ h1{font-size:34px;line-height:1.1}
 .tag{font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--accent);color:var(--accent-ink)}
 .tag.nx{background:var(--cell);color:var(--muted)}
 .row .tm{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700;font-size:16px}
+.row.sunrise-info{background:rgba(212,166,63,.045)}.row.sunrise-info .n{color:var(--muted);font-weight:600}.row.sunrise-info .ic{color:var(--gold)}
 .row.now{border-radius:20px;background:linear-gradient(90deg,var(--glow),transparent);border-bottom-color:transparent}
 .row.flash{animation:flash .8s}
 @keyframes flash{30%{background:var(--glow)}}
@@ -214,7 +215,7 @@ body.momin-prayer-embedded .title{margin-top:12px}
 <script>
 var $=function(i){return document.getElementById(i)};
 /* Replace with times from your API / calculation library */
-var P=[];
+var P=[],sunriseM=null;
 var IC={Fajr:"M4 18h16M7 18a5 5 0 0 1 10 0M12 6v3M5.6 10.6l1.7 1.7M18.4 10.6l-1.7 1.7",Dhuhr:"M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",Asr:"M12 4v2M12 18v2M4 12h2M18 12h2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",Maghrib:"M4 18h16M7 18a5 5 0 0 1 10 0M12 4v4M9.5 6 12 8.500 14.5 6",Isha:"M20 14.500A8 8 0 1 1 9.500 4a6.500 6.500 0 0 0 10.500 10.500z"};
 var HN=["Muḥarram","Ṣafar","Rabīʿ al-awwal","Rabīʿ al-thānī","Jumādá al-ūlá","Jumādá al-ākhirah","Rajab","Shaʿbān","Ramaḍān","Shawwāl","Dhū al-Qaʿdah","Dhū al-Ḥijjah"];
 var HF=new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn",{day:"numeric",month:"numeric",year:"numeric"});
@@ -272,7 +273,7 @@ function tick(){
   if(cur!==lastCur){lastCur=cur;var hero=$("hero");hero.dataset.p=cur;
     $("nowTxt").textContent="NOW · "+P[cur].n;$("nextTxt").textContent="Next: "+P[nx].n;$("nextTime").textContent=fmt(P[nx].m);
     
-    document.querySelectorAll("#chips span").forEach(function(c,i){c.classList.toggle("on",i===cur)});rows(false)}}
+    document.querySelectorAll("#chips [data-prayer-index]").forEach(function(c){c.classList.toggle("on",Number(c.getAttribute("data-prayer-index"))===cur)});rows(false)}}
 
 /* rows */
 function rows(anim){
@@ -283,8 +284,10 @@ function rows(anim){
     $("rows").innerHTML='<p class="info">Set your location below to load accurate prayer times.</p>';
     stats(false);return;
   }
-  $("rows").innerHTML=P.map(function(p,i){var on=done.indexOf(i)>-1,cur=isToday&&i===lastCur,nx=isToday&&i===(lastCur+1)%5&&!cur;
-    return '<div class="row'+(cur?" now":"")+(anim?" flash":"")+'" style="--i:'+i+'"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+IC[p.n]+'"/></svg></span><span class="n">'+p.n+(cur?'<span class="tag">Now</span>':nx?'<span class="tag nx">Next</span>':"")+'</span><span class="tm">'+fmt(p.m)+'</span><button class="ck" role="checkbox" aria-checked="'+on+'" aria-label="Mark '+p.n+' as prayed" data-i="'+i+'"'+(future?" disabled":"")+'><svg viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg></button></div>'}).join("");
+  var renderedRows=P.map(function(p,i){var on=done.indexOf(i)>-1,cur=isToday&&i===lastCur,nx=isToday&&i===(lastCur+1)%5&&!cur;
+    return '<div class="row'+(cur?" now":"")+(anim?" flash":"")+'" style="--i:'+i+'"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+IC[p.n]+'"/></svg></span><span class="n">'+p.n+(cur?'<span class="tag">Now</span>':nx?'<span class="tag nx">Next</span>':"")+'</span><span class="tm">'+fmt(p.m)+'</span><button class="ck" role="checkbox" aria-checked="'+on+'" aria-label="Mark '+p.n+' as prayed" data-i="'+i+'"'+(future?" disabled":"")+'><svg viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg></button></div>'});
+  if(sunriseM!==null)renderedRows.splice(1,0,'<div class="row sunrise-info" role="group" aria-label="Sunrise time, informational only"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+IC.Fajr+'"/></svg></span><span class="n">Sunrise</span><span class="tm">'+fmt(sunriseM)+'</span></div>');
+  $("rows").innerHTML=renderedRows.join("");
   stats(false)}
 function stats(fx){var n=done.length;$("count").textContent=n+" of 5";$("pbar").style.width=n*20+"%";
   $("praise").classList.toggle("show",n===5);
@@ -341,8 +344,11 @@ function mominApplyPrayerData(data){
   var timings=data&&data.timings?data.timings:null;
   if(timings){
     P=["Fajr","Dhuhr","Asr","Maghrib","Isha"].map(function(n){return {n:n,m:mominMinutes(timings[n])}}).filter(function(x){return x.m!==null});
-  }else{P=[]}
-  $("chips").innerHTML=P.length?P.map(function(p){return "<span>"+p.n+" · "+fmt(p.m)+"</span>"}).join(""):'<span>Set your location to see prayer times</span>';
+    sunriseM=mominMinutes(timings.Sunrise);
+  }else{P=[];sunriseM=null}
+  var prayerChips=P.map(function(p,index){return '<span data-prayer-index="'+index+'">'+p.n+" · "+fmt(p.m)+"</span>"});
+  if(sunriseM!==null)prayerChips.splice(1,0,'<span class="sunrise-chip" aria-label="Sunrise time, informational only">☀ Sunrise · '+fmt(sunriseM)+'</span>');
+  $("chips").innerHTML=prayerChips.length?prayerChips.join(""):'<span>Set your location to see prayer times</span>';
   if(data&&data.date&&data.date.hijri){
     var h=data.date.hijri,month=h.month&&(h.month.en||h.month.ar)||"";
     $("hj1").textContent=[h.day,month,h.year,"AH"].filter(Boolean).join(" ");

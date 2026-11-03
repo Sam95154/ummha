@@ -197,7 +197,7 @@
 
   window.prayersPage = function () {
     return '<div class="momin-prayer-page-frame-wrap" style="width:100%;max-width:520px;margin:0 auto;overflow:visible">' +
-      '<iframe id="' + FRAME_ID + '" title="MOMIN Prayer Times" src="./prayers-page-v1.html?embed=1&amp;v=20261103-device-responsive-v1" ' +
+      '<iframe id="' + FRAME_ID + '" title="MOMIN Prayer Times" src="./prayers-page-v1.html?embed=1&amp;v=20261103-sunrise-time-v1" ' +
       'allow="geolocation" loading="eager" scrolling="no" ' +
       'style="display:block;width:100%;height:1100px;border:0;background:#0c0a07" ' +
       'referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';

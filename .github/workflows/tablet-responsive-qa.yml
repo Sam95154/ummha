@@ -9,6 +9,8 @@ on:
       - "momin-device-responsive-v1.css"
       - "momin-shared-shell-v1.js"
       - "momin-prayer-page-v1.js"
+      - "momin-home-design-v2.js"
+      - "scripts/test-sunrise-display.mjs"
       - "momin-journey-page-v1.js"
       - "momin-mosque-page-v1.js"
       - "momin-duas-page-v2.js"
@@ -61,5 +63,7 @@ jobs:
           node-version: "22"
       - name: Run tablet responsive QA
         run: npm run test:tablet
+      - name: Run Sunrise display regression QA
+        run: npm run test:sunrise
       - name: Run Admin-to-User Giving integration QA
         run: npm run test:giving

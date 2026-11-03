@@ -97,13 +97,16 @@ for (const file of [
   assert.ok(content.includes(deviceStylesheetUrl), file + " is missing device-responsive styles for its embedded view.");
 }
 
-for (const file of [
-  "momin-prayer-page-v1.js", "momin-journey-page-v1.js",
-  "momin-mosque-page-v1.js", "momin-duas-page-v2.js",
-  "momin-inspiration-page-v1.js"
-]) {
+const frameCacheVersions = new Map([
+  ["momin-prayer-page-v1.js", "20261103-sunrise-time-v1"],
+  ["momin-journey-page-v1.js", "20261103-device-responsive-v1"],
+  ["momin-mosque-page-v1.js", "20261103-device-responsive-v1"],
+  ["momin-duas-page-v2.js", "20261103-device-responsive-v1"],
+  ["momin-inspiration-page-v1.js", "20261103-device-responsive-v1"]
+]);
+for (const [file, version] of frameCacheVersions) {
   const content = fs.readFileSync(path.join(root, file), "utf8");
-  assert.ok(content.includes("20261103-device-responsive-v1"), file + " iframe cache version was not refreshed.");
+  assert.ok(content.includes(version), file + " iframe cache version was not refreshed.");
 }
 const notificationBridge = fs.readFileSync(path.join(root, "momin-notifications-admin-inbox-v1.js"), "utf8");
 assert.ok(notificationBridge.includes('notifications.html?v=20261103-recent-top-v1'), "Notifications iframe must use a fresh cache key for the top-Recent layout.");

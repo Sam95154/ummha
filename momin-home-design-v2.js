@@ -73,9 +73,12 @@ function doneCount(){var done=doneMap();return prayerNames().filter(function(nam
 function prayerIcon(name){return {Fajr:'i-sunrise',Dhuhr:'i-sun',Asr:'i-asr',Maghrib:'i-sunset',Isha:'i-moon'}[name]||'i-moon';}
 function chipMarkup(state){
   var timings=prayerTimings();if(!timings)return '';
-  return prayerNames().map(function(name,index){var date=parsePrayerDate(timings[name],0);
+  var chips=prayerNames().map(function(name,index){var date=parsePrayerDate(timings[name],0);
     return '<span class="'+(state&&state.currentIndex===index?'on':'')+'">'+esc(displayPrayerName(name))+' · '+esc(formatTime(date))+'</span>';
-  }).join('');
+  });
+  var sunrise=parsePrayerDate(timings.Sunrise,0);
+  if(sunrise)chips.splice(1,0,'<span class="sunrise-chip" aria-label="Sunrise time, informational only">☀ Sunrise · '+esc(formatTime(sunrise))+'</span>');
+  return chips.join('');
 }
 function trackerMarkup(state){
   var timings=prayerTimings();if(!timings)return '<li class="row"><div class="nm"><b>Prayer times unavailable</b><span>Choose your location in Prayer Times to load the daily schedule.</span></div></li>';
