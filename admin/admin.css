@@ -19,3 +19,11 @@
 .autocomplete-empty{padding:12px;color:var(--muted);font-size:12px}
 .selected-user{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--gold);border-radius:10px;background:var(--el);font-size:12px}
 .selected-user>span{min-width:0;overflow-wrap:anywhere}
+
+.user-profile-summary{display:flex;align-items:flex-start;gap:18px;margin:14px 0 22px}
+.user-profile-avatar{width:92px;height:92px;flex:0 0 92px;object-fit:cover;border-radius:22px;border:1px solid var(--border);background:var(--el)}
+.user-profile-avatar.is-empty{display:grid;place-items:center;color:var(--muted);font-size:24px}
+.user-profile-fields{flex:1;min-width:0;gap:10px}
+.user-profile-fields>div{min-width:0}
+.user-profile-fields p{margin:5px 0 13px;overflow-wrap:anywhere}
+@media(max-width:620px){.user-profile-summary{flex-direction:column}.user-profile-avatar{width:76px;height:76px;flex-basis:76px}.user-profile-fields{width:100%}}
