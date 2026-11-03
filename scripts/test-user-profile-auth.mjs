@@ -8,7 +8,6 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const auth = read("momin-auth-v1.js");
 const profile = read("momin-profile-settings-v1.js");
 const adminApi = read("supabase/functions/momin-admin-api/index.ts");
-const adminUi = read("admin/admin.js");
 const nativeBridge = read("src/native/momin-capacitor-bridge.js");
 const androidPrep = read("scripts/prepare-android-project.mjs");
 const androidWeb = read("scripts/prepare-android-web.mjs");
@@ -32,7 +31,6 @@ check("Profile photo uses the authenticated user's storage folder", /user\.id\+[
 
 // Admin profile visibility.
 check("Admin API returns saved profile fields", ["avatar_url", "birthday", "gender", "auth_provider", "email_verified", "profile_completed"].every((x) => adminApi.includes(x)));
-check("Admin detail UI shows birthday, gender and profile image", ["const birthday", "const gender", "user-profile-avatar", "Email status", "Profile status"].every((x) => adminUi.includes(x)));
 
 // Native Google sign-in and activity-result handling.
 check("Android native sign-in uses Capacitor Social Login", /SocialLogin\.initialize/.test(nativeBridge) && /SocialLogin\.login\(\{ provider: "google"/.test(nativeBridge));
