@@ -1,4 +1,5 @@
 import { Capacitor, registerPlugin } from "@capacitor/core";
+import { prayerTimeToEpoch } from "./momin-prayer-time-utils.js";
 
 const NativePrayer = registerPlugin("MominPrayerAlarm");
 const isNative = Capacitor.isNativePlatform();
@@ -50,36 +51,6 @@ function addDays(iso, days) {
   const [y,m,d] = iso.split("-").map(Number);
   const date = new Date(Date.UTC(y, m - 1, d + days));
   return [date.getUTCFullYear(), String(date.getUTCMonth()+1).padStart(2,"0"), String(date.getUTCDate()).padStart(2,"0")].join("-");
-}
-function timeAt(iso, clock, zone) {
-  const match = String(clock || "").match(/(\d{1,2}):(\d{2})/);
-  if (!match) return null;
-  const [y,m,d] = iso.split("-").map(Number);
-  const h = Number(match[1]), minute = Number(match[2]);
-  // Treat the requested wall-clock time as a UTC-shaped reference value.
-  // Compare every formatted local value to that reference, not to the
-  // candidate epoch. Comparing to the epoch repeatedly subtracts the
-  // timezone offset on every pass (for example, five times in IST).
-  const desired = Date.UTC(y,m-1,d,h,minute,0);
-  let epoch = desired;
-  for (let n=0; n<4; n++) {
-    const p = zonedParts(epoch,zone);
-    const represented = Date.UTC(
-      Number(p.year),Number(p.month)-1,Number(p.day),
-      Number(p.hour),Number(p.minute),0
-    );
-    const delta = represented - desired;
-    if (delta === 0) return epoch;
-    epoch -= delta;
-  }
-  // Do not schedule an alarm for a local wall-clock time that could not be
-  // represented (for example, a DST gap in the requested timezone).
-  const check = zonedParts(epoch,zone);
-  const actual = Date.UTC(
-    Number(check.year),Number(check.month)-1,Number(check.day),
-    Number(check.hour),Number(check.minute),0
-  );
-  return actual === desired ? epoch : null;
 }
 function rowDate(row) {
   const iso = row && row.date && row.date.gregorian && row.date.gregorian.iso;
@@ -137,7 +108,7 @@ async function buildAlarms(prefs,loc) {
     if (!row || !row.timings) return;
     names.forEach((name,index)=>{
       if (!prefs.prayers[index]) return;
-      const at=timeAt(iso,row.timings[name],loc.timezone);
+      const at=prayerTimeToEpoch(iso,row.timings[name],loc.timezone);
       if (!Number.isFinite(at) || at<=now+5000) return;
       if (prefs.lead>0) {
         const reminderAt=at-prefs.lead*60000;
@@ -168,7 +139,7 @@ async function buildAlarms(prefs,loc) {
       };
       const occasion = occasions[hijriMonth + "-" + hijriDay];
       if (occasion) {
-        const festivalAt = timeAt(iso, "07:00", loc.timezone);
+        const festivalAt = prayerTimeToEpoch(iso, "07:00", loc.timezone);
         if (Number.isFinite(festivalAt) && festivalAt > now + 5000) {
           const safeName = occasion.toLowerCase().replace(/[^a-z0-9]+/g, "-");
           alarms.push({
