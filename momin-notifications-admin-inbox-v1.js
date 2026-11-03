@@ -482,6 +482,12 @@
       console.warn("MOMIN lifecycle inbox refresh:",error&&error.message||error);
     }).finally(function(){inboxRefreshInFlight=null});
   }
+  if(navigator.serviceWorker&&navigator.serviceWorker.addEventListener){
+    navigator.serviceWorker.addEventListener("message",function(event){
+      if(!event.data||event.data.type!=="MOMIN_ADMIN_NOTIFICATION_DELETED")return;
+      refreshInboxForLifecycle(true);
+    });
+  }
   window.addEventListener("load",function(){window.setTimeout(function(){refreshInboxForLifecycle(true)},250)},{once:true});
   window.addEventListener("momin:auth-state-changed",function(event){
     var user=event&&event.detail&&event.detail.user;
