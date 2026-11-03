@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - noor-ul-islam-live
+      - feature/returning-user-profile-data
   workflow_dispatch:
 
 permissions:
