@@ -23,6 +23,8 @@ for (const phrase of [
 ]) assert.ok(deletionPage.includes(phrase), "Deletion page is missing: " + phrase);
 
 assert.match(deletionJs, /signInWithOtp/);
+assert.match(deletionJs, /response identical for known, unknown, and rate-limited addresses/);
+assert.match(deletionJs, /Network failures use the same response/);
 assert.match(deletionJs, /shouldCreateUser:\s*false/);
 assert.match(deletionJs, /emailRedirectTo:\s*window\.location\.origin\s*\+\s*"\/delete-account\.html"/);
 assert.match(deletionJs, /functions\.invoke\("momin-delete-account"/);
