@@ -23,7 +23,7 @@ function check(label, predicate) {
 
 // Returning-user persistence and profile fields.
 check("Existing profile record is fetched before profile sync", /from\(["']momin_profiles["']\)[\s\S]*?select\(["']display_name,email,avatar_url,profile_image_path,birthday,gender,profile_completed/.test(auth));
-check("Sign-in sync preserves existing birthday, gender, image path and profile state", /birthday:existing\.birthday[\s\S]*?gender:existing\.gender[\s\S]*?profile_image_path:existing\.profile_image_path/.test(auth));
+check("Sign-in sync preserves existing birthday, gender, image path and profile state", /profile_image_path:existing\\.profile_image_path[\\s\\S]*?birthday:existing\\.birthday[\\s\\S]*?gender:existing\\.gender/.test(auth));
 check("Saved profile is loaded into Settings after sign-in", /profileApi\.setSession\(\{user:user,profile:savedProfile/.test(auth));
 check("Settings renders name, email, birthday and gender fields", ["mprofile-name", "mprofile-email", "mprofile-birthday", "mprofile-gender"].every((x) => profile.includes(x)));
 check("Profile save sends name, email, birthday, gender and avatar", /invoke\(["']saveProfile["'],\[formData\]\)/.test(profile) && /avatarFile:selectedAvatarFile/.test(profile));
