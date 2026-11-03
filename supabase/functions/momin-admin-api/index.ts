@@ -190,7 +190,7 @@ async function listUsers(body: Record<string, unknown>) {
   const query = String(body.q || "").trim().slice(0, 100);
   const status = String(body.status || "all");
   let request = db.from("momin_profiles")
-    .select("user_id,public_user_id,display_name,email,phone,account_status,created_at,avatar_url,birthday,gender,auth_provider,email_verified,profile_completed")
+    .select("user_id,public_user_id,display_name,email,phone,account_status,created_at,avatar_url,birthday,gender,auth_provider,email_verified,profile_completed", { count: "exact" })
     .order("created_at", { ascending: false })
     .range((page - 1) * pageSize, page * pageSize - 1);
   if (status === "Active" || status === "Inactive") request = request.eq("account_status", status);
