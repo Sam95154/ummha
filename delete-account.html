@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101b16">
+<meta name="description" content="Start a secure MOMIN account and associated-data deletion request without reinstalling the app.">
+<title>Delete your MOMIN account</title>
+<style>
+:root{color-scheme:light;--ink:#20291f;--muted:#687367;--paper:#f7f6ef;--card:#fff;--line:#e7e3d7;--green:#174b39;--gold:#c5a15a;--red:#a63e32}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(900px 480px at 100% 0%,#d8e2d1 0%,transparent 58%),var(--paper);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-rows:auto 1fr auto}a{color:var(--green);text-underline-offset:3px}a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+header{padding:23px 18px}.brand{display:flex;align-items:center;gap:10px;width:min(720px,100%);margin:auto;color:#183c2d;text-decoration:none;font-weight:850;letter-spacing:.12em}.mark{width:36px;height:36px;border:1px solid var(--gold);border-radius:12px;display:grid;place-items:center;background:#fff;color:#8c6827;font-size:18px}
+main{width:min(720px,calc(100% - 28px));margin:24px auto 48px}.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(22px,5vw,42px);box-shadow:0 22px 60px #25342612}.eyebrow{color:#876727;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+h1{font:600 clamp(30px,6vw,44px)/1.15 Georgia,"Times New Roman",serif;margin:10px 0 12px;color:#1a3c2d}h2{font:600 24px/1.2 Georgia,"Times New Roman",serif;color:#1a3c2d;margin:30px 0 10px}p{margin:10px 0;color:var(--muted)}.steps{display:grid;gap:10px;margin:22px 0;padding:0;list-style:none;counter-reset:step}.steps li{counter-increment:step;display:grid;grid-template-columns:34px 1fr;gap:11px;align-items:start}.steps li:before{content:counter(step);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#edf3e9;color:var(--green);font-weight:800}
+form{display:grid;gap:12px;margin-top:20px}label{font-weight:700;font-size:14px}input[type=email]{width:100%;min-height:52px;border:1px solid #cfd8ce;border-radius:13px;background:#fff;padding:12px 14px;font:inherit;color:var(--ink)}.checkrow{display:flex;gap:10px;align-items:flex-start;font-size:14px}.checkrow input{width:18px;height:18px;margin-top:3px;accent-color:var(--green);flex:none}
+button{border:0;border-radius:999px;background:var(--green);color:white;padding:14px 20px;font:700 15px system-ui;cursor:pointer}button:disabled{opacity:.55;cursor:wait}button.danger{background:var(--red)}.status{padding:13px 15px;border-radius:12px;background:#edf3e9;color:#234b37;margin-top:15px;white-space:pre-wrap}.status.error{background:#faece9;color:#8d3128}.hidden{display:none!important}.account-email{display:inline-block;padding:5px 9px;border-radius:8px;background:#f2f3ed;color:#263d2e;font-weight:700;overflow-wrap:anywhere}.warning{border-left:3px solid var(--red);padding:10px 13px;background:#fbefec;color:#78332d;border-radius:0 10px 10px 0;font-size:14px}footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 26px}
+@media(max-width:600px){header{padding:17px 14px}main{margin:8px auto 30px;width:calc(100% - 20px)}.card{padding:22px 18px;border-radius:18px}button{width:100%}}
+</style>
+</head>
+<body>
+<header><a class="brand" href="/" aria-label="MOMIN home"><span class="mark" aria-hidden="true">☾</span><span>MOMIN</span></a></header>
+<main><section class="card" aria-labelledby="page-title">
+<div class="eyebrow">Account and data control</div>
+<h1 id="page-title">Delete your MOMIN account</h1>
+<p>You can request deletion here even if you have uninstalled MOMIN. You do not need to reinstall the app. We first verify that you control the email address connected to the account.</p>
+<ol class="steps"><li><span>Enter the email address used for your MOMIN account. We will send a one-time sign-in link.</span></li><li><span>Open the link in the same browser where you made the request.</span></li><li><span>Review the account shown and confirm deletion. The request is then sent to the protected deletion service.</span></li></ol>
+<form id="request-form" novalidate><div><label for="account-email">MOMIN account email</label><input id="account-email" name="email" type="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="you@example.com" required></div><button id="send-link" type="submit">Send verification link</button></form>
+<p id="request-status" class="status hidden" role="status" aria-live="polite"></p>
+<section id="confirm-panel" class="hidden" aria-labelledby="confirm-title">
+<h2 id="confirm-title">Confirm account deletion</h2><p>The verified MOMIN account is:</p><p id="verified-email" class="account-email"></p>
+<p class="warning"><strong>This action is permanent.</strong> Your MOMIN authentication account, profile, profile image files, complaints and attachments, complaint replies, notification records, device records, push tokens and subscriptions will be deleted. A limited contribution-ledger record may be retained without its account identifier for accounting, audit, fraud-prevention or legal purposes. Read the <a href="/privacy.html">Privacy Policy</a> for details.</p>
+<form id="confirm-form"><label class="checkrow"><input id="confirm-checkbox" type="checkbox" required><span>I understand that deleting my MOMIN account is permanent and cannot be undone.</span></label><button id="delete-button" class="danger" type="submit">Permanently delete my account</button></form>
+</section>
+<p id="result-status" class="status hidden" role="status" aria-live="polite"></p>
+<p>Having trouble receiving the verification link? <a href="mailto:mominsupport0@gmail.com?subject=MOMIN%20account%20deletion%20request">Email MOMIN Support to request account deletion</a>. Never send your password or a one-time sign-in link to support.</p>
+</section></main>
+<footer><a href="/privacy.html">Privacy Policy</a> · <a href="mailto:mominsupport0@gmail.com">MOMIN Support</a></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./momin-public-account-deletion-v1.js?v=20261103-public-delete-v1"></script>
+</body>
+</html>
