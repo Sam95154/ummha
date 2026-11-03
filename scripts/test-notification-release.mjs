@@ -5,6 +5,9 @@ import vm from "node:vm";
 const read = (path) => fs.readFileSync(new URL("../" + path, import.meta.url), "utf8");
 const admin = read("supabase/functions/momin-admin-api/index.ts");
 const pushRegister = read("supabase/functions/momin-push-register/index.ts");
+const fcmRegister = read("supabase/functions/momin-fcm-register/index.ts");
+const settings = read("momin-settings-design-v2.js");
+const mandatoryMigration = read("supabase/migrations/20261103160000_momin_admin_announcements_always_on.sql");
 const migration = read("supabase/migrations/20261102183000_momin_notification_release_readiness.sql");
 const fcmMigration = read("supabase/migrations/20261102183500_momin_fcm_delivery_idempotency.sql");
 const shell = read("momin-shared-shell-v1.js");
@@ -26,6 +29,7 @@ function notHas(source, value, label) {
 new vm.Script(shell, { filename: "momin-shared-shell-v1.js" });
 new vm.Script(bridge, { filename: "momin-notifications-admin-inbox-v1.js" });
 new vm.Script(auth, { filename: "momin-auth-v1.js" });
+new vm.Script(settings, { filename: "momin-settings-design-v2.js" });
 console.log("PASS: Notification client-side JavaScript parses.");
 
 // Global unread badge on the home notification bell.
@@ -69,8 +73,21 @@ has(admin, 'status === "Active" && previous.status !== "Active"', "Publish on st
 has(admin, 'givingCampaignId: string | null = null', "Stable campaign sender identity");
 has(admin, 'onConflict: "notification_id,user_id"', "Deduplicated in-app inbox insert");
 has(admin, 'onConflict: "event_key"', "Deduplicated Web Push delivery audit");
-has(admin, 'item.preferences?.announcements === true', "Web Push announcement opt-in");
-has(admin, '.eq("announcements_enabled", true)', "FCM announcement opt-in");
+notHas(admin, 'item.preferences?.announcements === true', "Web Push must not require announcement opt-in");
+notHas(admin, '.eq("announcements_enabled", true)', "FCM must not require announcement opt-in");
+has(settings, "admin:true,", "Admin announcements default to ON");
+has(settings, 'settingsAdminNotificationsV1",true)', "Admin announcement setting is locked");
+has(settings, 'if(k==="admin")v=true;', "User cannot turn Admin announcements off");
+has(bridge, "base.announcements=true;", "Bridge always stores Admin announcements as ON");
+has(bridge, 'put("momin-announcements-enabled","true")', "Local setting is forced ON");
+has(pushRegister, "announcements: true,", "Web Push registration forces announcements ON");
+has(fcmRegister, "announcements_enabled: true,", "FCM registration forces announcements ON");
+has(native, "announcements_enabled: true", "Android FCM registration forces announcements ON");
+has(page, 'required?\'disabled aria-disabled="true\' :""', "Notifications page Admin setting is locked");
+has(mandatoryMigration, "momin_profiles_admin_announcements_on", "Profile always-on database trigger");
+has(mandatoryMigration, "momin_push_subscriptions_admin_announcements_on", "Web Push always-on database trigger");
+has(mandatoryMigration, "momin_fcm_tokens_admin_announcements_on", "FCM token always-on database trigger");
+has(mandatoryMigration, "set announcements_enabled = true", "Existing profiles and tokens are enabled");
 has(admin, 'eq("status", "accepted")', "Previously accepted FCM sends are not repeated");
 has(admin, 'onConflict: "admin_notification_id,fcm_token_id"', "Idempotent FCM delivery audit");
 has(migration, "momin_giving_campaign_announcements", "Campaign announcement schema");
