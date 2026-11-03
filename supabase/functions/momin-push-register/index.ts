@@ -177,7 +177,7 @@ Deno.serve(async (request: Request) => {
       adhkar: !!times.adhkar,
       dates: times.dates !== false,
       sound: ["azan","chime","system","silent"].includes(times.sound) ? times.sound : "system",
-      announcements: times.announcements === true,
+      announcements: true,
     };
     const hasCoordinateValues = body.latitude !== null && body.latitude !== undefined &&
       body.longitude !== null && body.longitude !== undefined &&
@@ -229,7 +229,7 @@ Deno.serve(async (request: Request) => {
       .select("id").single();
     if (saveError) throw saveError;
     const { error: profileConsentError } = await admin.from("momin_profiles")
-      .update({ announcements_enabled: allowedTimes.announcements, updated_at: new Date().toISOString() })
+      .update({ announcements_enabled: true, updated_at: new Date().toISOString() })
       .eq("user_id", user.id);
     if (profileConsentError) throw profileConsentError;
     return response({
