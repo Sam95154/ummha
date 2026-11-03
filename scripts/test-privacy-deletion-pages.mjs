@@ -32,7 +32,7 @@ assert.match(deletionJs, /callbackInUrl/);
 assert.match(deletionJs, /pendingEmail !== verifiedAddress/);
 assert.match(deletionJs, /flowType: "implicit"/);
 assert.doesNotMatch(deletionJs, /signInWithOAuth|google-verify/);
-assert.match(deletionJs, /use a fresh email or Google verification link/);
+assert.match(deletionJs, /use a fresh email verification link/);
 assert.doesNotMatch(deletionJs, /SUPABASE_SERVICE_ROLE_KEY|service_role|secret_key/i);
 assert.doesNotMatch(deletionPage, /service_role|SUPABASE_SERVICE_ROLE_KEY/i);
 new Script(deletionJs, { filename: "momin-public-account-deletion-v1.js" });
