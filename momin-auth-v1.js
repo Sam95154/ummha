@@ -149,7 +149,7 @@
         var uploadedPath=null;
         var file=form.avatarFile||null;
         if(file){
-          if(!/^image\\/(jpeg|png|webp|avif)$/.test(file.type)||file.size>5*1024*1024)throw new Error("Choose a JPG, PNG, WebP or AVIF image up to 5 MB.");
+          if(!/^image\/(jpeg|png|webp|avif)$/.test(file.type)||file.size>5*1024*1024)throw new Error("Choose a JPG, PNG, WebP or AVIF image up to 5 MB.");
           var extension=file.type==="image/png"?"png":file.type==="image/webp"?"webp":file.type==="image/avif"?"avif":"jpg";
           uploadedPath=user.id+"/profile-"+((window.crypto&&crypto.randomUUID)?crypto.randomUUID():Date.now())+"."+extension;
           var upload=await supabase.storage.from("avatars").upload(uploadedPath,file,{upsert:false,contentType:file.type,cacheControl:"3600"});
