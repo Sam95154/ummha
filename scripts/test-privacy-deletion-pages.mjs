@@ -18,7 +18,7 @@ for (const phrase of [
 ]) assert.ok(privacy.toLowerCase().includes(phrase.toLowerCase()), "Privacy policy is missing: " + phrase);
 
 for (const phrase of [
-  "delete-account.html", "Send verification link",
+  "MOMIN account email", "Send email verification link",
   "Permanently delete my account", "confirm-checkbox", "Privacy Policy", "Continue with Google"
 ]) assert.ok(deletionPage.includes(phrase), "Deletion page is missing: " + phrase);
 
