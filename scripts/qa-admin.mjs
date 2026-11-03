@@ -60,7 +60,7 @@ check(migration.includes("existing_public_id") && migration.includes("existing_s
 check(api.includes("account_status", api.indexOf("async function activeRecipientIds")), "Notification sends filter recipient accounts by active status");
 check(api.includes("Image contents do not match"), "Admin media upload validates file signatures");
 check(api.includes("momin_admin_notification_stats"), "Notification history reads inbox read statistics");
-check(js.includes('data-action="delete-notification"') && js.includes('data-action="delete-notification"'), "Admin notification history renders the delete action");
+check(js.includes('data-action="delete-notification"') && js.includes('aria-label="Delete notification"'), "Admin notification history renders an accessible delete action");
 check(js.includes('api("delete_notification"') && js.includes("User inboxes"), "Admin delete action calls the API and explains its effect");
 check(authBridge.includes("account_status") && authBridge.includes("phone:user.phone"), "User Auth bridge syncs account status and phone contact details");
 check(userModule.includes("createSignedUrl"), "Private complaint attachments use time-limited signed URLs");
