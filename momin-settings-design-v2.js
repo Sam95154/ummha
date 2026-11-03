@@ -123,6 +123,15 @@ function rowAction(title,desc,html){return '<div class="row">'+label(title,desc)
 function saveButton(text,section){return '<button type="button" class="btn pri" data-save="'+section+'">'+esc(text)+'</button>'}
 function actions(html){return '<div class="acts">'+html+'</div>'}
 
+function profileBirthday(value){
+ if(!value)return "Not provided";
+ var date=new Date(String(value)+"T00:00:00");
+ return Number.isNaN(date.getTime())?String(value):date.toLocaleDateString(undefined,{day:"2-digit",month:"short",year:"numeric"});
+}
+function profileGender(value){
+ return ({male:"Male",female:"Female",prefer_not_to_say:"Prefer not to say"})[String(value||"")]||"Not provided";
+}
+
 function profileMarkup(){
  var u=user(),list=devices(),google=u&&u.provider==="google";
  var photo=u&&u.avatar?'<img class="pf-avatar-photo" src="'+esc(u.avatar)+'" alt="" referrerpolicy="no-referrer">':'<span class="pf-ph">'+icon("user")+'</span>';
@@ -136,8 +145,10 @@ function profileMarkup(){
   (u?'<button type="button" class="pf-link" data-act="change-profile-photo">Upload / Change profile photo</button><p class="pf-hint">You can update your profile photo whenever you like. JPG, PNG, WebP or AVIF · Max 5 MB.</p>':'')+
   '<div class="pf-line"><span>Name</span><b>'+(u?esc(u.name||"Name not supplied"):"Available after sign-in")+'</b></div>'+
   '<div class="pf-f"><span>Email address</span><div class="pf-em"><b>'+(u?esc(u.email||"No email supplied"):"Available after sign-in")+'</b></div>'+(u?'<small class="'+(u.emailVerified?"pf-ok":"pf-warn")+'">'+(u.emailVerified?"Verified by sign-in provider":"Verification status not supplied")+'</small>':"")+'</div>'+
+  '<div class="pf-f"><span>Birthday</span><div class="pf-em"><b>'+(u?esc(profileBirthday(u.birthday)):"Available after sign-in")+'</b></div></div>'+
+  '<div class="pf-f"><span>Gender</span><div class="pf-em"><b>'+(u?esc(profileGender(u.gender)):"Available after sign-in")+'</b></div></div>'+
   '<div class="pf-f"><span>Sign-in method</span><div class="pf-em"><b>'+(u?esc(u.provider||"Account sign-in"):"Not connected")+'</b></div></div>'+
-  '<p class="pf-hint">Name, email and profile photo are read from your signed-in account. Birthday and gender are not assumed or populated with sample information.</p>'+
+  '<p class="pf-hint">Your saved name, email, birthday and gender are synced to your MOMIN account. Only details you provided are displayed.</p>'+
   '<div class="pf-grp"><h4>Linked accounts</h4><div class="pf-item"><span class="g" aria-hidden="true">G</span><b class="blue">Google</b>'+(google?'<span class="pf-linked">✓ Linked</span>':'<button type="button" class="pf-link" data-mprofile-action="'+(u?"link-google":"sign-in")+'">'+(u?"Link Google":"Sign in with Google")+'</button>')+'</div></div>'+
   '<div class="pf-grp"><h4>Logged-in devices</h4>'+deviceRows+'<button type="button" class="pf-link" data-mprofile-action="refresh-devices">Refresh device list</button></div>'+
   (u?'<button type="button" class="pf-nav" data-mprofile-action="change-password"><span>Change password</span>'+icon("rchev")+'</button><button type="button" class="pf-nav" data-mprofile-action="logout"><span class="lo">'+icon("out")+'Logout</span>'+icon("rchev")+'</button><button type="button" class="pf-nav danger" data-mprofile-action="delete-account"><span>Delete account</span>'+icon("trash")+'</button>':'<button type="button" class="btn pri" data-mprofile-action="sign-in">Sign in to MOMIN</button>')+'</div>';
