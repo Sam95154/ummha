@@ -120,5 +120,7 @@ jobs:
           JSON
       - name: Generate the Capacitor Android project
         run: npm run android:prepare
+        env:
+          MOMIN_GOOGLE_WEB_CLIENT_ID: ${{ secrets.MOMIN_GOOGLE_WEB_CLIENT_ID }}
       - name: Compile Android debug APK
         run: cd android && ./gradlew assembleDebug --no-daemon
