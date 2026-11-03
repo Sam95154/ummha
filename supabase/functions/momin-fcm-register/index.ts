@@ -97,7 +97,7 @@ Deno.serve(async (request: Request) => {
       fcm_token: token,
       platform: "android",
       app_id: appId,
-      announcements_enabled: body.announcements_enabled === true,
+      announcements_enabled: true,
       is_active: true,
       token_updated_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
