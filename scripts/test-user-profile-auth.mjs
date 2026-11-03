@@ -7,6 +7,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 const auth = read("momin-auth-v1.js");
 const profile = read("momin-profile-settings-v1.js");
+const profileCompletion = read("profile-complete.html");
 const adminApi = read("supabase/functions/momin-admin-api/index.ts");
 const nativeBridge = read("src/native/momin-capacitor-bridge.js");
 const androidPrep = read("scripts/prepare-android-project.mjs");
@@ -28,6 +29,12 @@ check("Saved profile is loaded into Settings after sign-in", /profileApi\.setSes
 check("Settings renders name, email, birthday and gender fields", ["mprofile-name", "mprofile-email", "mprofile-birthday", "mprofile-gender"].every((x) => profile.includes(x)));
 check("Profile save sends name, email, birthday, gender and avatar", /invoke\(["']saveProfile["'],\[formData\]\)/.test(profile) && /avatarFile:selectedAvatarFile/.test(profile));
 check("Profile photo uses the authenticated user's storage folder", /user\.id\+["']\/profile-/.test(auth) && /storage\.from\(["']avatars["']\)\.upload/.test(auth));
+
+// First-time profile completion must preserve existing account data.
+check("First-time completion loads existing profile and account preferences", /public_user_id,account_status,announcements_enabled,phone,created_at,profile_completed_at/.test(profileCompletion));
+check("First-time completion preserves the permanent user ID and account status", /public_user_id:\(profile&&profile\.public_user_id\)\|\|undefined/.test(profileCompletion) && /account_status:\(profile&&profile\.account_status\)\|\|"Active"/.test(profileCompletion));
+check("First-time completion preserves notification settings and phone", /announcements_enabled:profile\?!!profile\.announcements_enabled:false/.test(profileCompletion) && /phone:\(profile&&profile\.phone\)\|\|null/.test(profileCompletion));
+check("First-time completion replaces the old avatar only after the new profile saves", /if\(result\.error\)throw result\.error;[\s\S]*?previous avatar cleanup/.test(profileCompletion));
 
 // Admin profile visibility.
 check("Admin API returns saved profile fields", ["avatar_url", "birthday", "gender", "auth_provider", "email_verified", "profile_completed"].every((x) => adminApi.includes(x)));
