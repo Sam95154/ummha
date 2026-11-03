@@ -162,7 +162,7 @@ test.describe("MOMIN Admin Panel", () => {
     await expect(page.locator("#modal-root").getByText("MOM-ABC1234567")).toBeVisible();
     await page.getByRole("button", { name: "Close" }).click();
 
-    await page.getByRole("button", { name: "Edit name" }).click();
+    await page.locator("tr").filter({ hasText: "MOM-ABC1234567" }).getByRole("button", { name: "Edit name" }).click();
     await expect(page.getByRole("heading", { name: "Edit user name" })).toBeVisible();
     await page.locator('#modal-root input[name="name"]').fill("Aisha Basha");
     await page.locator("#modal-root").getByRole("button", { name: "Save name" }).click();
