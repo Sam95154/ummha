@@ -233,7 +233,7 @@ async function saveProfile(){
   var now=new Date().toISOString();
   var data={
    user_id:user.id,display_name:name,email:user.email||null,
-   avatar_url:avatar||null,auth_provider:(user.app_metadata&&user.app_metadata.provider)||"email",
+   avatar_url:avatar||(profile&&profile.avatar_url)||null,auth_provider:(user.app_metadata&&user.app_metadata.provider)||"email",
    email_verified:verified(user),birthday:dob,gender:gender,
    profile_image_path:uploadedAvatarPath||previousImagePath,
    public_user_id:(profile&&profile.public_user_id)||undefined,
