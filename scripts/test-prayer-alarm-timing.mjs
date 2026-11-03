@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { prayerTimeToEpoch } from "../src/native/momin-prayer-time-utils.js";
 
 function localClock(epoch, zone) {
@@ -38,4 +39,16 @@ assert.equal(prayerTimeToEpoch("not-a-date", "19:00", "Asia/Kolkata"), null);
 assert.equal(prayerTimeToEpoch("2026-11-03", "25:00", "Asia/Kolkata"), null);
 assert.equal(prayerTimeToEpoch("2026-11-03", "19:00", "Not/A_Timezone"), null);
 
+const scheduler = fs.readFileSync(new URL("../src/native/android/MominAlarmScheduler.java", import.meta.url), "utf8");
+assert.ok(scheduler.includes("KEY_SCHEDULE_VERSION"), "Android alarm store must version calculated schedules");
+assert.ok(scheduler.includes("CURRENT_SCHEDULE_VERSION=2"), "New timing algorithm must use schedule version 2");
+assert.ok(scheduler.includes("if(scheduleVersion!=CURRENT_SCHEDULE_VERSION)"),
+  "Android must detect alarms persisted by the old timing algorithm");
+assert.ok(scheduler.includes("cancelStored(context);") &&
+  scheduler.includes("Cleared outdated prayer alarms"),
+  "Old incorrectly-timed alarms must be cleared after app update, before any can fire");
+assert.ok(scheduler.includes(".putInt(KEY_SCHEDULE_VERSION,CURRENT_SCHEDULE_VERSION)"),
+  "New exact-time schedules must be persisted with the current algorithm version");
+
+console.log("PASS: upgraded Android installs discard stale alarm timestamps before restoring schedules.");
 console.log("PASS: prayer alarm conversion is exact in positive, negative, fractional, and daylight-saving time zones.");
