@@ -421,6 +421,12 @@
     currentRoute:currentRoute
   };
 
+  if(navigator.serviceWorker&&navigator.serviceWorker.addEventListener){
+    navigator.serviceWorker.addEventListener("message",function(event){
+      if(!event.data||event.data.type!=="MOMIN_ADMIN_NOTIFICATION_DELETED")return;
+      refreshPushInbox().catch(function(error){console.warn("MOMIN inbox refresh after deletion:",error)});
+    });
+  }
   window.saveNotificationPrefsV1=async function(){
     var master=document.getElementById("settingsPrayerNotificationsV1"),prefs=readPrefs();
     if(master)prefs.on=!!master.checked;
