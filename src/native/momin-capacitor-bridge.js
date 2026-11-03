@@ -219,6 +219,7 @@ if (Capacitor.isNativePlatform()) {
   window.MominNative = {
     isNative: true,
     authRedirectUrl: AUTH_REDIRECT,
+    authRecoveryRedirectUrl: AUTH_RECOVERY_REDIRECT,
     openOAuth: async function (url) {
       if (!url || !/^https:\/\//i.test(url)) {
         throw new Error("MOMIN received an invalid sign-in URL.");
