@@ -362,11 +362,25 @@
       escapeHtml(x.fund_category) + "</td><td>" + money(x.amount, x.currency) + "</td><td>" + badge(x.payment_status) + "</td></tr>");
     const complaintRows = (data.complaints || []).map(x => "<tr><td>" + escapeHtml(x.ticket_id) + "</td><td>" +
       escapeHtml(x.subject) + "</td><td>" + badge(x.status) + "</td></tr>");
+    const birthday = u.birthday
+      ? new Date(String(u.birthday).slice(0, 10) + "T00:00:00").toLocaleDateString("en-IN", { dateStyle: "long" })
+      : "Not provided";
+    const gender = String(u.gender || "").replaceAll("_", " ").replace(/\\b\\w/g, c => c.toUpperCase()) || "Not provided";
+    const provider = String(u.auth_provider || "email").replaceAll("_", " ").replace(/\\b\\w/g, c => c.toUpperCase());
+    const verified = u.email_verified ? "Verified" : "Not verified";
+    const completion = u.profile_completed ? "Completed" : "Incomplete";
+    const avatar = typeof u.avatar_url === "string" && /^https:\\/\\//i.test(u.avatar_url)
+      ? '<img class="user-profile-avatar" src="' + escapeHtml(u.avatar_url) + '" alt="User profile photo" loading="lazy" referrerpolicy="no-referrer">'
+      : '<div class="user-profile-avatar is-empty" aria-label="No profile photo">—</div>';
     return '<h2>User details</h2><p class="muted">Permanent User ID: <b>' + escapeHtml(u.user_id) + '</b></p>' +
-      '<div class="grid grid-2"><div><b>Name</b><p>' + escapeHtml(u.name) + '</p><b>Email</b><p>' + escapeHtml(u.email || "—") +
-      '</p><b>Phone</b><p>' + escapeHtml(u.phone || "—") + '</p></div><div><b>Account status</b><p>' + badge(u.status) +
-      '</p><b>Registered</b><p>' + date(u.registered_at) + '</p><b>Last active</b><p>' + date(u.last_active) +
-      '</p></div></div><h3>Recent notifications</h3>' + table(["Title","Destination","Created","Read"], noteRows, "No notifications recorded.") +
+      '<div class="user-profile-summary">' + avatar + '<div class="grid grid-2 user-profile-fields">' +
+      '<div><b>Name</b><p>' + escapeHtml(u.name) + '</p><b>Email</b><p>' + escapeHtml(u.email || "—") +
+      '</p><b>Phone</b><p>' + escapeHtml(u.phone || "—") + '</p><b>Birthday</b><p>' + escapeHtml(birthday) +
+      '</p><b>Gender</b><p>' + escapeHtml(gender) + '</p></div><div><b>Account status</b><p>' + badge(u.status) +
+      '</p><b>Email status</b><p>' + badge(verified) + '</p><b>Sign-in method</b><p>' + escapeHtml(provider) +
+      '</p><b>Profile status</b><p>' + badge(completion) + '</p><b>Registered</b><p>' + date(u.registered_at) +
+      '</p><b>Last active</b><p>' + date(u.last_active) + '</p></div></div></div>' +
+      '<h3>Recent notifications</h3>' + table(["Title","Destination","Created","Read"], noteRows, "No notifications recorded.") +
       '<h3 class="mt">Giving history</h3>' + table(["Reference","Fund","Amount","Payment"], givingRows, "No contributions recorded.") +
       '<h3 class="mt">Complaints</h3>' + table(["Ticket","Subject","Status"], complaintRows, "No complaints recorded.") +
       '<div class="modal-actions"><button type="button" class="btn" data-action="modal-close">Close</button></div>';
