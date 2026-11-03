@@ -86,7 +86,12 @@ async function mockAdminApi(page, state) {
         data = { campaigns: [] };
         break;
       case "save_campaign":
-        data = { success: true, id: "campaign-test-id" };
+        data = {
+          success: true, id: "campaign-test-id",
+          announcement: body.status === "Active"
+            ? { announced: true, recipient_count: 2, push_sent: 1, push_failed: 1 }
+            : null
+        };
         break;
       case "campaign_status":
         data = { success: true };
@@ -256,6 +261,25 @@ test.describe("MOMIN Admin Panel", () => {
     expect(update).toBeTruthy();
     expect(update.body.status).toBe("In Progress");
     expect(update.body.message).toContain("investigating");
+  });
+
+  test("Publishing an Active Giving campaign reports its in-app and push announcement delivery counts", async ({ page }) => {
+    const state = makeState();
+    await login(page, state);
+    await page.getByRole("button", { name: "Giving Management" }).click();
+    await page.locator(".tabs").getByRole("button", { name: "Create campaign" }).click();
+    const form = page.locator('form[data-form="campaign"]');
+    await form.locator('[name="name"]').fill("Emergency Zakat Support");
+    await form.locator('[name="category"]').selectOption("Zakat");
+    await form.locator('[name="target_amount"]').fill("50000");
+    await form.locator('[name="currency"]').selectOption("INR");
+    await form.locator('[name="status"]').selectOption("Active");
+    await form.getByRole("button", { name: "Save campaign" }).click();
+    await expect(page.getByText(/Campaign published and announced\. 2 in-app inbox notice\(s\); 1 push device\(s\) accepted; 1 push delivery failure\(s\)\./)).toBeVisible();
+    const saved = state.calls.find(call => call.action === "save_campaign");
+    expect(saved).toBeTruthy();
+    expect(saved.body.status).toBe("Active");
+    expect(saved.body.category).toBe("Zakat");
   });
 
   test("Admin profile can change the current password", async ({ page }) => {

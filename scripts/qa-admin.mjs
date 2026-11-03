@@ -63,6 +63,8 @@ check(api.includes("momin_admin_notification_stats"), "Notification history read
 check(authBridge.includes("account_status") && authBridge.includes("phone:user.phone"), "User Auth bridge syncs account status and phone contact details");
 check(userModule.includes("createSignedUrl"), "Private complaint attachments use time-limited signed URLs");
 check(api.includes("createSignedUrl"), "Admin complaint detail issues time-limited signed attachment URLs");
+check(js.includes("Campaign published and announced.") && js.includes("announcement.push_sent") && js.includes("announcement.push_failed"), "Admin campaign publish feedback shows in-app and push delivery results");
+check(e2e.includes("Publishing an Active Giving campaign reports its in-app and push announcement delivery counts"), "Admin browser test verifies Active campaign announcement feedback");
 check(js.includes("async function searchComplaintUsers") && js.includes('modalRoot.addEventListener("input"'), "Complaint user autocomplete searches as the Admin types");
 check(js.includes("autocomplete-option") && js.includes("selectComplaintUser") && js.includes("data-user-index"), "Complaint user search renders selectable name suggestions");
 check(js.includes('aria-autocomplete="list"') && js.includes("ArrowDown") && js.includes('event.key === "Enter"'), "Complaint user autocomplete supports accessible keyboard selection");
