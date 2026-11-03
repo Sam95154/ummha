@@ -167,7 +167,7 @@
         var saved=await supabase.from("momin_profiles").upsert({
           user_id:user.id,display_name:name,email:user.email||null,avatar_url:avatarUrl,
           profile_image_path:imagePath,auth_provider:providerFor(user),
-          email_verified:!!user.email_confirmed_at,birthday:birthday,gender:gender,
+          email_verified:!!(user.email_confirmed_at||(user.user_metadata||{}).email_verified),birthday:birthday,gender:gender,
           profile_completed:true,profile_completed_at:oldProfile.profile_completed_at||now,updated_at:now
         },{onConflict:"user_id"}).select("user_id,display_name,email,avatar_url,profile_image_path,auth_provider,email_verified,birthday,gender,profile_completed,profile_completed_at,public_user_id").single();
         if(saved.error){
