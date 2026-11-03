@@ -49,15 +49,44 @@ for (const name of nativeJavaFiles) {
 const mainActivityPath = path.join(javaDir, "MainActivity.java");
 const mainActivity = `package com.momin.noorulislam;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginHandle;
+import ee.forgr.capacitor.social.login.GoogleProvider;
+import ee.forgr.capacitor.social.login.ModifiedMainActivityForSocialLoginPlugin;
+import ee.forgr.capacitor.social.login.SocialLoginPlugin;
 
-public class MainActivity extends BridgeActivity {
+public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(MominPrayerAlarmPlugin.class);
         super.onCreate(savedInstanceState);
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode >= GoogleProvider.REQUEST_AUTHORIZE_GOOGLE_MIN &&
+            requestCode < GoogleProvider.REQUEST_AUTHORIZE_GOOGLE_MAX) {
+            PluginHandle handle = getBridge().getPlugin("SocialLogin");
+            if (handle == null) {
+                Log.e("MOMIN Google Sign-In", "SocialLogin plugin handle is missing.");
+                return;
+            }
+            Plugin plugin = handle.getInstance();
+            if (!(plugin instanceof SocialLoginPlugin)) {
+                Log.e("MOMIN Google Sign-In", "Unexpected SocialLogin plugin instance.");
+                return;
+            }
+            ((SocialLoginPlugin) plugin).handleGoogleLoginIntent(requestCode, data);
+        }
+    }
+
+    @Override
+    public void IHaveModifiedTheMainActivityForTheUseWithSocialLoginPlugin() {}
 }
 `;
 fs.writeFileSync(mainActivityPath, mainActivity, "utf8");
