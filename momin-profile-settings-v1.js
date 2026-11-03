@@ -113,6 +113,7 @@
       (loggedIn?
         '<div class="pf-account-actions"><button type="button" class="pf-outline" data-mprofile-action="logout">Log out</button><button type="button" class="pf-danger" data-mprofile-action="delete-account">Delete account</button></div>':
         '<div class="pf-footnote">Your account details will appear here after you provide and connect the login page. No sample name, email or device has been inserted.</div>')+
+      '<div class="pf-footnote"><a href="https://noor-ul-islam-dua.onrender.com/privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a> · <a href="https://noor-ul-islam-dua.onrender.com/delete-account.html" target="_blank" rel="noopener noreferrer">External account deletion request</a></div>'+
     '</section>';
   }
 
