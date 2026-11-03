@@ -16,6 +16,8 @@
   var confirmPanel = document.getElementById("confirm-panel");
   var verifiedEmail = document.getElementById("verified-email");
   var activeClient = null;
+  var callbackInUrl = new URLSearchParams(window.location.search).has("code") || window.location.hash.indexOf("access_token=") >= 0;
+  var pendingEmailKey = "momin.delete.pendingEmail.v1";
 
   function showStatus(element, message, isError) {
     element.textContent = message;
@@ -52,11 +54,21 @@
       showStatus(requestStatus, "The verification link could not be checked. Request a new link and open it in the same browser.", true);
       return;
     }
-    if (result.data && result.data.session && result.data.session.user) {
+    if (result.data && result.data.session && result.data.session.user && callbackInUrl) {
+      var pendingEmail = "";
+      try { pendingEmail = String(window.sessionStorage.getItem(pendingEmailKey) || "").trim().toLowerCase(); } catch (_) {}
+      var verifiedAddress = String(result.data.session.user.email || "").trim().toLowerCase();
+      if (pendingEmail && pendingEmail !== verifiedAddress) {
+        showStatus(requestStatus, "The verified email does not match the address used for this deletion request. Sign out of the other account and request a new link for the correct MOMIN email.", true);
+        return;
+      }
+      try { window.sessionStorage.removeItem(pendingEmailKey); } catch (_) {}
       showVerifiedAccount(result.data.session.user);
       return;
     }
-    if (window.location.search.indexOf("code=") >= 0 || window.location.hash.indexOf("access_token=") >= 0) {
+    if (result.data && result.data.session && result.data.session.user && !callbackInUrl) {
+      showStatus(requestStatus, "For your security, use a fresh email or Google verification link from this page before requesting deletion.", false);
+    } else if (callbackInUrl) {
       showStatus(requestStatus, "The verification link was not accepted. It may have expired or been opened in a different browser. Request a new link and open it in the browser where you started.", true);
     }
   }
@@ -67,12 +79,13 @@
       showStatus(requestStatus, "The secure account service is unavailable. Refresh the page and try again.", true);
       return;
     }
+    try { window.sessionStorage.removeItem(pendingEmailKey); } catch (_) {}
     googleButton.disabled = true;
     googleButton.textContent = "Opening Google…";
     try {
       var response = await activeClient.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: window.location.origin + "/delete-account.html" }
+        options: { redirectTo: window.location.origin + "/delete-account.html", queryParams: { prompt: "select_account" } }
       });
       if (response.error) {
         showStatus(requestStatus, "Google verification could not be started. Try email verification or contact MOMIN Support.", true);
@@ -113,6 +126,7 @@
       if (response.error) {
         showStatus(requestStatus, "We could not send a verification link right now. Check the address and try again later, or contact MOMIN Support.", true);
       } else {
+        try { window.sessionStorage.setItem(pendingEmailKey, email); } catch (_) {}
         emailInput.value = "";
         showStatus(requestStatus, "If this email is linked to an eligible MOMIN account, a one-time verification link will be sent. Open it in this same browser, then review and confirm the deletion.", false);
       }
