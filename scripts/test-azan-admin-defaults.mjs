@@ -20,7 +20,7 @@ const prayerEnd = native.indexOf('      });', prayerStart);
 assert.ok(prayerStart >= 0 && prayerEnd > prayerStart, "Prayer alarm record must exist.");
 const prayerRecord = native.slice(prayerStart, prayerEnd);
 assert.match(prayerRecord, /playAzan:true/, "Every selected prayer-time alarm must start Azan.");
-assert.match(prayerRecord, /at,prayer:name,kind:"prayer"/, "Azan alarm must be scheduled at the actual prayer timestamp.");
+assert.match(native, /id:iso\+"-"\+name\.toLowerCase\(\)\+"-prayer",at,prayer:name,kind:"prayer"/, "Azan alarm must be scheduled at the actual prayer timestamp.");
 
 const reminderStart = native.indexOf('kind:"reminder"');
 const reminderEnd = native.indexOf('        });', reminderStart);
