@@ -22,6 +22,8 @@ on:
       - "supabase/migrations/*momin_native_fcm.sql"
       - "supabase/migrations/*momin_notification_release_readiness.sql"
       - "supabase/migrations/*momin_admin_announcements_always_on.sql"
+      - "supabase/migrations/*momin_admin_notification_delete.sql"
+      - "momin-sw.js"
       - ".github/workflows/native-fcm-qa.yml"
   pull_request:
     branches:
@@ -42,6 +44,8 @@ on:
       - "supabase/migrations/*momin_native_fcm.sql"
       - "supabase/migrations/*momin_notification_release_readiness.sql"
       - "supabase/migrations/*momin_admin_announcements_always_on.sql"
+      - "supabase/migrations/*momin_admin_notification_delete.sql"
+      - "momin-sw.js"
       - "supabase/functions/momin-push-register/**"
       - ".github/workflows/native-fcm-qa.yml"
 
