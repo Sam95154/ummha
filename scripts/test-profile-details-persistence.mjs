@@ -35,7 +35,7 @@ check("Settings renders a readable birthday", /function profileBirthday\(value\)
 check("Settings renders the saved gender", /function profileGender\(value\)/.test(settings) && /profileGender\(u\.gender\)/.test(settings));
 
 // The privileged admin API returns onboarding details. Admin passwords are never part of user-profile responses.
-check("Admin user list can return birthday and gender", /select\("user_id,public_user_id,display_name,email,phone,account_status,created_at,avatar_url,birthday,gender,auth_provider,email_verified,profile_completed"\)/.test(adminApi) && /birthday: p\.birthday \|\| null/.test(adminApi) && /gender: p\.gender \|\| null/.test(adminApi));
+check("Admin user list can return birthday and gender", /select\("user_id,public_user_id,display_name,email,phone,account_status,created_at,avatar_url,birthday,gender,auth_provider,email_verified,profile_completed", \{ count: "exact" \}\)/.test(adminApi) && /birthday: p\.birthday \|\| null/.test(adminApi) && /gender: p\.gender \|\| null/.test(adminApi));
 check("Admin user detail returns birthday, gender and completion timestamp", /profile_image_path,birthday,gender,auth_provider,email_verified,account_status,created_at,updated_at,profile_completed,profile_completed_at/.test(adminApi) && /birthday: profile\?\.birthday \|\| null, gender: profile\?\.gender \|\| null/.test(adminApi));
 check("The signed-in app refreshes profile assets instead of using stale cache URLs", ["momin-profile-settings-v1.js?v=20261103-profile-details-v1","momin-auth-v1.js?v=20261103-profile-details-v1","momin-settings-design-v2.js?v=20261103-profile-details-v1"].every((value) => index.includes(value)));
 
