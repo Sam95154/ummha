@@ -51,6 +51,8 @@ jobs:
         run: npm run test:fcm
       - name: Run notification release QA
         run: npm run test:notifications
+      - name: Run profile details persistence QA
+        run: npm run test:profile-details
       - name: Test exact prayer alarm timing
         run: npm run test:prayer-alarm-timing
       - name: Check Android signing helper syntax
