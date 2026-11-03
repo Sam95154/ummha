@@ -19,10 +19,12 @@ for (const phrase of [
 
 for (const phrase of [
   "delete-account.html", "Send verification link",
-  "Permanently delete my account", "confirm-checkbox", "Privacy Policy"
+  "Permanently delete my account", "confirm-checkbox", "Privacy Policy", "Continue with Google"
 ]) assert.ok(deletionPage.includes(phrase), "Deletion page is missing: " + phrase);
 
 assert.match(deletionJs, /signInWithOtp/);
+assert.match(deletionJs, /signInWithOAuth/);
+assert.match(deletionJs, /provider:\s*"google"/);
 assert.match(deletionJs, /shouldCreateUser:\s*false/);
 assert.match(deletionJs, /emailRedirectTo:\s*window\.location\.origin\s*\+\s*"\/delete-account\.html"/);
 assert.match(deletionJs, /functions\.invoke\("momin-delete-account"/);
