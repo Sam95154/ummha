@@ -197,7 +197,15 @@
           else if(action==="signOut"||action==="deleteAccount"){authUser=null;devices=[];selectedAvatarFile=null;selectedAvatarPreview=null;refreshScreen();location.assign("/login.html");}
           else if(action==="revokeDevice"){invoke("listDevices");}
           else if(value&&value.user)window.MominProfileSettingsV1.setSession(value);
-        }).catch(function(error){toast(error&&error.message||"The account action could not be completed.");});
+        }).catch(function(error){
+          if(action==="saveProfile"){
+            var saveButton=document.querySelector('[data-mprofile-action="save-profile"]');
+            if(saveButton){saveButton.disabled=false;saveButton.textContent="Save changes";}
+            var message=document.getElementById("mprofile-form-message");
+            if(message){message.textContent=error&&error.message||"Your profile could not be saved. Please try again.";message.className="pf-form-message is-error";}
+          }
+          toast(error&&error.message||"The account action could not be completed.");
+        });
       }else if(action==="listDevices"&&Array.isArray(result)){devices=result;refreshScreen();}
     }catch(error){toast(error&&error.message||"The account action could not be completed.");}
   }
@@ -275,15 +283,16 @@
     if(event.target&&event.target.id==="mprofile-avatar-file"){
       var file=event.target.files&&event.target.files[0];
       if(!file)return;
-      if(!/^image\\/(jpeg|png|webp|avif)$/.test(file.type)||file.size>5*1024*1024){
+      if(!/^image\/(jpeg|png|webp|avif)$/.test(file.type)||file.size>5*1024*1024){
         toast("Choose a JPG, PNG, WebP or AVIF image up to 5 MB.");event.target.value="";return;
       }
       selectedAvatarFile=file;
       if(selectedAvatarPreview)URL.revokeObjectURL(selectedAvatarPreview);
       selectedAvatarPreview=URL.createObjectURL(file);
-      refreshScreen();
-      var picker=document.getElementById("mprofile-avatar-file");
-      if(picker){var transfer=new DataTransfer();transfer.items.add(file);picker.files=transfer.files;}
+      document.querySelectorAll("#momin-profile-settings-v1 .pf-photo-button").forEach(function(photoButton){
+        photoButton.innerHTML=avatarMarkup()+'<span class="pf-photo-camera" aria-hidden="true">✎</span>';
+      });
+      syncChrome();
     }
   });
   document.addEventListener("click",function(event){
