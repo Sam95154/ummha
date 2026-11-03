@@ -100,7 +100,7 @@
       } else {
         try { window.sessionStorage.setItem(pendingEmailKey, email); } catch (_) {}
         emailInput.value = "";
-        showStatus(requestStatus, "If this email is linked to an eligible MOMIN account, a one-time verification link will be sent. Open it in this same browser, then review and confirm the deletion.", false);
+        showStatus(requestStatus, "If this email is linked to an eligible MOMIN account, a one-time verification link will be sent. Open it, then review the verified account and confirm the deletion.", false);
       }
     } catch (_) {
       showStatus(requestStatus, "We could not send a verification link right now. Try again later or contact MOMIN Support.", true);
