@@ -56,15 +56,30 @@ function timeAt(iso, clock, zone) {
   if (!match) return null;
   const [y,m,d] = iso.split("-").map(Number);
   const h = Number(match[1]), minute = Number(match[2]);
-  let epoch = Date.UTC(y,m-1,d,h,minute,0);
+  // Treat the requested wall-clock time as a UTC-shaped reference value.
+  // Compare every formatted local value to that reference, not to the
+  // candidate epoch. Comparing to the epoch repeatedly subtracts the
+  // timezone offset on every pass (for example, five times in IST).
+  const desired = Date.UTC(y,m-1,d,h,minute,0);
+  let epoch = desired;
   for (let n=0; n<4; n++) {
     const p = zonedParts(epoch,zone);
-    const represented = Date.UTC(Number(p.year),Number(p.month)-1,Number(p.day),Number(p.hour),Number(p.minute),0);
-    const delta = represented - epoch;
-    if (!delta) break;
+    const represented = Date.UTC(
+      Number(p.year),Number(p.month)-1,Number(p.day),
+      Number(p.hour),Number(p.minute),0
+    );
+    const delta = represented - desired;
+    if (delta === 0) return epoch;
     epoch -= delta;
   }
-  return epoch;
+  // Do not schedule an alarm for a local wall-clock time that could not be
+  // represented (for example, a DST gap in the requested timezone).
+  const check = zonedParts(epoch,zone);
+  const actual = Date.UTC(
+    Number(check.year),Number(check.month)-1,Number(check.day),
+    Number(check.hour),Number(check.minute),0
+  );
+  return actual === desired ? epoch : null;
 }
 function rowDate(row) {
   const iso = row && row.date && row.date.gregorian && row.date.gregorian.iso;
