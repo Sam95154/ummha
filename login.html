@@ -361,13 +361,13 @@ $("forgot").onclick=async function(){
   if(!okMail(email)){bad("fe","ee","Enter your email first");$("email").focus();return;}
   var button=this;button.disabled=true;
   try{
-    var result=await supabaseClient.auth.resetPasswordForEmail(email,{
-      redirectTo:location.origin+"/reset-password.html"
-    });
+    // Use an email OTP rather than a clickable link: some mail security
+    // scanners pre-open one-time links before the user can tap them.
+    var result=await supabaseClient.auth.resetPasswordForEmail(email);
     if(result.error)throw result.error;
-    showMessage("If an account exists for this email, a password-reset link has been sent.","success");
+    location.assign("/reset-password.html?email="+encodeURIComponent(email));
   }catch(error){
-    showMessage(error.message||"Unable to send the reset email. Please try again.","error");
+    showMessage(error.message||"Unable to send the reset code. Please try again.","error");
   }finally{
     button.disabled=false;
   }
