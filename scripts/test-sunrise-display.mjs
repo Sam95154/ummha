@@ -27,11 +27,13 @@ const rowsStart = prayer.indexOf("function rows(anim){");
 const statsStart = prayer.indexOf("function stats(fx){", rowsStart);
 assert.ok(rowsStart >= 0 && statsStart > rowsStart, "Prayer rows renderer must exist");
 const rowsRenderer = prayer.slice(rowsStart, statsStart);
-const sunriseRowMatch = rowsRenderer.match(/renderedRows\\.splice\\(1,0,([\\s\\S]*?)\\);/);
-assert.ok(sunriseRowMatch, "Sunrise must be inserted as its own row");
-assert.match(sunriseRowMatch[1], /class="row sunrise-info" role="group"/);
-assert.match(sunriseRowMatch[1], /Sunrise/);
-assert.doesNotMatch(sunriseRowMatch[1], /<button|role="checkbox"|class="ck"|togglePrayer/);
+const sunriseRowStart = rowsRenderer.indexOf('renderedRows.splice(1,0,');
+const sunriseRowEnd = rowsRenderer.indexOf(");", sunriseRowStart);
+assert.ok(sunriseRowStart >= 0 && sunriseRowEnd > sunriseRowStart, "Sunrise must be inserted as its own row");
+const sunriseRowMarkup = rowsRenderer.slice(sunriseRowStart, sunriseRowEnd);
+assert.ok(sunriseRowMarkup.includes('class="row sunrise-info" role="group"'));
+assert.ok(sunriseRowMarkup.includes("Sunrise"));
+assert.doesNotMatch(sunriseRowMarkup, /<button|role="checkbox"|class="ck"|togglePrayer/);
 assert.match(prayer, /function stats\(fx\)\{var n=done\.length;.*n\+" of 5"/);
 
 // All client entry points use the new cache version so the UI refreshes.
