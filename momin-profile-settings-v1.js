@@ -113,7 +113,7 @@
         (loggedIn?
           '<form id="momin-profile-edit-form" class="pf-edit-form" novalidate>'+
             '<label class="pf-field"><span>Full name</span><input id="mprofile-name" name="name" type="text" maxlength="80" autocomplete="name" required value="'+esc(name)+'"></label>'+
-            '<label class="pf-field"><span>Email address</span><div class="pf-email-line"><input type="email" readonly value="'+esc(email)+'" aria-readonly="true"><b class="pf-verified">'+esc(verified)+'</b></div></label>'+
+            '<label class="pf-field"><span>Email address</span><div class="pf-email-line"><input id="mprofile-email" type="email" autocomplete="email" readonly value="'+esc(email)+'" aria-readonly="true"><button type="button" class="pf-link" data-mprofile-action="edit-email">Edit</button><b class="pf-verified">'+esc(verified)+'</b></div></label>'+
             '<label class="pf-field"><span>Birthday</span><input id="mprofile-birthday" name="birthday" type="date" max="'+new Date().toISOString().slice(0,10)+'" value="'+birthdayValue+'"><small>Optional. You can leave this blank.</small></label>'+
             '<fieldset class="pf-field pf-gender-field"><legend>Gender</legend><div class="pf-gender-options">'+genderMarkup+'</div><small>Optional. You can leave this unselected.</small></fieldset>'+
             '<input id="mprofile-avatar-file" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>'+
@@ -197,7 +197,7 @@
             selectedAvatarFile=null;
             if(selectedAvatarPreview){URL.revokeObjectURL(selectedAvatarPreview);selectedAvatarPreview=null;}
             window.MominProfileSettingsV1.setSession({user:value.user,profile:value.profile},devices);
-            toast("Your MOMIN profile has been saved.");
+            toast(value.notice||"Your MOMIN profile has been saved.");
           }
           else if(action==="signOut"||action==="deleteAccount"){authUser=null;devices=[];selectedAvatarFile=null;selectedAvatarPreview=null;refreshScreen();location.assign("/login.html");}
           else if(action==="revokeDevice"){invoke("listDevices");}
@@ -218,6 +218,20 @@
     var action=button.getAttribute("data-mprofile-action");
     var id=button.getAttribute("data-device-id")||"";
     if(action==="sign-in"){location.assign("/login.html");return;}
+    if(action==="edit-email"){
+      var emailInput=document.getElementById("mprofile-email");
+      var emailButton=document.querySelector('[data-mprofile-action="edit-email"]');
+      if(!emailInput||!emailButton)return;
+      if(emailInput.readOnly){
+        emailInput.readOnly=false;emailInput.removeAttribute("aria-readonly");
+        emailButton.textContent="Cancel";emailInput.focus();emailInput.select();
+      }else{
+        emailInput.value=authUser&&authUser.email||"";
+        emailInput.readOnly=true;emailInput.setAttribute("aria-readonly","true");
+        emailButton.textContent="Edit";
+      }
+      return;
+    }
     if(action==="choose-photo"){
       var picker=document.getElementById("mprofile-avatar-file");
       if(picker)picker.click();
@@ -225,10 +239,11 @@
     }
     if(action==="save-profile"){
       var nameField=document.getElementById("mprofile-name");
+      var emailField=document.getElementById("mprofile-email");
       var dateField=document.getElementById("mprofile-birthday");
       var genderField=document.querySelector('input[name="mprofile-gender"]:checked');
       var message=document.getElementById("mprofile-form-message");
-      var formData={name:nameField&&nameField.value.trim(),birthday:dateField&&dateField.value||null,gender:genderField&&genderField.value||null,avatarFile:selectedAvatarFile};
+      var formData={name:nameField&&nameField.value.trim(),email:emailField&&emailField.value.trim(),birthday:dateField&&dateField.value||null,gender:genderField&&genderField.value||null,avatarFile:selectedAvatarFile};
       if(!formData.name||formData.name.length<2){if(message){message.textContent="Enter your full name.";message.className="pf-form-message is-error";}return;}
       if(message){message.textContent="Saving your profile…";message.className="pf-form-message";}
       button.disabled=true;button.textContent="Saving…";
