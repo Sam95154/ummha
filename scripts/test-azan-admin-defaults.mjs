@@ -51,8 +51,8 @@ assert.match(notifications, /setItem\("momin-announcements-enabled",prefs\.annou
 assert.match(auth, /select\("announcements_enabled"\)/, "Auth loads the stored account announcement choice.");
 assert.match(auth, /localStorage\.setItem\("momin-announcements-enabled"/, "Auth applies the stored account choice to this device.");
 
-assert.match(migration, /alter table public\.momin_profiles alter column announcements_enabled set default true/i);
-assert.match(migration, /alter table public\.momin_fcm_tokens alter column announcements_enabled set default true/i);
+assert.match(migration, /alter table public\.momin_profiles\s+alter column announcements_enabled set default true/i);
+assert.match(migration, /alter table public\.momin_fcm_tokens\s+alter column announcements_enabled set default true/i);
 assert.doesNotMatch(migration, /update public\.momin_(profiles|fcm_tokens)/i, "Migration must not override existing user choices.");
 
 assert.match(receiver, /MominAzanPlaybackService\.start\(context/, "Android receiver starts the Azan service.");
