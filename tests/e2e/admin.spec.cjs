@@ -157,7 +157,7 @@ test.describe("MOMIN Admin Panel", () => {
     await page.getByRole("button", { name: "Users" }).click();
     await expect(page.getByText("MOM-ABC1234567")).toBeVisible();
 
-    await page.getByRole("button", { name: "Details" }).click();
+    await page.locator("tr").filter({ hasText: "MOM-ABC1234567" }).getByRole("button", { name: "Details" }).click();
     await expect(page.getByRole("heading", { name: "User details" })).toBeVisible();
     await expect(page.locator("#modal-root").getByText("MOM-ABC1234567")).toBeVisible();
     await page.getByRole("button", { name: "Close" }).click();
