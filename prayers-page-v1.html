@@ -273,7 +273,7 @@ function tick(){
   if(cur!==lastCur){lastCur=cur;var hero=$("hero");hero.dataset.p=cur;
     $("nowTxt").textContent="NOW · "+P[cur].n;$("nextTxt").textContent="Next: "+P[nx].n;$("nextTime").textContent=fmt(P[nx].m);
     
-    document.querySelectorAll("#chips span").forEach(function(c,i){c.classList.toggle("on",i===cur)});rows(false)}}
+    document.querySelectorAll("#chips [data-prayer-index]").forEach(function(c){c.classList.toggle("on",Number(c.getAttribute("data-prayer-index"))===cur)});rows(false)}}
 
 /* rows */
 function rows(anim){
@@ -346,7 +346,7 @@ function mominApplyPrayerData(data){
     P=["Fajr","Dhuhr","Asr","Maghrib","Isha"].map(function(n){return {n:n,m:mominMinutes(timings[n])}}).filter(function(x){return x.m!==null});
     sunriseM=mominMinutes(timings.Sunrise);
   }else{P=[];sunriseM=null}
-  var prayerChips=P.map(function(p){return "<span>"+p.n+" · "+fmt(p.m)+"</span>"});
+  var prayerChips=P.map(function(p,index){return '<span data-prayer-index="'+index+'">'+p.n+" · "+fmt(p.m)+"</span>"});
   if(sunriseM!==null)prayerChips.splice(1,0,'<span class="sunrise-chip" aria-label="Sunrise time, informational only">☀ Sunrise · '+fmt(sunriseM)+'</span>');
   $("chips").innerHTML=prayerChips.length?prayerChips.join(""):'<span>Set your location to see prayer times</span>';
   if(data&&data.date&&data.date.hijri){
