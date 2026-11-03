@@ -83,7 +83,7 @@ has(bridge, 'put("momin-announcements-enabled","true")', "Local setting is force
 has(pushRegister, "announcements: true,", "Web Push registration forces announcements ON");
 has(fcmRegister, "announcements_enabled: true,", "FCM registration forces announcements ON");
 has(native, "announcements_enabled: true", "Android FCM registration forces announcements ON");
-has(page, 'required?\'disabled aria-disabled="true\' :""', "Notifications page Admin setting is locked");
+has(page, 'disabled aria-disabled="true"', "Notifications page Admin setting is locked");
 has(mandatoryMigration, "momin_profiles_admin_announcements_on", "Profile always-on database trigger");
 has(mandatoryMigration, "momin_push_subscriptions_admin_announcements_on", "Web Push always-on database trigger");
 has(mandatoryMigration, "momin_fcm_tokens_admin_announcements_on", "FCM token always-on database trigger");
