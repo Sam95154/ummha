@@ -9,7 +9,6 @@
   var confirmForm = document.getElementById("confirm-form");
   var emailInput = document.getElementById("account-email");
   var sendButton = document.getElementById("send-link");
-  var googleButton = document.getElementById("google-verify");
   var deleteButton = document.getElementById("delete-button");
   var requestStatus = document.getElementById("request-status");
   var resultStatus = document.getElementById("result-status");
@@ -47,7 +46,7 @@
       return;
     }
     activeClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" }
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "implicit" }
     });
     var result = await activeClient.auth.getSession();
     if (result.error) {
@@ -72,33 +71,6 @@
       showStatus(requestStatus, "The verification link was not accepted. It may have expired or been opened in a different browser. Request a new link and open it in the browser where you started.", true);
     }
   }
-  if (googleButton) googleButton.addEventListener("click", async function () {
-    clearStatus(requestStatus);
-    clearStatus(resultStatus);
-    if (!activeClient) {
-      showStatus(requestStatus, "The secure account service is unavailable. Refresh the page and try again.", true);
-      return;
-    }
-    try { window.sessionStorage.removeItem(pendingEmailKey); } catch (_) {}
-    googleButton.disabled = true;
-    googleButton.textContent = "Opening Google…";
-    try {
-      var response = await activeClient.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: window.location.origin + "/delete-account.html", queryParams: { prompt: "select_account" } }
-      });
-      if (response.error) {
-        showStatus(requestStatus, "Google verification could not be started. Try email verification or contact MOMIN Support.", true);
-        googleButton.disabled = false;
-        googleButton.textContent = "Continue with Google";
-      }
-    } catch (_) {
-      showStatus(requestStatus, "Google verification could not be started. Try email verification or contact MOMIN Support.", true);
-      googleButton.disabled = false;
-      googleButton.textContent = "Continue with Google";
-    }
-  });
-
   requestForm.addEventListener("submit", async function (event) {
     event.preventDefault();
     clearStatus(requestStatus);
