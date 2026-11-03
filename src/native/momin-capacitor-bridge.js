@@ -232,8 +232,7 @@ if (Capacitor.isNativePlatform()) {
           await SocialLogin.initialize({
             google: {
               webClientId: webClientId,
-              mode: "online",
-              skipAuthOnlyAuthorizationAfterSignIn: true
+              mode: "online"
             }
           });
           googleLoginInitialized = true;
