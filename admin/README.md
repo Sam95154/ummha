@@ -80,3 +80,16 @@ npm run qa:e2e
 ```
 
 The CI workflow runs static checks, Admin source/security checks, and Chromium Playwright journeys. The browser tests mock the Admin API, so they verify frontend workflows but not real database writes, actual push delivery, or payment processing.
+
+
+## Secure Admin password recovery
+
+The Admin reset flow uses one-time, SHA-256-hashed tokens that expire after 30 minutes. The token is consumed atomically and all active Admin sessions are revoked after a successful reset. The reset token table is private to the Supabase service role.
+
+Before enabling recovery, configure these **Edge Function secrets** for `momin-admin-api`:
+
+- `RESEND_API_KEY`: API key for the Resend email provider.
+- `MOMIN_ADMIN_RECOVERY_EMAIL`: the verified mailbox controlled by the MOMIN owner.
+- `MOMIN_ADMIN_RECOVERY_FROM`: sender identity verified in the Resend account.
+
+The API returns the same generic response whether or not recovery is configured, to avoid revealing Admin account existence or mailbox status. The reset feature remains unavailable until the owner verifies the mailbox and configures all three secrets. Never commit the values to Git.

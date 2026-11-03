@@ -80,11 +80,16 @@ async function requireAdmin(request: Request) {
   const { data, error } = await db.from("momin_admin_sessions")
     .select("token_hash,admin_id,expires_at,revoked_at,momin_admin_accounts!inner(id,login_id,display_name,is_active,force_password_change)")
     .eq("token_hash", tokenHash).is("revoked_at", null).gt("expires_at", new Date().toISOString()).maybeSingle();
-  if (error || !data || !data.momin_admin_accounts?.is_active) {
+  // PostgREST returns a single object for this many-to-one foreign-key relation.
+  // Accept an array as well so session validation remains compatible with any
+  // generated relationship shape returned by older/deployed client schemas.
+  const linkedAccount = data?.momin_admin_accounts;
+  const account = Array.isArray(linkedAccount) ? linkedAccount[0] : linkedAccount;
+  if (error || !data || !account?.is_active) {
     return { error: "Admin session is invalid or expired. Please sign in again.", status: 401 as const };
   }
   await db.from("momin_admin_sessions").update({ last_seen_at: new Date().toISOString() }).eq("token_hash", tokenHash);
-  return { tokenHash, adminId: data.admin_id as string, account: data.momin_admin_accounts };
+  return { tokenHash, adminId: data.admin_id as string, account };
 }
 async function getAuthUsers(page = 1, perPage = 100) {
   const { data, error } = await db.auth.admin.listUsers({ page, perPage });
@@ -121,7 +126,7 @@ async function dashboard() {
     { data: recentProfiles }] = await Promise.all([
     db.from("momin_profiles").select("user_id", { count: "exact", head: true }),
     db.from("momin_profiles").select("user_id", { count: "exact", head: true }).eq("account_status", "Active"),
-    db.from("momin_admin_notifications").select("id", { count: "exact", head: true }),
+    db.from("momin_admin_notifications").select("id", { count: "exact", head: true }).is("deleted_at", null),
     db.from("momin_complaints").select("id", { count: "exact", head: true }).in("status", ["Open", "Pending", "In Progress"]),
     db.from("momin_complaints").select("id", { count: "exact", head: true }).eq("status", "Resolved"),
     db.from("momin_giving_campaigns").select("id,name,category,target_amount,currency,status,created_at"),
@@ -143,7 +148,7 @@ async function dashboard() {
   for (const row of weeklyProfiles || []) {
     if (!row.created_at) continue;
     const day = new Date(row.created_at).toISOString().slice(0, 10);
-    if (registrationsByDay.has(day)) registrationsByDay.set(day, registrationsByDay.get(day) + 1);
+    if (registrationsByDay.has(day)) registrationsByDay.set(day, (registrationsByDay.get(day) ?? 0) + 1);
   }
   const givingByFund = ["Zakat", "Sadaqah", "Charity"].map(category => ({
     label: category,
@@ -155,7 +160,8 @@ async function dashboard() {
     return { ...c, received_amount: received, contribution_count: campaignTx.length,
       progress: c.target_amount ? Math.min(100, Math.round(received / Number(c.target_amount) * 100)) : 0 };
   });
-  const readRate = (inboxCount || 0) > 0 ? Math.round((inboxReadCount || 0) / inboxCount * 100) : 0;
+  const inboxTotal = inboxCount ?? 0;
+  const readRate = inboxTotal > 0 ? Math.round((inboxReadCount || 0) / inboxTotal * 100) : 0;
   return {
     metrics: {
       total_users: totalUsers || 0, active_users: activeUsers || 0,
@@ -184,7 +190,7 @@ async function listUsers(body: Record<string, unknown>) {
   const query = String(body.q || "").trim().slice(0, 100);
   const status = String(body.status || "all");
   let request = db.from("momin_profiles")
-    .select("user_id,public_user_id,display_name,email,phone,account_status,created_at,avatar_url", { count: "exact" })
+    .select("user_id,public_user_id,display_name,email,phone,account_status,created_at,avatar_url,birthday,gender,auth_provider,email_verified,profile_completed", { count: "exact" })
     .order("created_at", { ascending: false })
     .range((page - 1) * pageSize, page * pageSize - 1);
   if (status === "Active" || status === "Inactive") request = request.eq("account_status", status);
@@ -204,6 +210,11 @@ async function listUsers(body: Record<string, unknown>) {
     last_sign_in_at: null,
     status: p.account_status || "Active",
     avatar_url: p.avatar_url || null,
+    birthday: p.birthday || null,
+    gender: p.gender || null,
+    auth_provider: p.auth_provider || "email",
+    email_verified: !!p.email_verified,
+    profile_completed: !!p.profile_completed,
   }));
   return { users, page, page_size: pageSize, total: count || 0, has_more: page * pageSize < (count || 0) };
 }
@@ -279,7 +290,353 @@ async function activeRecipientIds(audience: string, ids: string[]) {
   }
   return recipients;
 }
-async function sendNotification(body: Record<string, unknown>, adminId: string) {
+
+const FCM_OAUTH_URL = "https://oauth2.googleapis.com/token";
+const FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
+const FCM_TTL_SECONDS = 2419200; // FCM maximum storage period: four weeks.
+let cachedFcmAccessToken: { value: string; expiresAt: number } | null = null;
+
+function base64Url(bytes: Uint8Array) {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+}
+
+function utf8Base64Url(value: string) {
+  return base64Url(encoder.encode(value));
+}
+
+function decodePrivateKey(value: string) {
+  const pem = value.replace(/\\n/g, "\n").replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g, "");
+  const binary = atob(pem);
+  return Uint8Array.from(binary, c => c.charCodeAt(0));
+}
+
+async function createFcmAssertion(serviceAccount: Record<string, unknown>) {
+  const clientEmail = String(serviceAccount.client_email || "");
+  const privateKeyPem = String(serviceAccount.private_key || "");
+  if (!clientEmail.includes("@") || !privateKeyPem.includes("PRIVATE KEY")) {
+    throw new Error("FCM service account JSON must include client_email and private_key.");
+  }
+  const now = Math.floor(Date.now() / 1000);
+  const header = utf8Base64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const claims = utf8Base64Url(JSON.stringify({
+    iss: clientEmail,
+    scope: FCM_SCOPE,
+    aud: FCM_OAUTH_URL,
+    iat: now,
+    exp: now + 3600,
+  }));
+  const unsigned = header + "." + claims;
+  const key = await crypto.subtle.importKey(
+    "pkcs8",
+    decodePrivateKey(privateKeyPem),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, encoder.encode(unsigned));
+  return unsigned + "." + base64Url(new Uint8Array(signature));
+}
+
+async function getFcmCredentials() {
+  const raw = Deno.env.get("FCM_SERVICE_ACCOUNT_JSON");
+  if (!raw) throw new Error("FCM_SERVICE_ACCOUNT_JSON Supabase secret is not configured.");
+  let serviceAccount: Record<string, unknown>;
+  try {
+    serviceAccount = JSON.parse(raw);
+  } catch {
+    throw new Error("FCM_SERVICE_ACCOUNT_JSON is not valid JSON.");
+  }
+  const projectId = String(Deno.env.get("FCM_PROJECT_ID") || serviceAccount.project_id || "");
+  if (!/^[a-z0-9-]{4,80}$/.test(projectId)) throw new Error("FCM project ID is missing or invalid.");
+  const clientEmail = String(serviceAccount.client_email || "");
+  if (cachedFcmAccessToken && cachedFcmAccessToken.expiresAt > Date.now() + 60000) {
+    return { accessToken: cachedFcmAccessToken.value, projectId };
+  }
+
+  const assertion = await createFcmAssertion(serviceAccount);
+  const response = await fetch(FCM_OAUTH_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion,
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || typeof data.access_token !== "string") {
+    throw new Error("Google OAuth rejected the FCM service account: " + String(data.error_description || data.error || response.status).slice(0, 300));
+  }
+  cachedFcmAccessToken = {
+    value: data.access_token,
+    expiresAt: Date.now() + Math.max(60, Number(data.expires_in || 3600) - 60) * 1000,
+  };
+  return { accessToken: cachedFcmAccessToken.value, projectId };
+}
+
+async function recordFcmDelivery(row: Record<string, any>, notificationId: string, title: string, message: string, route: string, status: "accepted" | "failed", extra: Record<string, unknown> = {}) {
+  const { error } = await db.from("momin_fcm_deliveries").upsert({
+    admin_notification_id: notificationId,
+    user_id: row.user_id,
+    fcm_token_id: row.id,
+    title,
+    message,
+    route,
+    status,
+    fcm_message_name: extra.messageName || null,
+    error: extra.error || null,
+  }, { onConflict: "admin_notification_id,fcm_token_id" });
+  if (error) throw error;
+}
+
+async function sendFcmNotificationToToken(
+  credentials: { accessToken: string; projectId: string },
+  row: Record<string, any>,
+  notificationId: string,
+  title: string,
+  message: string,
+  route: string,
+  imageUrl: string | null,
+) {
+  const messagePayload: Record<string, unknown> = {
+    token: row.fcm_token,
+    notification: {
+      title,
+      body: message,
+      ...(imageUrl ? { image: imageUrl } : {}),
+    },
+    data: {
+      route,
+      notification_id: notificationId,
+      image_url: imageUrl || "",
+      source: "momin_admin",
+    },
+    android: {
+      priority: "HIGH",
+      ttl: FCM_TTL_SECONDS + "s",
+      notification: {
+        channel_id: "momin-announcements",
+        sound: "default",
+      },
+    },
+  };
+  const response = await fetch(
+    "https://fcm.googleapis.com/v1/projects/" + credentials.projectId + "/messages:send",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + credentials.accessToken,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: messagePayload }),
+    },
+  );
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || typeof data.name !== "string") {
+    const detail = data.error?.details?.find((item: Record<string, unknown>) => item.errorCode);
+    const errorCode = String(detail?.errorCode || data.error?.status || response.status);
+    const errorText = String(data.error?.message || errorCode).slice(0, 500);
+    if (errorCode === "UNREGISTERED" || errorCode === "NOT_FOUND" || response.status === 404) {
+      await db.from("momin_fcm_tokens")
+        .update({ is_active: false, last_error: errorText, updated_at: new Date().toISOString() })
+        .eq("id", row.id);
+    } else {
+      await db.from("momin_fcm_tokens")
+        .update({ last_error: errorText, updated_at: new Date().toISOString() })
+        .eq("id", row.id);
+    }
+    await recordFcmDelivery(row, notificationId, title, message, route, "failed", { error: errorText });
+    return { sent: 0, failed: 1 };
+  }
+
+  const now = new Date().toISOString();
+  await db.from("momin_fcm_tokens").update({
+    last_successful_push_at: now,
+    last_error: null,
+    updated_at: now,
+  }).eq("id", row.id);
+  await recordFcmDelivery(row, notificationId, title, message, route, "accepted", { messageName: data.name });
+  return { sent: 1, failed: 0 };
+}
+
+async function isAdminNotificationActive(notificationId: string) {
+  const { data, error } = await db.from("momin_admin_notifications")
+    .select("id").eq("id", notificationId).is("deleted_at", null).maybeSingle();
+  if (error) throw error;
+  return !!data;
+}
+
+async function sendFcmNotifications(
+  notificationId: string,
+  recipientIds: string[],
+  title: string,
+  message: string,
+  route: string,
+  imageUrl: string | null,
+) {
+  const tokens: Record<string, any>[] = [];
+  for (let offset = 0; offset < recipientIds.length; offset += 500) {
+    const { data, error } = await db.from("momin_fcm_tokens")
+      .select("id,user_id,device_key,fcm_token")
+      .in("user_id", recipientIds.slice(offset, offset + 500))
+      .eq("is_active", true);
+    if (error) throw error;
+    tokens.push(...(data || []));
+  }
+  if (!tokens.length) return { sent: 0, failed: 0, devices: 0, skipped: 0 };
+
+  // Reject tokens whose registered MOMIN device is revoked or no longer exists.
+  // This is a server-side safeguard if an offline client could not deactivate
+  // its FCM token when the device was removed or signed out.
+  const activeDeviceKeys = new Set<string>();
+  for (let offset = 0; offset < recipientIds.length; offset += 500) {
+    const { data, error } = await db.from("momin_devices")
+      .select("user_id,device_key")
+      .in("user_id", recipientIds.slice(offset, offset + 500))
+      .is("revoked_at", null);
+    if (error) throw error;
+    for (const device of data || []) {
+      activeDeviceKeys.add(String(device.user_id) + ":" + String(device.device_key));
+    }
+  }
+  const eligibleTokens = tokens.filter(row =>
+    activeDeviceKeys.has(String(row.user_id) + ":" + String(row.device_key))
+  );
+  const revokedTokens = tokens.filter(row =>
+    !activeDeviceKeys.has(String(row.user_id) + ":" + String(row.device_key))
+  );
+  for (const row of revokedTokens) {
+    await db.from("momin_fcm_tokens").update({
+      is_active: false,
+      last_error: "MOMIN device is revoked or no longer registered.",
+      updated_at: new Date().toISOString(),
+    }).eq("id", row.id);
+  }
+  if (!eligibleTokens.length) {
+    return { sent: 0, failed: 0, devices: 0, skipped: revokedTokens.length };
+  }
+
+  let credentials: { accessToken: string; projectId: string };
+  try {
+    credentials = await getFcmCredentials();
+  } catch (error) {
+    const reason = String(error instanceof Error ? error.message : error).slice(0, 500);
+    for (const row of eligibleTokens) {
+    const { data: priorAccepted, error: priorAcceptedError } = await db.from("momin_fcm_deliveries")
+      .select("id").eq("admin_notification_id", notificationId).eq("fcm_token_id", row.id).eq("status", "accepted").maybeSingle();
+    if (priorAcceptedError) throw priorAcceptedError;
+    if (priorAccepted) continue;
+      await recordFcmDelivery(row, notificationId, title, message, route, "failed", { error: reason });
+      await db.from("momin_fcm_tokens").update({ last_error: reason, updated_at: new Date().toISOString() }).eq("id", row.id);
+    }
+    return { sent: 0, failed: eligibleTokens.length, devices: eligibleTokens.length, skipped: revokedTokens.length, configuration_error: reason };
+  }
+
+  let sent = 0;
+  let failed = 0;
+  for (let offset = 0; offset < eligibleTokens.length; offset += 10) {
+    if (!(await isAdminNotificationActive(notificationId))) break;
+    const batch = eligibleTokens.slice(offset, offset + 10);
+    const results = await Promise.all(batch.map(async row => {
+      if (!(await isAdminNotificationActive(notificationId))) return { sent: 0, failed: 0 };
+      try {
+        const { data: priorAccepted, error: priorAcceptedError } = await db.from("momin_fcm_deliveries")
+          .select("id").eq("admin_notification_id", notificationId).eq("fcm_token_id", row.id).eq("status", "accepted").maybeSingle();
+        if (priorAcceptedError) throw priorAcceptedError;
+        if (priorAccepted) return { sent: 1, failed: 0 };
+        return await sendFcmNotificationToToken(credentials, row, notificationId, title, message, route, imageUrl);
+      } catch (error) {
+        const reason = String(error instanceof Error ? error.message : error).slice(0, 500);
+        try { await recordFcmDelivery(row, notificationId, title, message, route, "failed", { error: reason }); }
+        catch (recordError) { console.error("MOMIN FCM failure audit:", recordError); }
+        return { sent: 0, failed: 1 };
+      }
+    }));
+    sent += results.reduce((sum, result) => sum + result.sent, 0);
+    failed += results.reduce((sum, result) => sum + result.failed, 0);
+  }
+  return { sent, failed, devices: eligibleTokens.length, skipped: revokedTokens.length };
+}
+
+async function announceGivingCampaign(campaign: Record<string, any>, adminId: string) {
+  const campaignId = String(campaign.id || "");
+  if (!/^[0-9a-f-]{36}$/i.test(campaignId)) throw new Error("Invalid Giving campaign ID.");
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const staleBefore = new Date(now.getTime() - 10 * 60 * 1000).toISOString();
+  let claimed = false;
+  const { error: insertError } = await db.from("momin_giving_campaign_announcements")
+    .insert({ campaign_id: campaignId, status: "sending", updated_at: nowIso });
+  if (!insertError) {
+    claimed = true;
+  } else if (insertError.code === "23505") {
+    const { data: existing, error: readError } = await db.from("momin_giving_campaign_announcements")
+      .select("campaign_id,notification_id,status,updated_at,recipient_count,push_sent,push_failed")
+      .eq("campaign_id", campaignId).maybeSingle();
+    if (readError) throw readError;
+    if (existing?.status === "sent") {
+      return { announced: false, already_announced: true, notification_id: existing.notification_id || null };
+    }
+    if (existing?.status === "sending" && String(existing.updated_at || "") >= staleBefore) {
+      return { announced: false, in_progress: true, notification_id: existing.notification_id || null };
+    }
+    let retry = db.from("momin_giving_campaign_announcements")
+      .update({ status: "sending", updated_at: nowIso, last_error: null })
+      .eq("campaign_id", campaignId).eq("status", existing?.status || "failed");
+    if (existing?.status === "sending") retry = retry.lt("updated_at", staleBefore);
+    const { data: claimedRow, error: retryError } = await retry.select("campaign_id").maybeSingle();
+    if (retryError) throw retryError;
+    if (claimedRow) claimed = true;
+    else {
+      const { data: latest, error: latestError } = await db.from("momin_giving_campaign_announcements")
+        .select("status,notification_id").eq("campaign_id", campaignId).maybeSingle();
+      if (latestError) throw latestError;
+      return { announced: false, in_progress: latest?.status === "sending", already_announced: latest?.status === "sent", notification_id: latest?.notification_id || null };
+    }
+  } else {
+    throw insertError;
+  }
+  if (!claimed) return { announced: false, in_progress: true };
+
+  const category = String(campaign.category || "Charity");
+  const name = String(campaign.name || "New Giving campaign");
+  const title = ("New " + category + " campaign").slice(0, 80);
+  const description = String(campaign.description || "").trim();
+  const amount = Number(campaign.target_amount || 0);
+  const currency = String(campaign.currency || "INR");
+  const message = [
+    name,
+    description || "A new MOMIN Giving campaign is now available.",
+    amount > 0 ? "Target: " + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(amount) + " " + currency : "",
+    "Open MOMIN Giving to learn more."
+  ].filter(Boolean).join(" · ").slice(0, 1000);
+  try {
+    const result = await sendNotification({
+      title, message, audience: "all", route: "giving", image_url: campaign.image_url || null,
+    }, adminId, campaignId);
+    const { error: updateError } = await db.from("momin_giving_campaign_announcements")
+      .update({
+        notification_id: result.id, status: "sent", recipient_count: result.recipient_count,
+        push_sent: result.push_sent, push_failed: result.push_failed,
+        last_error: result.fcm_configuration_error || null,
+        sent_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      }).eq("campaign_id", campaignId);
+    if (updateError) throw updateError;
+    await audit(adminId, "giving.announcement_sent", "campaign", campaignId, {
+      notification_id: result.id, category, recipient_count: result.recipient_count,
+      push_sent: result.push_sent, push_failed: result.push_failed,
+    });
+    return { announced: true, notification_id: result.id, recipient_count: result.recipient_count, push_sent: result.push_sent, push_failed: result.push_failed };
+  } catch (error) {
+    const reason = String(error instanceof Error ? error.message : error).slice(0, 500);
+    await db.from("momin_giving_campaign_announcements")
+      .update({ status: "failed", last_error: reason, updated_at: new Date().toISOString() })
+      .eq("campaign_id", campaignId);
+    throw error;
+  }
+}
+async function sendNotification(body: Record<string, unknown>, adminId: string, givingCampaignId: string | null = null) {
   const title = String(body.title || "").trim();
   const message = String(body.message || "").trim();
   const audience = String(body.audience || "all");
@@ -291,27 +648,63 @@ async function sendNotification(body: Record<string, unknown>, adminId: string) 
   const recipients = await activeRecipientIds(audience, ids);
   if (!recipients.length) throw new Error("No active MOMIN users were found.");
   const imageUrl = normalizeAdminMediaUrl(body.image_url);
-  const { data: campaign, error: campaignError } = await db.from("momin_admin_notifications").insert({
-    title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
-    recipient_count: recipients.length, created_by: adminId,
-  }).select("id").single();
-  if (campaignError) throw campaignError;
+  let campaign: { id: string };
+  if (givingCampaignId) {
+    const { data: existingNotification, error: existingError } = await db.from("momin_admin_notifications")
+      .select("id").eq("giving_campaign_id", givingCampaignId).maybeSingle();
+    if (existingError) throw existingError;
+    if (existingNotification) {
+      const { data: updated, error: updateError } = await db.from("momin_admin_notifications")
+        .update({ title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
+          recipient_count: recipients.length, sent_count: 0, failed_count: 0, completed_at: null, deleted_at: null })
+        .eq("id", existingNotification.id).select("id").single();
+      if (updateError) throw updateError;
+      campaign = { id: updated.id };
+    } else {
+      const { data: created, error: createError } = await db.from("momin_admin_notifications").insert({
+        title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
+        recipient_count: recipients.length, created_by: adminId, giving_campaign_id: givingCampaignId,
+      }).select("id").single();
+      if (createError) throw createError;
+      campaign = { id: created.id };
+    }
+  } else {
+    const { data: created, error: createError } = await db.from("momin_admin_notifications").insert({
+      title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
+      recipient_count: recipients.length, created_by: adminId,
+    }).select("id").single();
+    if (createError) throw createError;
+    campaign = { id: created.id };
+  }
   const inboxRows = recipients.map(user_id => ({ notification_id: campaign.id, user_id, title, message, route, image_url: imageUrl }));
   for (let i = 0; i < inboxRows.length; i += 500) {
-    const { error } = await db.from("momin_user_notifications").insert(inboxRows.slice(i, i + 500));
+    if (!(await isAdminNotificationActive(campaign.id))) {
+      return { success: true, id: campaign.id, deleted: true, recipient_count: recipients.length, push_sent: 0, push_failed: 0, fcm_sent: 0, fcm_failed: 0 };
+    }
+    const { error } = await db.from("momin_user_notifications").upsert(inboxRows.slice(i, i + 500), { onConflict: "notification_id,user_id", ignoreDuplicates: true });
     if (error) throw error;
   }
-  let sent = 0, failed = 0;
+  let sent = 0, failed = 0, deletedDuringDelivery = false;
   let server: webpush.ApplicationServer | null = null;
   try { server = await loadVapidServer(); } catch (_) { server = null; }
   for (let start = 0; start < recipients.length; start += 100) {
+    if (!(await isAdminNotificationActive(campaign.id))) { deletedDuringDelivery = true; break; }
     const userBatch = recipients.slice(start, start + 100);
     const { data: subscriptions, error: subError } = await db.from("momin_push_subscriptions")
-      .select("id,user_id,device_key,subscription,is_active")
+      .select("id,user_id,device_key,subscription,is_active,preferences")
       .in("user_id", userBatch).eq("is_active", true);
     if (subError) throw subError;
+    let subscriptionIndex = 0;
     for (const row of subscriptions || []) {
+    if (subscriptionIndex++ % 10 === 0 && !(await isAdminNotificationActive(campaign.id))) {
+      deletedDuringDelivery = true;
+      break;
+    }
     const eventKey = "admin:" + campaign.id + ":" + row.id;
+    const { data: priorDelivery, error: priorError } = await db.from("momin_push_deliveries")
+      .select("id,status").eq("event_key", eventKey).maybeSingle();
+    if (priorError) throw priorError;
+    if (priorDelivery?.status === "sent") { sent++; continue; }
     let status = "failed", errorText: string | null = null;
     if (server) {
       try {
@@ -325,20 +718,98 @@ async function sendNotification(body: Record<string, unknown>, adminId: string) 
         errorText = String(error).slice(0, 500); failed++;
       }
     } else { errorText = "Push signing keys are unavailable."; failed++; }
-    await db.from("momin_push_deliveries").insert({
-      subscription_id: row.id, user_id: row.user_id, event_key, title, body: message,
+    await db.from("momin_push_deliveries").upsert({
+      subscription_id: row.id, user_id: row.user_id, event_key: eventKey, title, body: message,
       icon_key: "b", route, image_url: imageUrl, status,
       sent_at: status === "sent" ? new Date().toISOString() : null,
       error: errorText,
-    });
+    }, { onConflict: "event_key" });
     }
+    if (deletedDuringDelivery) break;
+  }
+  let fcm = { sent: 0, failed: 0, devices: 0, skipped: 0 } as { sent: number; failed: number; devices: number; skipped: number; configuration_error?: string };
+  try {
+    if (!deletedDuringDelivery && await isAdminNotificationActive(campaign.id)) {
+      fcm = await sendFcmNotifications(campaign.id, recipients, title, message, route, imageUrl);
+    } else {
+      deletedDuringDelivery = true;
+    }
+    sent += fcm.sent;
+    failed += fcm.failed;
+  } catch (error) {
+    console.error("MOMIN FCM announcement delivery:", error);
+  }
+  if (deletedDuringDelivery || !(await isAdminNotificationActive(campaign.id))) {
+    return { success: true, id: campaign.id, deleted: true, recipient_count: recipients.length, push_sent: sent, push_failed: failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed };
   }
   const overall = failed === 0 ? "sent" : sent > 0 ? "partial" : "failed";
   await db.from("momin_admin_notifications").update({
     status: overall, sent_count: sent, failed_count: failed, completed_at: new Date().toISOString(),
-  }).eq("id", campaign.id);
-  await audit(adminId, "notification.sent", "notification", campaign.id, { audience, recipient_count: recipients.length, sent, failed });
-  return { success: true, id: campaign.id, recipient_count: recipients.length, push_sent: sent, push_failed: failed, status: overall };
+  }).eq("id", campaign.id).is("deleted_at", null);
+  await audit(adminId, "notification.sent", "notification", campaign.id, { audience, recipient_count: recipients.length, sent, failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed, fcm_devices: fcm.devices });
+  return { success: true, id: campaign.id, recipient_count: recipients.length, push_sent: sent, push_failed: failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed, fcm_devices: fcm.devices, fcm_configuration_error: fcm.configuration_error || null, status: overall };
+}
+async function deleteNotification(body: Record<string, unknown>, adminId: string) {
+  const id = String(body.id || "").trim();
+  if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid notification ID.");
+  const { data: current, error: currentError } = await db.from("momin_admin_notifications")
+    .select("id,title,status,deleted_at").eq("id", id).maybeSingle();
+  if (currentError) throw currentError;
+  if (!current) throw new Error("Notification was not found.");
+  if (current.deleted_at) return { success: true, id, already_deleted: true, browser_dismissals_sent: 0 };
+
+  // Capture Web Push subscriptions before the cleanup trigger removes delivery rows.
+  const { data: deliveries, error: deliveryError } = await db.from("momin_push_deliveries")
+    .select("subscription_id").like("event_key", "admin:" + id + ":%");
+  if (deliveryError) throw deliveryError;
+  const subscriptionIds = [...new Set((deliveries || []).map(row => row.subscription_id).filter(Boolean))];
+  let subscriptions: Record<string, any>[] = [];
+  if (subscriptionIds.length) {
+    const { data, error } = await db.from("momin_push_subscriptions")
+      .select("id,subscription").in("id", subscriptionIds);
+    if (error) throw error;
+    subscriptions = data || [];
+  }
+
+  const deletedAt = new Date().toISOString();
+  const { data: deleted, error: deleteError } = await db.from("momin_admin_notifications")
+    .update({ deleted_at: deletedAt }).eq("id", id).is("deleted_at", null).select("id").maybeSingle();
+  if (deleteError) throw deleteError;
+  if (!deleted) {
+    const { data: latest, error: latestError } = await db.from("momin_admin_notifications")
+      .select("deleted_at").eq("id", id).maybeSingle();
+    if (latestError) throw latestError;
+    if (!latest?.deleted_at) throw new Error("Notification could not be deleted. Refresh history and try again.");
+  }
+
+  // Best-effort dismissal for Web Push notifications already displayed by the browser.
+  let browserDismissalsSent = 0;
+  if (subscriptions.length) {
+    try {
+      const server = await loadVapidServer();
+      for (const row of subscriptions) {
+        try {
+          const subscriber = server.subscribe(row.subscription as webpush.PushSubscription);
+          await subscriber.pushTextMessage(JSON.stringify({
+            action: "dismiss", campaign_id: id, tag: "momin-admin-" + id,
+          }), {
+            urgency: webpush.Urgency.High,
+            ttl: 300,
+            topic: "delete-" + id.replaceAll("-", "").slice(0, 24),
+          });
+          browserDismissalsSent++;
+        } catch (error) {
+          console.warn("MOMIN notification dismissal push:", error);
+        }
+      }
+    } catch (error) {
+      console.warn("MOMIN notification dismissal service unavailable:", error);
+    }
+  }
+  await audit(adminId, "notification.deleted", "notification", id, {
+    title: current.title, prior_status: current.status, browser_dismissals_sent: browserDismissalsSent,
+  });
+  return { success: true, id, browser_dismissals_sent: browserDismissalsSent };
 }
 async function uploadMedia(request: Request, session: { adminId: string }) {
   const form = await request.formData();
@@ -388,6 +859,12 @@ async function saveCampaign(body: Record<string, unknown>, adminId: string) {
   if (!validText(name, 2, 120) || !["Zakat", "Sadaqah", "Charity", "Other approved"].includes(category) || !Number.isFinite(target) || target <= 0 || !/^[A-Z]{3}$/.test(currency)) {
     throw new Error("Complete the campaign name, category, target amount, and currency.");
   }
+  let previous: Record<string, any> | null = null;
+  if (id) {
+    const { data, error } = await db.from("momin_giving_campaigns").select("id,status").eq("id", id).single();
+    if (error) throw error;
+    previous = data;
+  }
   const payload = {
     name, category, description: String(body.description || "").slice(0, 5000),
     image_url: normalizeAdminMediaUrl(body.image_url),
@@ -397,20 +874,31 @@ async function saveCampaign(body: Record<string, unknown>, adminId: string) {
     updated_at: new Date().toISOString(),
   };
   const result = id
-    ? await db.from("momin_giving_campaigns").update(payload).eq("id", id).select("id").single()
-    : await db.from("momin_giving_campaigns").insert({ ...payload, created_by: adminId }).select("id").single();
+    ? await db.from("momin_giving_campaigns").update(payload).eq("id", id).select("*").single()
+    : await db.from("momin_giving_campaigns").insert({ ...payload, created_by: adminId }).select("*").single();
   if (result.error) throw result.error;
   await audit(adminId, id ? "giving.updated" : "giving.created", "campaign", result.data.id, { name, category, status: payload.status });
-  return { success: true, id: result.data.id };
+  let announcement = null;
+  if (payload.status === "Active" && (!previous || previous.status !== "Active")) {
+    announcement = await announceGivingCampaign(result.data, adminId);
+  }
+  return { success: true, id: result.data.id, announcement };
 }
 async function setCampaignStatus(body: Record<string, unknown>, adminId: string) {
   const id = String(body.id || "");
   const status = String(body.status || "");
   if (!/^[0-9a-f-]{36}$/i.test(id) || !["Active", "Paused", "Completed", "Draft"].includes(status)) throw new Error("Invalid campaign status.");
-  const { error } = await db.from("momin_giving_campaigns").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+  const { data: previous, error: readError } = await db.from("momin_giving_campaigns").select("*").eq("id", id).single();
+  if (readError) throw readError;
+  const { data: updated, error } = await db.from("momin_giving_campaigns")
+    .update({ status, updated_at: new Date().toISOString() }).eq("id", id).select("*").single();
   if (error) throw error;
   await audit(adminId, "giving.status_updated", "campaign", id, { status });
-  return { success: true };
+  let announcement = null;
+  if (status === "Active" && previous.status !== "Active") {
+    announcement = await announceGivingCampaign(updated, adminId);
+  }
+  return { success: true, announcement };
 }
 async function getContributions() {
   const { data, error } = await db.from("momin_contributions").select("*").order("created_at", { ascending: false }).limit(500);
@@ -487,6 +975,104 @@ async function changePassword(body: Record<string, unknown>, session: { adminId:
   return { success: true };
 }
 
+
+async function requestAdminPasswordReset() {
+  const generic = {
+    success: true,
+    message: "If secure recovery is configured for this Admin account, a one-time reset link will be sent to its verified recovery mailbox."
+  };
+  const apiKey = Deno.env.get("RESEND_API_KEY") || "";
+  const to = Deno.env.get("MOMIN_ADMIN_RECOVERY_EMAIL") || "";
+  const from = Deno.env.get("MOMIN_ADMIN_RECOVERY_FROM") || "";
+  if (!apiKey || !to || !from) {
+    console.warn("MOMIN Admin recovery is unavailable: recovery mail settings are not configured.");
+    return generic;
+  }
+
+  const { data: account, error: accountError } = await db.from("momin_admin_accounts")
+    .select("id").eq("login_id", "owner").eq("is_active", true).maybeSingle();
+  if (accountError) throw accountError;
+  if (!account) return generic;
+
+  const since = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  const { count, error: rateError } = await db.from("momin_admin_password_reset_tokens")
+    .select("token_hash", { count: "exact", head: true })
+    .eq("admin_id", account.id).gte("created_at", since);
+  if (rateError) throw rateError;
+  if ((count || 0) >= 3) return generic;
+
+  const token = randomToken();
+  const tokenHash = await sha256(token);
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 30 * 60 * 1000).toISOString();
+  const { error: insertError } = await db.from("momin_admin_password_reset_tokens").insert({
+    token_hash: tokenHash, admin_id: account.id, expires_at: expiresAt
+  });
+  if (insertError) throw insertError;
+
+  const resetUrl = "https://momin-admin-panel.onrender.com/?reset=" + encodeURIComponent(token);
+  const emailResponse = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + apiKey, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from,
+      to: [to],
+      subject: "Reset your MOMIN Admin password",
+      text: "A MOMIN Admin password reset was requested. This one-time link expires in 30 minutes: " + resetUrl + "\n\nIf you did not request this, ignore this email.",
+      html: "<p>A MOMIN Admin password reset was requested.</p><p><a href=\"" + resetUrl + "\">Create a new password</a></p><p>This one-time link expires in 30 minutes. If you did not request this, ignore this email.</p>"
+    })
+  });
+  if (!emailResponse.ok) {
+    await db.from("momin_admin_password_reset_tokens").update({ used_at: new Date().toISOString() })
+      .eq("token_hash", tokenHash).is("used_at", null);
+    console.error("MOMIN Admin recovery email provider rejected the request:", emailResponse.status);
+  }
+  return generic;
+}
+
+async function completeAdminPasswordReset(body: Record<string, unknown>) {
+  const token = String(body.token || "");
+  const next = String(body.new_password || "");
+  if (token.length < 40 || token.length > 200) throw new Error("This reset link is invalid or has expired. Request a new link.");
+  if (!validText(next, 12, 128) || !/[A-Z]/.test(next) || !/[a-z]/.test(next) || !/\\d/.test(next) || !/[^A-Za-z0-9]/.test(next)) {
+    throw new Error("Use at least 12 characters with uppercase, lowercase, a number, and a symbol.");
+  }
+
+  const tokenHash = await sha256(token);
+  const now = new Date().toISOString();
+  const { data: available, error: lookupError } = await db.from("momin_admin_password_reset_tokens")
+    .select("admin_id").eq("token_hash", tokenHash).is("used_at", null).gt("expires_at", now).maybeSingle();
+  if (lookupError) throw lookupError;
+  if (!available) throw new Error("This reset link is invalid or has expired. Request a new link.");
+
+  // Consume the token atomically so two concurrent requests cannot reuse it.
+  const { data: consumed, error: consumeError } = await db.from("momin_admin_password_reset_tokens")
+    .update({ used_at: now }).eq("token_hash", tokenHash).is("used_at", null).gt("expires_at", now)
+    .select("admin_id").maybeSingle();
+  if (consumeError) throw consumeError;
+  if (!consumed) throw new Error("This reset link has already been used or has expired. Request a new link.");
+
+  const saltText = b64(crypto.getRandomValues(new Uint8Array(16)));
+  const hash = await derivePassword(next, saltText, 310000);
+  const { data: updated, error: updateError } = await db.from("momin_admin_accounts").update({
+    password_salt: saltText, password_hash: hash, password_iterations: 310000,
+    force_password_change: false, updated_at: now
+  }).eq("id", consumed.admin_id).eq("is_active", true).select("id").maybeSingle();
+  if (updateError) throw updateError;
+  if (!updated) throw new Error("Admin account is unavailable. Contact the database owner.");
+
+  const { error: revokeError } = await db.from("momin_admin_sessions")
+    .update({ revoked_at: now }).eq("admin_id", consumed.admin_id).is("revoked_at", null);
+  if (revokeError) throw new Error("Password changed, but active Admin sessions could not be revoked. Contact the database owner immediately.");
+
+  const { error: invalidateError } = await db.from("momin_admin_password_reset_tokens")
+    .update({ used_at: now }).eq("admin_id", consumed.admin_id).is("used_at", null);
+  if (invalidateError) throw invalidateError;
+
+  await audit(consumed.admin_id, "admin.password_reset", "admin", consumed.admin_id);
+  return { success: true, message: "Admin password reset successfully. Sign in using your new password." };
+}
+
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin");
   if (request.method === "OPTIONS") return new Response("ok", { headers: cors(origin) });
@@ -500,6 +1086,10 @@ Deno.serve(async (request: Request) => {
       ? Object.fromEntries([...form.entries()].filter(([k]) => k !== "file"))
       : await request.json().catch(() => ({}));
     const action = String(body.action || "");
+
+    // Password recovery is intentionally available before Admin session validation.
+    if (action === "forgot_password") return reply(await requestAdminPasswordReset(), 200, origin);
+    if (action === "reset_password") return reply(await completeAdminPasswordReset(body), 200, origin);
 
     if (action === "login") {
       const loginId = String(body.login_id || "").trim().toLowerCase();
@@ -561,7 +1151,6 @@ Deno.serve(async (request: Request) => {
         await audit(session.adminId, "admin.logout", "admin", session.adminId);
         return reply({ success: true }, 200, origin);
       case "change_password": return reply(await changePassword(body, session), 200, origin);
-      case "forgot_password": return reply({ error: "Secure recovery is not configured yet. Use your authenticated Admin Profile to change the password, or ask the database owner to perform a verified recovery." }, 501, origin);
       case "dashboard": return reply(await dashboard(), 200, origin);
       case "users": return reply(await listUsers(body), 200, origin);
       case "user_detail": {
@@ -571,7 +1160,7 @@ Deno.serve(async (request: Request) => {
           { data: inbox, error: inboxError }, { data: contributions, error: contributionError },
           { data: complaints, error: complaintsError }] = await Promise.all([
           db.auth.admin.getUserById(id),
-          db.from("momin_profiles").select("user_id,public_user_id,display_name,email,avatar_url,profile_image_path,birthday,gender,auth_provider,email_verified,profile_completed,profile_completed_at,account_status,created_at,updated_at").eq("user_id", id).maybeSingle(),
+          db.from("momin_profiles").select("user_id,public_user_id,display_name,email,avatar_url,profile_image_path,birthday,gender,auth_provider,email_verified,account_status,created_at,updated_at,profile_completed,profile_completed_at").eq("user_id", id).maybeSingle(),
           db.from("momin_user_notifications").select("id,title,message,route,read_at,created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
           db.from("momin_contributions").select("transaction_ref,campaign_id,amount,currency,fund_category,payment_status,receipt_status,created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
           db.from("momin_complaints").select("id,ticket_id,category,subject,priority,status,created_at,updated_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
@@ -598,7 +1187,7 @@ Deno.serve(async (request: Request) => {
       case "update_user": return reply(await updateUser(body, session.adminId), 200, origin);
       case "set_user_status": return reply(await setUserStatus(body, session.adminId), 200, origin);
       case "notifications_history": {
-        const { data, error } = await db.from("momin_admin_notifications").select("*").order("created_at", { ascending: false }).limit(200);
+        const { data, error } = await db.from("momin_admin_notifications").select("*").is("deleted_at", null).order("created_at", { ascending: false }).limit(200);
         if (error) throw error;
         const ids = (data || []).map(x => x.id);
         const stats = ids.length ? await db.from("momin_admin_notification_stats")
@@ -613,6 +1202,7 @@ Deno.serve(async (request: Request) => {
         }) }, 200, origin);
       }
       case "send_notification": return reply(await sendNotification(body, session.adminId), 200, origin);
+      case "delete_notification": return reply(await deleteNotification(body, session.adminId), 200, origin);
       case "campaigns": return reply({ campaigns: await listCampaigns() }, 200, origin);
       case "save_campaign": return reply(await saveCampaign(body, session.adminId), 200, origin);
       case "campaign_status": return reply(await setCampaignStatus(body, session.adminId), 200, origin);

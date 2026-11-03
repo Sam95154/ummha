@@ -5,7 +5,7 @@
   const PUBLISHABLE_KEY = "sb_publishable_SAHjdts8xtuQSXE_lPa1cw_V6J3PjQt";
   const root = document.getElementById("root");
   const state = {
-    token: null, admin: null, page: "login", theme: localStorage.getItem("momin-admin-theme") || "dark",
+    token: null, admin: null, page: "login", resetToken: new URLSearchParams(window.location.search).get("reset") || "", theme: localStorage.getItem("momin-admin-theme") || "dark",
     busy: false, error: "", toastTimer: null, menu: false, notifTab: "create", givingTab: "campaigns",
     dashboard: null, users: [], usersPage: 1, userTotal: 0, notificationUsers: [], notificationSelections: [], editCampaign: null, userQuery: "", userStatus: "all", notifications: [],
     campaigns: [], contributions: [], complaints: [], profile: null, selectedComplaint: null,
@@ -104,6 +104,25 @@
       '<p class="hint" style="text-align:center;margin:14px 0 0">Admin access is separate from MOMIN User sign-in.</p>' +
       '<p style="text-align:center;margin:12px 0 0"><button class="link-btn" type="button" data-action="forgot-login">Forgot password?</button></p>' +
       "</form></section>";
+  }
+  function renderResetPassword() {
+    root.innerHTML = '<section class="login-screen"><form class="login-card" data-form="reset-password">' +
+      '<div class="brand"><strong>MOMIN</strong><h1>Set a new Admin password</h1><p>This one-time recovery link is valid for 30 minutes.</p></div>' +
+      '<div class="field"><label for="reset-new-password">New password</label><input class="control" id="reset-new-password" name="new_password" type="password" autocomplete="new-password" minlength="12" required></div>' +
+      '<div class="field"><label for="reset-confirm-password">Confirm new password</label><input class="control" id="reset-confirm-password" name="confirm_password" type="password" autocomplete="new-password" minlength="12" required></div>' +
+      '<p class="hint">Use at least 12 characters with uppercase, lowercase, a number, and a symbol.</p>' +
+      '<p class="error" id="reset-error"></p><button class="btn primary full" type="submit">Reset password</button>' +
+      '<p style="text-align:center;margin:12px 0 0"><button class="link-btn" type="button" data-action="back-to-login">Back to Admin login</button></p>' +
+      '</form></section>';
+  }
+  async function submitPasswordReset(form) {
+    const values = Object.fromEntries(new FormData(form).entries());
+    if (values.new_password !== values.confirm_password) throw new Error("New passwords do not match.");
+    await api("reset_password", { token: state.resetToken, new_password: values.new_password });
+    state.resetToken = "";
+    window.history.replaceState(null, "", window.location.pathname);
+    toast("Admin password reset successfully. Sign in with your new password.");
+    return renderLogin();
   }
   const nav = [
     ["dash","Dashboard","▦"],["users","Users","♙"],["notif","Notifications","♧"],
@@ -289,6 +308,7 @@
       '<button class="btn ' + (state.theme === "light" ? "primary" : "") + '" data-action="set-theme" data-theme="light">Light mode</button></div></section>';
   }
   function render() {
+    if (state.resetToken) return renderResetPassword();
     if (!state.token) return renderLogin();
     if (state.admin?.force_password_change) return renderPasswordRequired();
     let content = "";
@@ -581,6 +601,7 @@
     try {
       if (type === "login") return await doLogin(form);
       if (type === "password") return await savePassword(form);
+      if (type === "reset-password") return await submitPasswordReset(form);
       if (type === "user-search") {
         state.userQuery = form.elements.q.value.trim(); state.userStatus = form.elements.status.value; state.usersPage = 1;
         return await goto("users");
@@ -640,7 +661,8 @@
       if (action === "theme") { state.theme = state.theme === "dark" ? "light" : "dark"; localStorage.setItem("momin-admin-theme", state.theme); document.documentElement.dataset.theme = state.theme; return render(); }
       if (action === "set-theme") { state.theme = el.dataset.theme; localStorage.setItem("momin-admin-theme", state.theme); document.documentElement.dataset.theme = state.theme; return render(); }
       if (action === "toggle-password") { const input = document.getElementById("login-password"); if (input) input.type = el.checked ? "text" : "password"; return; }
-      if (action === "forgot-login" || action === "forgot-password") { const data = await api("forgot_password"); toast(data.message || "Password recovery is not configured.", true); return; }
+      if (action === "forgot-login" || action === "forgot-password") { const data = await api("forgot_password"); toast(data.message || "If recovery is configured, a reset link will be sent."); return; }
+      if (action === "back-to-login") { state.resetToken = ""; window.history.replaceState(null, "", window.location.pathname); return renderLogin(); }
       if (action === "modal-close" && (event.target === el || el.classList.contains("btn"))) return closeModal();
       if (action === "view-user") {
         const detail = await api("user_detail", { id: el.dataset.id });

@@ -33,6 +33,8 @@ jobs:
         run: npm run qa:responsive
       - name: Run Admin Panel static and security checks
         run: npm run qa:admin
+      - name: Run Admin password recovery regression checks
+        run: npm run qa:admin-recovery
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
       - name: Run authenticated and responsive browser tests
