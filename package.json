@@ -10,7 +10,8 @@
     "android:debug": "npm run android:prepare && cd android && ./gradlew assembleDebug",
     "android:bundle": "npm run android:prepare && cd android && ./gradlew bundleRelease",
     "qa:e2e": "playwright test",
-    "qa:admin": "node scripts/qa-admin.mjs"
+    "qa:admin": "node scripts/qa-admin.mjs",
+    "qa:admin-recovery": "node scripts/qa-admin-password-recovery.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",
