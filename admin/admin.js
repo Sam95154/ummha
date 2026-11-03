@@ -187,10 +187,12 @@
     if (state.notifTab === "history") {
       const rows = state.notifications.map(n => "<tr><td>" + escapeHtml(n.title) + "</td><td>" + escapeHtml(n.audience_type) +
         "</td><td>" + date(n.created_at) + "</td><td>" + (n.image_url ? "Image" : "Text only") + "</td><td>" +
-        badge(n.status) + "</td><td>" + escapeHtml(n.recipient_count || 0) + "</td><td>" + escapeHtml((n.read_count || 0) + " (" + (n.read_rate || 0) + "%)") + "</td><td>" + escapeHtml(n.sent_count || 0) + "</td></tr>");
+        badge(n.status) + "</td><td>" + escapeHtml(n.recipient_count || 0) + "</td><td>" + escapeHtml((n.read_count || 0) + " (" + (n.read_rate || 0) + "%)") + "</td><td>" + escapeHtml(n.sent_count || 0) +
+        '</td><td><button type="button" class="btn small danger" data-action="delete-notification" data-id="' + escapeHtml(n.id) + '" aria-label="Delete notification">Delete</button></td></tr>');
       return heading("Notifications", "Notification delivery and history") +
         '<div class="tabs"><button data-action="notif-tab" data-tab="create">Create</button><button class="active" data-action="notif-tab" data-tab="history">History</button></div>' +
-        '<section class="card">' + table(["Title","Audience","Created","Media","Status","Recipients","Read","Push sent"], rows) + "</section>";
+        '<section class="card">' + table(["Title","Audience","Created","Media","Status","Recipients","Read","Push sent","Action"], rows) + "</section>" +
+        '<p class="hint">Deleting a notification removes it from all users’ MOMIN inboxes. A phone notification already delivered to the operating system may still remain in its notification tray.</p>';
     }
     const userOptions = state.notificationUsers.map(u => '<option value="' + escapeHtml(u.id) + '" ' +
       (state.notificationSelections.includes(u.id) ? "selected" : "") + '>' + escapeHtml(u.user_id + " · " + u.name) + "</option>").join("");
@@ -669,6 +671,21 @@
         toast("User status changed."); return await goto("users");
       }
       if (action === "notif-tab") { state.notifTab = el.dataset.tab; return await goto("notif"); }
+      if (action === "delete-notification") {
+        const id = String(el.dataset.id || "");
+        const notification = state.notifications.find(item => item.id === id);
+        if (!id || !notification) throw new Error("Notification was not found in the current history.");
+        const title = String(notification.title || "this notification");
+        if (!confirm('Delete "' + title + '"? It will be removed from all users’ MOMIN notification inboxes. A push notification already displayed by a phone may remain in its system tray.')) return;
+        el.disabled = true;
+        el.textContent = "Deleting…";
+        const result = await api("delete_notification", { id });
+        state.notifications = state.notifications.filter(item => item.id !== id);
+        toast(result.browser_dismissals_sent
+          ? "Notification deleted. User inboxes cleaned; browser dismissals sent."
+          : "Notification deleted and removed from User inboxes.");
+        return await goto("notif");
+      }
       if (action === "giving-tab") { state.givingTab = el.dataset.tab; return await goto("giving"); }
       if (action === "edit-campaign") {
         state.editCampaign = state.campaigns.find(x => x.id === el.dataset.id) || null;
