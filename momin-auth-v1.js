@@ -57,7 +57,7 @@
       email:user.email||null,
       avatar_url:avatar,
       auth_provider:providerFor(user),
-      email_verified:!!user.email_confirmed_at,
+      email_verified:!!(user.email_confirmed_at||meta.email_verified),
       updated_at:new Date().toISOString()
     };
     var saved=await supabase.from("momin_profiles").upsert(payload,{onConflict:"user_id"})
