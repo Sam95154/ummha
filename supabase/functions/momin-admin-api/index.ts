@@ -967,7 +967,7 @@ Deno.serve(async (request: Request) => {
           { data: inbox, error: inboxError }, { data: contributions, error: contributionError },
           { data: complaints, error: complaintsError }] = await Promise.all([
           db.auth.admin.getUserById(id),
-          db.from("momin_profiles").select("user_id,public_user_id,display_name,email,avatar_url,account_status,created_at,updated_at,profile_completed").eq("user_id", id).maybeSingle(),
+          db.from("momin_profiles").select("user_id,public_user_id,display_name,email,avatar_url,profile_image_path,birthday,gender,auth_provider,email_verified,profile_completed,profile_completed_at,account_status,created_at,updated_at").eq("user_id", id).maybeSingle(),
           db.from("momin_user_notifications").select("id,title,message,route,read_at,created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
           db.from("momin_contributions").select("transaction_ref,campaign_id,amount,currency,fund_category,payment_status,receipt_status,created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
           db.from("momin_complaints").select("id,ticket_id,category,subject,priority,status,created_at,updated_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
@@ -981,7 +981,12 @@ Deno.serve(async (request: Request) => {
             email: authData.user.email || "", phone: authData.user.phone || "",
             registered_at: authData.user.created_at, last_active: authData.user.last_sign_in_at || null,
             status: profile?.account_status || "Active", avatar_url: profile?.avatar_url || null,
+            profile_image_path: profile?.profile_image_path || null,
+            birthday: profile?.birthday || null, gender: profile?.gender || null,
+            auth_provider: profile?.auth_provider || authData.user.app_metadata?.provider || "email",
+            email_verified: !!(profile?.email_verified || authData.user.email_confirmed_at),
             profile_completed: !!profile?.profile_completed,
+            profile_completed_at: profile?.profile_completed_at || null,
           },
           notifications: inbox || [], contributions: contributions || [], complaints: complaints || [],
         }, 200, origin);
