@@ -55,6 +55,27 @@ execFileSync("npx", [
   "--outfile=" + bridgeOutput
 ], { cwd: root, stdio: "inherit" });
 
+// Native Google Credential Manager needs the OAuth Web client ID. Read the
+// public client ID from the local Firebase config; never commit that config.
+const googleServicesPath = path.join(root, "google-services.json");
+if (!fs.existsSync(googleServicesPath)) {
+  throw new Error("google-services.json is required to configure native Google sign-in.");
+}
+const googleConfig = JSON.parse(fs.readFileSync(googleServicesPath, "utf8"));
+const androidClient = (googleConfig.client || []).find((entry) =>
+  entry.client_info?.android_client_info?.package_name === "com.momin.noorulislam"
+);
+const googleWebClient = (androidClient?.oauth_client || []).find((entry) => Number(entry.client_type) === 3);
+if (!googleWebClient?.client_id || !/^[0-9]+-[A-Za-z0-9_-]+\\.apps\\.googleusercontent\\.com$/.test(googleWebClient.client_id)) {
+  throw new Error("The MOMIN Web OAuth client ID (client_type 3) is missing from google-services.json. Configure the Web OAuth client in the same Google Cloud project as the Android app.");
+}
+const bridgeBundle = fs.readFileSync(bridgeOutput, "utf8");
+fs.writeFileSync(
+  bridgeOutput,
+  "window.MOMIN_GOOGLE_WEB_CLIENT_ID = " + JSON.stringify(googleWebClient.client_id) + ";\\n" + bridgeBundle,
+  "utf8"
+);
+
 const indexPath = path.join(webDir, "index.html");
 let indexHtml = fs.readFileSync(indexPath, "utf8");
 const firstAppScript = '<script src="./noor-v5.js';
@@ -78,45 +99,13 @@ if (!loginHtml.includes(supabaseScriptTag)) {
 if (!loginHtml.includes("momin-capacitor-bridge.js")) {
   loginHtml = loginHtml.replace(
     supabaseScriptTag,
-    '<script src="./momin-capacitor-bridge.js?v=android-v3"></script>\\n' + supabaseScriptTag
+    '<script src="./momin-capacitor-bridge.js?v=android-v4"></script>\n' + supabaseScriptTag
   );
 }
-
-const oldLoginOAuth = `redirectTo:location.origin+"/",
-        queryParams:{access_type:"offline",prompt:"select_account"}
-      }
-    });
-    if(result.error)throw result.error;
-    if(!result.data||!result.data.url)throw new Error("Google sign-in could not be started.");`;
-const nativeLoginOAuth = `redirectTo:(window.MominNative&&window.MominNative.isNative)?window.MominNative.authRedirectUrl:location.origin+"/",
-        skipBrowserRedirect:!!(window.MominNative&&window.MominNative.isNative),
-        queryParams:{access_type:"offline",prompt:"select_account"}
-      }
-    });
-    if(result.error)throw result.error;
-    if(!result.data||!result.data.url)throw new Error("Google sign-in could not be started.");
-    if(window.MominNative&&window.MominNative.isNative)await window.MominNative.openOAuth(result.data.url);`;
-if (!loginHtml.includes(oldLoginOAuth)) {
-  throw new Error("Could not safely locate the Google sign-in block in login.html; refusing to patch it.");
+if (!loginHtml.includes("window.MominNative.signInWithGoogle")) {
+  throw new Error("Native Google sign-in integration is missing from login.html.");
 }
-loginHtml = loginHtml.replace(oldLoginOAuth, nativeLoginOAuth);
 fs.writeFileSync(loginPath, loginHtml, "utf8");
-
-const authPath = path.join(webDir, "momin-auth-v1.js");
-let authJs = fs.readFileSync(authPath, "utf8");
-const oldOAuth = `options:{redirectTo:location.origin+"/"}
-        });
-        if(error)throw error;return data;`;
-const nativeOAuth = `options:{redirectTo:(window.MominNative&&window.MominNative.isNative)?window.MominNative.authRedirectUrl:location.origin+"/",skipBrowserRedirect:!!(window.MominNative&&window.MominNative.isNative)}
-        });
-        if(error)throw error;
-        if(window.MominNative&&window.MominNative.isNative&&data&&data.url)await window.MominNative.openOAuth(data.url);
-        return data;`;
-if (!authJs.includes(oldOAuth)) {
-  throw new Error("Could not safely locate the Google sign-in block in momin-auth-v1.js; refusing to patch it.");
-}
-authJs = authJs.replace(oldOAuth, nativeOAuth);
-fs.writeFileSync(authPath, authJs, "utf8");
 
 if (!fs.existsSync(path.join(webDir, "index.html"))) {
   throw new Error("Android web bundle was not created.");
