@@ -31,7 +31,7 @@ const loaderEnd = app.indexOf("applyPrayerSettings=function(){", loaderStart);
 assert.ok(loaderStart >= 0 && loaderEnd > loaderStart, "Active prayer timing loader must exist");
 const loader = app.slice(loaderStart, loaderEnd);
 assert.match(loader, /timings\/\+apiDate\(\)\+.*latitude=.*API_STORE\.latitude.*longitude=.*API_STORE\.longitude/s);
-assert.match(loader, /timingsByCity\/\+apiDate\(\).*city=.*city.*country=.*country/s);
+assert.ok(loader.includes('/timingsByCity/"+apiDate()') && loader.includes('city="+encodeURIComponent(city)') && loader.includes('country="+encodeURIComponent(country)'), "Manual city timing requests must use the selected city");
 assert.match(loader, /school=localStorage\.getItem\("noor-asr-method"\)==="hanafi"\?"1":"0"/);
 assert.match(loader, /&school=/);
 assert.match(loader, /livePrayer=result\.data/);
@@ -48,7 +48,7 @@ assert.match(home, /prayerNames\(\)\.map/);
 // Prayer Times reads the same parent timing data and refreshes when Sunrise
 // changes too, even if the five salah values remain unchanged.
 assert.match(prayerPage, /sunriseM=mominMinutes\(timings\.Sunrise\)/);
-assert.match(prayerPage, /Sunrise:\\?"?\+mominMinutes\(state\.timings\.Sunrise\)/);
+assert.ok(prayerPage.includes('"|Sunrise:"+mominMinutes(state.timings.Sunrise)'), "Prayer iframe must refresh if Sunrise timing changes");
 assert.match(prayerPage, /mominApplyPrayerData\(state\);tick\(\);rows\(false\)/);
 
 // New cache key prevents devices from loading the old location startup logic.
