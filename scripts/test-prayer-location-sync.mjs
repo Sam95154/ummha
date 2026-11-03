@@ -30,7 +30,7 @@ const loaderStart = app.lastIndexOf("loadPrayerData=async function(){");
 const loaderEnd = app.indexOf("applyPrayerSettings=function(){", loaderStart);
 assert.ok(loaderStart >= 0 && loaderEnd > loaderStart, "Active prayer timing loader must exist");
 const loader = app.slice(loaderStart, loaderEnd);
-assert.match(loader, /timings\/\+apiDate\(\)\+.*latitude=.*API_STORE\.latitude.*longitude=.*API_STORE\.longitude/s);
+assert.ok(loader.includes('/timings/"+apiDate()') && loader.includes('latitude="+encodeURIComponent(API_STORE.latitude)') && loader.includes('longitude="+encodeURIComponent(API_STORE.longitude)'), "GPS timing requests must use current coordinates");
 assert.ok(loader.includes('/timingsByCity/"+apiDate()') && loader.includes('city="+encodeURIComponent(city)') && loader.includes('country="+encodeURIComponent(country)'), "Manual city timing requests must use the selected city");
 assert.match(loader, /school=localStorage\.getItem\("noor-asr-method"\)==="hanafi"\?"1":"0"/);
 assert.match(loader, /&school=/);
