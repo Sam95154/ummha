@@ -8,7 +8,7 @@ The Admin Panel is a separate browser application under `/admin/`. It shares MOM
 - Render service: `srv-dbjp9r49v7es73apinb0`
 - Render publish directory: `admin/`
 - Deploy source branch: `feature/momin-admin-panel`
-- Supabase Edge Function: `momin-admin-api` (deployed version 17)
+- Supabase Edge Function: `momin-admin-api` (deployed version 25)
 - Supabase Edge Function Verify JWT: `false`, because this endpoint performs its own opaque Admin bearer-session validation. Do not change this without redesigning authentication.
 
 ## Source branch and files
