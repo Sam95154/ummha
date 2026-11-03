@@ -169,7 +169,10 @@
 .momin-profile-settings-v1 .pf-photo-row small{
   display:block;color:var(--muted,#7b867e);font-size:.76rem;line-height:1.45
 }
-.momin-profile-settings-v1 .pf-email-line{display:grid;gap:7px}
+.momin-profile-settings-v1 .pf-email-line{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px
+}
+.momin-profile-settings-v1 .pf-email-line .pf-verified{grid-column:1/-1}
 .momin-profile-settings-v1 .pf-verified{color:#2f8f5b;font-size:.76rem;font-weight:750}
 .momin-profile-settings-v1 .pf-gender-field{padding:0;border:0}
 .momin-profile-settings-v1 .pf-gender-options{
