@@ -27,7 +27,7 @@ assert.ok(app.slice(startupEnd).includes("if(city&&country)"), "Saved manual cit
 // Verify the final/active prayer loader uses the same coordinates, method and
 // Asr school for the full prayer schedule, including Sunrise.
 const loaderStart = app.lastIndexOf("loadPrayerData=async function(){");
-const loaderEnd = app.indexOf("applyPrayerSettings=function(){", loaderStart);
+const loaderEnd = app.indexOf("window.setPrayerMethodV5=function", loaderStart);
 assert.ok(loaderStart >= 0 && loaderEnd > loaderStart, "Active prayer timing loader must exist");
 const loader = app.slice(loaderStart, loaderEnd);
 assert.ok(loader.includes('/timings/"+apiDate()') && loader.includes('latitude="+encodeURIComponent(API_STORE.latitude)') && loader.includes('longitude="+encodeURIComponent(API_STORE.longitude)'), "GPS timing requests must use current coordinates");
