@@ -190,7 +190,8 @@
         result.then(function(value){
           if(action==="listDevices"&&Array.isArray(value)){devices=value;refreshScreen();}
           else if(action==="saveProfile"&&value&&value.user){
-            selectedAvatarFile=null;selectedAvatarPreview=null;
+            selectedAvatarFile=null;
+            if(selectedAvatarPreview){URL.revokeObjectURL(selectedAvatarPreview);selectedAvatarPreview=null;}
             window.MominProfileSettingsV1.setSession({user:value.user,profile:value.profile},devices);
             toast("Your MOMIN profile has been saved.");
           }
@@ -243,7 +244,9 @@
     }
     if(action==="delete-account"){
       if(!authUser)return;
-      if(!window.confirm("Delete your MOMIN account? This cannot be undone."))return;
+      if(!window.confirm("Permanently delete your MOMIN account and its profile data? This cannot be undone."))return;
+      var confirmation=window.prompt("Type DELETE to permanently remove your MOMIN account.");
+      if(confirmation!=="DELETE")return;
       return invoke("deleteAccount");
     }
   }
