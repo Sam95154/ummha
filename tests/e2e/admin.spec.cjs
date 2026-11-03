@@ -6,6 +6,18 @@ const userId = "11111111-2222-4333-8444-555555555555";
 function makeState() {
   return {
     calls: [],
+    notifications: [{
+      id: "22222222-3333-4444-8555-666666666666",
+      title: "Jumu'ah Mubarak",
+      audience_type: "all",
+      created_at: "2026-11-03T08:00:00Z",
+      image_url: null,
+      status: "sent",
+      recipient_count: 2,
+      read_count: 1,
+      read_rate: 50,
+      sent_count: 2
+    }],
     complaint: {
       id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
       ticket_id: "MOM-C-ABC123",
@@ -77,7 +89,11 @@ async function mockAdminApi(page, state) {
         data = { success: true, status: body.status };
         break;
       case "notifications_history":
-        data = { notifications: [] };
+        data = { notifications: state.notifications };
+        break;
+      case "delete_notification":
+        state.notifications = state.notifications.filter(item => item.id !== body.id);
+        data = { success: true, id: body.id, browser_dismissals_sent: 1 };
         break;
       case "send_notification":
         data = { success: true, id: "notification-test-id", recipient_count: 2, push_sent: 0, push_failed: 0, status: "sent" };
@@ -141,12 +157,12 @@ test.describe("MOMIN Admin Panel", () => {
     await page.getByRole("button", { name: "Users" }).click();
     await expect(page.getByText("MOM-ABC1234567")).toBeVisible();
 
-    await page.getByRole("button", { name: "Details" }).click();
+    await page.locator("tr").filter({ hasText: "MOM-ABC1234567" }).getByRole("button", { name: "Details" }).click();
     await expect(page.getByRole("heading", { name: "User details" })).toBeVisible();
     await expect(page.locator("#modal-root").getByText("MOM-ABC1234567")).toBeVisible();
     await page.getByRole("button", { name: "Close" }).click();
 
-    await page.getByRole("button", { name: "Edit name" }).click();
+    await page.locator("tr").filter({ hasText: "MOM-ABC1234567" }).getByRole("button", { name: "Edit name" }).click();
     await expect(page.getByRole("heading", { name: "Edit user name" })).toBeVisible();
     await page.locator('#modal-root input[name="name"]').fill("Aisha Basha");
     await page.locator("#modal-root").getByRole("button", { name: "Save name" }).click();
@@ -169,6 +185,23 @@ test.describe("MOMIN Admin Panel", () => {
     expect(sent).toBeTruthy();
     expect(sent.body.title).toBe("Jumu'ah Mubarak");
     expect(sent.body.image_url).toBeNull();
+  });
+
+  test("Admin can delete a sent notification and remove it from history", async ({ page }) => {
+    const state = makeState();
+    await login(page, state);
+    await page.getByRole("button", { name: "Notifications" }).click();
+    await page.getByRole("button", { name: "History" }).click();
+    await expect(page.getByText("Jumu'ah Mubarak")).toBeVisible();
+
+    page.once("dialog", dialog => dialog.accept());
+    await page.getByRole("button", { name: "Delete notification" }).click();
+
+    const deletion = state.calls.find(item => item.action === "delete_notification");
+    expect(deletion).toBeTruthy();
+    expect(deletion.body.id).toBe("22222222-3333-4444-8555-666666666666");
+    await expect(page.getByText("Jumu'ah Mubarak")).toHaveCount(0);
+    await expect(page.getByText(/browser dismissals sent/i)).toBeVisible();
   });
 
   test("Admin can create a Giving campaign as a Draft", async ({ page }) => {
