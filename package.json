@@ -13,7 +13,8 @@
     "test:giving": "node scripts/test-giving-sync.mjs",
     "test:notifications": "node scripts/test-notification-release.mjs",
     "android:signing:prepare": "node scripts/configure-android-signing.mjs",
-    "test:sunrise": "node scripts/test-sunrise-display.mjs"
+    "test:sunrise": "node scripts/test-sunrise-display.mjs",
+    "test:prayer-location": "node scripts/test-prayer-location-sync.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",

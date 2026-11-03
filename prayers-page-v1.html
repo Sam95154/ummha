@@ -409,7 +409,7 @@ if(window.parent!==window){
     var state=mominParentState();
     if(state&&state.timings){
       var current=P.map(function(x){return x.n+":"+x.m}).join("|");
-      var next=["Fajr","Dhuhr","Asr","Maghrib","Isha"].map(function(n){return n+":"+mominMinutes(state.timings[n])}).join("|");
+      var next=["Fajr","Dhuhr","Asr","Maghrib","Isha"].map(function(n){return n+":"+mominMinutes(state.timings[n])}).join("|")+"|Sunrise:"+mominMinutes(state.timings.Sunrise);
       if(current!==next){mominApplyPrayerData(state);tick();rows(false)}
     }
   },5000);

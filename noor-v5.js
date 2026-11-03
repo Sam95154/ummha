@@ -118,16 +118,19 @@ function weekStripV5(){var now=new Date(),start=new Date(now);start.setDate(now.
 function homeV5(){var state=prayerStateV5(),h=livePrayer&&livePrayer.date&&livePrayer.date.hijri,name=localStorage.getItem('noor-name')||'Samira',location=currentLocationLabelV5(),tools=[['qibla','🕋','Qibla'],['duas','🤲','Duas'],['mosques','🕌','Mosques'],['tasbeeh','📿','Tasbih'],['quran','📖','Quran'],['giving','💚','Giving'],['inspiration','✨','Inspiration'],['calendar','▦','Calendar']];return '<div class="home-date-row"><div><h1>Assalamu alaikum, '+escapeAppHtmlV5(name)+'</h1><p>Today, '+dateText()+' · '+(h?h.day+' '+h.month.en+' '+h.year+' AH':'Islamic date loading')+'</p></div><button class="location-chip" onclick="go(\'prayers\')">⌖ '+escapeAppHtmlV5(location)+' · Change</button></div><div class="grid g2"><div class="card hero-card"><div class="home-prayer-state"><span class="now-dot"></span> NOW · '+(state?escapeAppHtmlV5(state.active):'PRAYER TIMES')+'</div><h2 style="font:500 34px var(--serif);margin:17px 0 4px">'+(state?escapeAppHtmlV5(state.active):'Set your location')+'</h2><div class="sub">'+(state?formatPrayerTime(livePrayer.timings[state.active])+' · Next '+escapeAppHtmlV5(state.next)+' '+formatPrayerTime(state.nextTime)+(state.tomorrow?' tomorrow':''):'Prayer times will appear after your location is selected')+'</div><div class="timer">'+(state?state.remaining+' until '+escapeAppHtmlV5(state.next):'Choose GPS or enter your city to begin')+'</div><button class="btn-light" onclick="go(\'prayers\')">View all prayer times →</button></div><div class="card"><div class="rowbetween"><div><h3>Prayer tracker</h3><div class="sub">Your daily salah progress</div></div><span class="tag">'+Object.values(done).filter(Boolean).length+' of 5</span></div><div class="progress"><i style="width:'+Object.values(done).filter(Boolean).length*20+'%"></i></div><div class="prayerrows">'+prayerRowsV5()+'</div></div></div><div class="sectionhead"><h2>Features</h2><button class="plain" onclick="go(\'settings\')">Settings →</button></div><div class="home-tools">'+tools.map(function(x){return '<button class="home-tool" onclick="go(\''+x[0]+'\')"><span class="feature-icon">'+x[1]+'</span><b>'+x[2]+'</b></button>'}).join('')+'</div><div class="sectionhead"><h2>Continue Quran</h2><button class="plain" onclick="go(\'quran\')">Open →</button></div><button class="card rowbetween" style="width:100%;text-align:left" onclick="go(\'quran\')"><span><b>'+escapeAppHtmlV5(selectedSurah)+'</b><small class="sub" style="display:block;margin-top:4px">Arabic · translation · full-surah recitation</small></span><span class="tag">Read →</span></button><div class="sectionhead"><h2>Daily reflection</h2><button class="plain" onclick="go(\'inspiration\')">Open →</button></div><div class="card soft"><b>“For indeed, with hardship comes ease.”</b><p class="sub" style="margin:7px 0 0">Ash-Sharh · 94:5</p></div>'}
 home=homeV5;
 prayersPage=function(){var state=prayerStateV5(),t=livePrayer&&livePrayer.timings,methodOpts=Object.keys(PRAYER_METHODS).map(function(n){return '<option value="'+PRAYER_METHODS[n]+'" '+(API_STORE.method===PRAYER_METHODS[n]?'selected':'')+'>'+escapeAppHtmlV5(n)+'</option>'}).join(''),schedule=t?['Fajr','Dhuhr','Asr','Maghrib','Isha'].map(function(n){return '<span class="prayer-pill">'+n+' · '+formatPrayerTime(t[n])+'</span>'}).join(''):'<span class="prayer-pill">Select a location to calculate times</span>';return title('Prayer times','Daily times and salah tracker',hijriLabelV5())+weekStripV5()+'<div class="grid g2"><div class="card hero-card"><div class="home-prayer-state"><span class="now-dot"></span> '+(state?'NOW · '+escapeAppHtmlV5(state.active):'LOCAL PRAYER SCHEDULE')+'</div><h2 style="font:500 31px var(--serif);margin:17px 0 5px">'+(state?'Next: '+escapeAppHtmlV5(state.next):'Set your location')+'</h2><div class="sub">'+(state?formatPrayerTime(state.nextTime)+(state.tomorrow?' · tomorrow':'')+' · '+state.remaining+' remaining':'Prayer times are calculated for your selected location')+'</div><div class="statrow" style="flex-wrap:wrap">'+schedule+'</div></div><div class="card"><div class="rowbetween"><div><h3>Today’s prayers</h3><div class="sub">Tap a circle after you complete salah</div></div><span class="tag">'+Object.values(done).filter(Boolean).length+' of 5</span></div><div class="progress"><i style="width:'+Object.values(done).filter(Boolean).length*20+'%"></i></div><div class="prayerrows">'+prayerRowsV5()+'</div></div></div><div class="sectionhead"><h2>Location & calculation</h2></div><div class="card"><div class="setting"><div><b>Location</b><small id="settingLocation">'+escapeAppHtmlV5(currentLocationLabelV5())+'</small></div><button class="smallbtn" onclick="setLocation()">Use current location</button></div><div class="grid g2"><label>City<input id="cityInput" class="search" style="margin:8px 0" value="'+escapeAppHtmlV5(API_STORE.latitude!==null?'':API_STORE.city)+'"></label><label>Country<input id="countryInput" class="search" style="margin:8px 0" value="'+escapeAppHtmlV5(API_STORE.country)+'"></label></div><div class="rowbetween" style="gap:12px;flex-wrap:wrap"><label class="sub">Calculation method <select id="methodInput" style="padding:10px;border:1px solid var(--line);border-radius:9px;margin-left:8px">'+methodOpts+'</select></label><button class="smallbtn" onclick="applyPrayerSettings()">Update prayer times</button></div><p id="methodStatusV5" class="settings-note" role="status"></p><p id="locationStatusV5" class="settings-note" role="status">Use current location to detect your town and country, or enter them manually. Prayer times will update after a location is set.</p><p class="settings-note">Prayer calculations can differ from local mosque timetables. Confirm times with your local authority. Your location is requested only when you tap “Use current location.”</p></div><div class="sectionhead"><h2>Find a mosque</h2><button class="plain" onclick="go(\'mosques\')">Nearby →</button></div><div class="card soft rowbetween" style="gap:12px;flex-wrap:wrap"><span><b>Prayer space near you</b><small class="sub" style="display:block;margin-top:4px">Search Google Maps using your current location or city.</small></span><button class="smallbtn" onclick="go(\'mosques\')">Find mosques →</button></div>'};
-function useCurrentLocationV5(){
-  if(!navigator.geolocation){toast('This browser does not support GPS location. Enter your city and country instead.');return}
-  if(!window.isSecureContext&&location.hostname!=='localhost'){toast('Current location requires a secure HTTPS connection.');return}
-  toast('Requesting your current location…');
+function useCurrentLocationV5(options){
+  var silent=!!(options&&options.silent);
+  function notifyLocation(message){setLocationStatusV5(message);if(!silent)toast(message);}
+  if(!navigator.geolocation){notifyLocation('This browser does not support GPS location. Enter your city and country instead.');return}
+  if(!window.isSecureContext&&location.hostname!=='localhost'){notifyLocation('Current location requires a secure HTTPS connection.');return}
+  if(!silent)toast('Requesting your current location…');
   navigator.geolocation.getCurrentPosition(async function(pos){
     var lat=Number(pos.coords.latitude),lon=Number(pos.coords.longitude);
-    if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat < -90||lat > 90||lon < -180||lon > 180){toast('The device returned invalid location coordinates. Please retry.');return}
+    if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat < -90||lat > 90||lon < -180||lon > 180){notifyLocation('The device returned invalid location coordinates. Please retry.');return}
     API_STORE.latitude=lat;API_STORE.longitude=lon;API_STORE.city='Current location';API_STORE.country='';
     persistLocationV5();syncLocationLabels();render();
-    setLocationStatusV5('GPS coordinates received. Finding your town or city…');toast('GPS found. Finding your town or city…');
+    setLocationStatusV5('GPS coordinates received. Finding your town or city…');
+    if(!silent)toast('GPS found. Finding your town or city…');
     var place=await reverseGeocodeLocationV5(lat,lon);
     if(place&&place.city&&place.country){API_STORE.city=place.city;API_STORE.country=place.country}
     else{API_STORE.city='Current location';API_STORE.country=''}
@@ -137,7 +140,7 @@ function useCurrentLocationV5(){
     if(livePrayer&&livePrayer.timings)setLocationStatusV5('Location ready: '+currentLocationLabelV5()+'. Prayer times updated from your current GPS coordinates.');else setLocationStatusV5('Location saved: '+currentLocationLabelV5()+'. Prayer timings could not load; check your connection and retry.');
   },function(error){
     var message=error&&error.code===1?'Location permission was denied. Allow location access in your browser settings, then try again.':error&&error.code===2?'Your device could not determine its location. Check GPS/location services and retry.':error&&error.code===3?'Location request timed out. Move near a window or check GPS, then retry.':'Could not get your location. Please try again or enter a city.';
-    setLocationStatusV5(message);toast(message);
+    notifyLocation(message);
   },{enableHighAccuracy:true,maximumAge:0,timeout:20000})
 }
 setLocation=useCurrentLocationV5;
@@ -475,11 +478,11 @@ render();
     var hasGps=API_STORE.latitude!==null&&Number.isFinite(Number(API_STORE.latitude))&&API_STORE.longitude!==null&&Number.isFinite(Number(API_STORE.longitude));
     var city=String(API_STORE.city||"").trim(),country=String(API_STORE.country||"").trim();
     if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
-    var method=String(API_STORE.method||"3"),url;
+    var method=String(API_STORE.method||"3"),school=localStorage.getItem("noor-asr-method")==="hanafi"?"1":"0",url;
     if(hasGps){
-      url="https://api.aladhan.com/v1/timings/"+apiDate()+"?latitude="+encodeURIComponent(API_STORE.latitude)+"&longitude="+encodeURIComponent(API_STORE.longitude)+"&method="+encodeURIComponent(method);
+      url="https://api.aladhan.com/v1/timings/"+apiDate()+"?latitude="+encodeURIComponent(API_STORE.latitude)+"&longitude="+encodeURIComponent(API_STORE.longitude)+"&method="+encodeURIComponent(method)+"&school="+encodeURIComponent(school);
     }else if(city&&country){
-      url="https://api.aladhan.com/v1/timingsByCity/"+apiDate()+"?city="+encodeURIComponent(city)+"&country="+encodeURIComponent(country)+"&method="+encodeURIComponent(method);
+      url="https://api.aladhan.com/v1/timingsByCity/"+apiDate()+"?city="+encodeURIComponent(city)+"&country="+encodeURIComponent(country)+"&method="+encodeURIComponent(method)+"&school="+encodeURIComponent(school);
     }else{
       livePrayer=null;syncLocationLabels();
       if(page==="prayers")setLocationStatusV5("Use current location or enter a city and country to calculate prayer times.");
@@ -492,7 +495,7 @@ render();
       localStorage.setItem("noor-prayer-cache",JSON.stringify({
         at:Date.now(),data:result.data,city:API_STORE.city,country:API_STORE.country,
         latitude:hasGps?Number(API_STORE.latitude):null,longitude:hasGps?Number(API_STORE.longitude):null,
-        method:method,methodMode:API_STORE.methodMode||"auto"
+        method:method,school:school,methodMode:API_STORE.methodMode||"auto"
       }));
       if(result.data.meta&&result.data.meta.latitude!=null){
         try{var qibla=await getJSON("https://api.aladhan.com/v1/qibla/"+result.data.meta.latitude+"/"+result.data.meta.longitude);liveQibla=qibla.data.direction;localStorage.setItem("noor-qibla",String(liveQibla))}catch(_){}
@@ -509,8 +512,8 @@ render();
     }catch(error){
       var cached=null,match=false;try{cached=JSON.parse(localStorage.getItem("noor-prayer-cache")||"null")}catch(_){}
       if(cached&&cached.data&&cached.data.timings){
-        if(hasGps&&cached.latitude!=null&&cached.longitude!=null)match=Math.abs(Number(cached.latitude)-Number(API_STORE.latitude))<0.00001&&Math.abs(Number(cached.longitude)-Number(API_STORE.longitude))<0.00001&&String(cached.method)===method;
-        else if(!hasGps)match=String(cached.city||"").toLowerCase()===city.toLowerCase()&&String(cached.country||"").toLowerCase()===country.toLowerCase()&&String(cached.method||"")===method;
+        if(hasGps&&cached.latitude!=null&&cached.longitude!=null)match=Math.abs(Number(cached.latitude)-Number(API_STORE.latitude))<0.00001&&Math.abs(Number(cached.longitude)-Number(API_STORE.longitude))<0.00001&&String(cached.method)===method&&String(cached.school||"0")===school;
+        else if(!hasGps)match=String(cached.city||"").toLowerCase()===city.toLowerCase()&&String(cached.country||"").toLowerCase()===country.toLowerCase()&&String(cached.method||"")===method&&String(cached.school||"0")===school;
       }
       livePrayer=match?cached.data:null;syncLocationLabels();
       if(page==="prayers")setLocationStatusV5(match?"Network refresh failed. Showing saved times for this same location and method.":"Could not update prayer times. Check your connection and try again.");
@@ -539,17 +542,32 @@ render();
     var city=String(localStorage.getItem("noor-city")||API_STORE.city||"").trim(),country=String(localStorage.getItem("noor-country")||API_STORE.country||"").trim();
     var generic=/^(current location|my location|locating city[.…]*|choose your location)$/i;
     if(hasCoords){
-      API_STORE.latitude=lat;API_STORE.longitude=lon;API_STORE.city=city;API_STORE.country=country;
-      if(!city||!country||generic.test(city)){
-        reverseGeocodeLocationV5(lat,lon).then(function(place){
-          if(place&&place.city&&place.country){API_STORE.city=place.city;API_STORE.country=place.country;}
+      function restoreSavedGpsV6(){
+        API_STORE.latitude=lat;API_STORE.longitude=lon;API_STORE.city=city;API_STORE.country=country;
+        if(!city||!country||generic.test(city)){
+          reverseGeocodeLocationV5(lat,lon).then(function(place){
+            if(place&&place.city&&place.country){API_STORE.city=place.city;API_STORE.country=place.country;}
+            if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
+            persistLocationV5();syncLocationLabels();render();loadPrayerData();
+          }).catch(function(){if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();persistLocationV5();syncLocationLabels();loadPrayerData();});
+        }else{
           if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
-          persistLocationV5();syncLocationLabels();render();loadPrayerData();
-        }).catch(function(){if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();persistLocationV5();syncLocationLabels();loadPrayerData();});
-      }else{
-        if((API_STORE.methodMode||"auto")!=="manual")applyAutoMethodV6();
-        persistLocationV5();syncLocationLabels();loadPrayerData();
+          persistLocationV5();syncLocationLabels();loadPrayerData();
+        }
       }
+      // If the saved location came from GPS and permission remains granted,
+      // refresh the device coordinates on each app launch. Manual city choices
+      // continue to use their selected city without being overridden by GPS.
+      if(localStorage.getItem("noor-location-source")==="gps"){
+        if(navigator.permissions&&typeof navigator.permissions.query==="function"){
+          navigator.permissions.query({name:"geolocation"}).then(function(permission){
+            if(permission&&permission.state==="granted")useCurrentLocationV5({silent:true});
+            else restoreSavedGpsV6();
+          }).catch(function(){useCurrentLocationV5({silent:true});});
+        }else if(navigator.geolocation){
+          useCurrentLocationV5({silent:true});
+        }else restoreSavedGpsV6();
+      }else restoreSavedGpsV6();
       return;
     }
     API_STORE.latitude=null;API_STORE.longitude=null;

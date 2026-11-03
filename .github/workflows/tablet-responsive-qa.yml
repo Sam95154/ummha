@@ -10,6 +10,8 @@ on:
       - "momin-shared-shell-v1.js"
       - "momin-prayer-page-v1.js"
       - "momin-home-design-v2.js"
+      - "noor-v5.js"
+      - "scripts/test-prayer-location-sync.mjs"
       - "scripts/test-sunrise-display.mjs"
       - "momin-journey-page-v1.js"
       - "momin-mosque-page-v1.js"
@@ -65,5 +67,7 @@ jobs:
         run: npm run test:tablet
       - name: Run Sunrise display regression QA
         run: npm run test:sunrise
+      - name: Run current-location prayer timing QA
+        run: npm run test:prayer-location
       - name: Run Admin-to-User Giving integration QA
         run: npm run test:giving
