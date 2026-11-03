@@ -376,7 +376,11 @@ $("forgot").onclick=async function(){
     if(result.error)throw result.error;
     showMessage("If an account exists for this email, a password-reset link has been sent.","success");
   }catch(error){
-    showMessage(error.message||"Unable to send the reset email. Please try again.","error");
+    var recoveryError=String(error&&error.message||"");
+    var deliveryFailed=/sending recovery email|smtp|535|mail provider/i.test(recoveryError);
+    showMessage(deliveryFailed
+      ?"MOMIN cannot send password-reset emails right now. Please contact MOMIN Support while email delivery is being restored."
+      :(recoveryError||"Unable to send the reset email. Please try again."),"error");
   }finally{
     button.disabled=false;
   }
