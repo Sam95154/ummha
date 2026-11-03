@@ -141,12 +141,12 @@ test.describe("MOMIN Admin Panel", () => {
     await page.getByRole("button", { name: "Users" }).click();
     await expect(page.getByText("MOM-ABC1234567")).toBeVisible();
 
-    await page.getByRole("button", { name: "Details" }).click();
+    await page.locator('button[data-action="view-user"][data-id="' + userId + '"]').click();
     await expect(page.getByRole("heading", { name: "User details" })).toBeVisible();
     await expect(page.locator("#modal-root").getByText("MOM-ABC1234567")).toBeVisible();
     await page.getByRole("button", { name: "Close" }).click();
 
-    await page.getByRole("button", { name: "Edit name" }).click();
+    await page.locator('button[data-action="edit-user"][data-id="' + userId + '"]').click();
     await expect(page.getByRole("heading", { name: "Edit user name" })).toBeVisible();
     await page.locator('#modal-root input[name="name"]').fill("Aisha Basha");
     await page.locator("#modal-root").getByRole("button", { name: "Save name" }).click();
