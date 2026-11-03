@@ -15,6 +15,22 @@ self.addEventListener("push", function(event) {
   } catch (_) {
     payload = { body: event.data ? event.data.text() : "" };
   }
+  if (payload.action === "dismiss") {
+    var dismissTag = String(payload.tag || "");
+    event.waitUntil((async function() {
+      if (dismissTag) {
+        var existing = await self.registration.getNotifications({ tag: dismissTag });
+        existing.forEach(function(notification) { notification.close(); });
+      }
+      var openClients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      openClients.forEach(function(client) {
+        try {
+          client.postMessage({ type: "MOMIN_ADMIN_NOTIFICATION_DELETED", campaign_id: payload.campaign_id || null });
+        } catch (_) {}
+      });
+    })());
+    return;
+  }
   var title = String(payload.title || "MOMIN reminder");
   var body = String(payload.body || "A reminder from MOMIN.");
   var route = String(payload.route || "home");

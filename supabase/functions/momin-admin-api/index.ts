@@ -126,7 +126,7 @@ async function dashboard() {
     { data: recentProfiles }] = await Promise.all([
     db.from("momin_profiles").select("user_id", { count: "exact", head: true }),
     db.from("momin_profiles").select("user_id", { count: "exact", head: true }).eq("account_status", "Active"),
-    db.from("momin_admin_notifications").select("id", { count: "exact", head: true }),
+    db.from("momin_admin_notifications").select("id", { count: "exact", head: true }).is("deleted_at", null),
     db.from("momin_complaints").select("id", { count: "exact", head: true }).in("status", ["Open", "Pending", "In Progress"]),
     db.from("momin_complaints").select("id", { count: "exact", head: true }).eq("status", "Resolved"),
     db.from("momin_giving_campaigns").select("id,name,category,target_amount,currency,status,created_at"),
@@ -460,6 +460,13 @@ async function sendFcmNotificationToToken(
   return { sent: 1, failed: 0 };
 }
 
+async function isAdminNotificationActive(notificationId: string) {
+  const { data, error } = await db.from("momin_admin_notifications")
+    .select("id").eq("id", notificationId).is("deleted_at", null).maybeSingle();
+  if (error) throw error;
+  return !!data;
+}
+
 async function sendFcmNotifications(
   notificationId: string,
   recipientIds: string[],
@@ -529,8 +536,10 @@ async function sendFcmNotifications(
   let sent = 0;
   let failed = 0;
   for (let offset = 0; offset < eligibleTokens.length; offset += 10) {
+    if (!(await isAdminNotificationActive(notificationId))) break;
     const batch = eligibleTokens.slice(offset, offset + 10);
     const results = await Promise.all(batch.map(async row => {
+      if (!(await isAdminNotificationActive(notificationId))) return { sent: 0, failed: 0 };
       try {
         const { data: priorAccepted, error: priorAcceptedError } = await db.from("momin_fcm_deliveries")
           .select("id").eq("admin_notification_id", notificationId).eq("fcm_token_id", row.id).eq("status", "accepted").maybeSingle();
@@ -647,7 +656,7 @@ async function sendNotification(body: Record<string, unknown>, adminId: string, 
     if (existingNotification) {
       const { data: updated, error: updateError } = await db.from("momin_admin_notifications")
         .update({ title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
-          recipient_count: recipients.length, sent_count: 0, failed_count: 0, completed_at: null })
+          recipient_count: recipients.length, sent_count: 0, failed_count: 0, completed_at: null, deleted_at: null })
         .eq("id", existingNotification.id).select("id").single();
       if (updateError) throw updateError;
       campaign = { id: updated.id };
@@ -669,19 +678,28 @@ async function sendNotification(body: Record<string, unknown>, adminId: string, 
   }
   const inboxRows = recipients.map(user_id => ({ notification_id: campaign.id, user_id, title, message, route, image_url: imageUrl }));
   for (let i = 0; i < inboxRows.length; i += 500) {
+    if (!(await isAdminNotificationActive(campaign.id))) {
+      return { success: true, id: campaign.id, deleted: true, recipient_count: recipients.length, push_sent: 0, push_failed: 0, fcm_sent: 0, fcm_failed: 0 };
+    }
     const { error } = await db.from("momin_user_notifications").upsert(inboxRows.slice(i, i + 500), { onConflict: "notification_id,user_id", ignoreDuplicates: true });
     if (error) throw error;
   }
-  let sent = 0, failed = 0;
+  let sent = 0, failed = 0, deletedDuringDelivery = false;
   let server: webpush.ApplicationServer | null = null;
   try { server = await loadVapidServer(); } catch (_) { server = null; }
   for (let start = 0; start < recipients.length; start += 100) {
+    if (!(await isAdminNotificationActive(campaign.id))) { deletedDuringDelivery = true; break; }
     const userBatch = recipients.slice(start, start + 100);
     const { data: subscriptions, error: subError } = await db.from("momin_push_subscriptions")
       .select("id,user_id,device_key,subscription,is_active,preferences")
       .in("user_id", userBatch).eq("is_active", true);
     if (subError) throw subError;
+    let subscriptionIndex = 0;
     for (const row of subscriptions || []) {
+    if (subscriptionIndex++ % 10 === 0 && !(await isAdminNotificationActive(campaign.id))) {
+      deletedDuringDelivery = true;
+      break;
+    }
     const eventKey = "admin:" + campaign.id + ":" + row.id;
     const { data: priorDelivery, error: priorError } = await db.from("momin_push_deliveries")
       .select("id,status").eq("event_key", eventKey).maybeSingle();
@@ -707,21 +725,91 @@ async function sendNotification(body: Record<string, unknown>, adminId: string, 
       error: errorText,
     }, { onConflict: "event_key" });
     }
+    if (deletedDuringDelivery) break;
   }
   let fcm = { sent: 0, failed: 0, devices: 0, skipped: 0 } as { sent: number; failed: number; devices: number; skipped: number; configuration_error?: string };
   try {
-    fcm = await sendFcmNotifications(campaign.id, recipients, title, message, route, imageUrl);
+    if (!deletedDuringDelivery && await isAdminNotificationActive(campaign.id)) {
+      fcm = await sendFcmNotifications(campaign.id, recipients, title, message, route, imageUrl);
+    } else {
+      deletedDuringDelivery = true;
+    }
     sent += fcm.sent;
     failed += fcm.failed;
   } catch (error) {
     console.error("MOMIN FCM announcement delivery:", error);
   }
+  if (deletedDuringDelivery || !(await isAdminNotificationActive(campaign.id))) {
+    return { success: true, id: campaign.id, deleted: true, recipient_count: recipients.length, push_sent: sent, push_failed: failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed };
+  }
   const overall = failed === 0 ? "sent" : sent > 0 ? "partial" : "failed";
   await db.from("momin_admin_notifications").update({
     status: overall, sent_count: sent, failed_count: failed, completed_at: new Date().toISOString(),
-  }).eq("id", campaign.id);
+  }).eq("id", campaign.id).is("deleted_at", null);
   await audit(adminId, "notification.sent", "notification", campaign.id, { audience, recipient_count: recipients.length, sent, failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed, fcm_devices: fcm.devices });
   return { success: true, id: campaign.id, recipient_count: recipients.length, push_sent: sent, push_failed: failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed, fcm_devices: fcm.devices, fcm_configuration_error: fcm.configuration_error || null, status: overall };
+}
+async function deleteNotification(body: Record<string, unknown>, adminId: string) {
+  const id = String(body.id || "").trim();
+  if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid notification ID.");
+  const { data: current, error: currentError } = await db.from("momin_admin_notifications")
+    .select("id,title,status,deleted_at").eq("id", id).maybeSingle();
+  if (currentError) throw currentError;
+  if (!current) throw new Error("Notification was not found.");
+  if (current.deleted_at) return { success: true, id, already_deleted: true, browser_dismissals_sent: 0 };
+
+  // Capture Web Push subscriptions before the cleanup trigger removes delivery rows.
+  const { data: deliveries, error: deliveryError } = await db.from("momin_push_deliveries")
+    .select("subscription_id").like("event_key", "admin:" + id + ":%");
+  if (deliveryError) throw deliveryError;
+  const subscriptionIds = [...new Set((deliveries || []).map(row => row.subscription_id).filter(Boolean))];
+  let subscriptions: Record<string, any>[] = [];
+  if (subscriptionIds.length) {
+    const { data, error } = await db.from("momin_push_subscriptions")
+      .select("id,subscription").in("id", subscriptionIds);
+    if (error) throw error;
+    subscriptions = data || [];
+  }
+
+  const deletedAt = new Date().toISOString();
+  const { data: deleted, error: deleteError } = await db.from("momin_admin_notifications")
+    .update({ deleted_at: deletedAt }).eq("id", id).is("deleted_at", null).select("id").maybeSingle();
+  if (deleteError) throw deleteError;
+  if (!deleted) {
+    const { data: latest, error: latestError } = await db.from("momin_admin_notifications")
+      .select("deleted_at").eq("id", id).maybeSingle();
+    if (latestError) throw latestError;
+    if (!latest?.deleted_at) throw new Error("Notification could not be deleted. Refresh history and try again.");
+  }
+
+  // Best-effort dismissal for Web Push notifications already displayed by the browser.
+  let browserDismissalsSent = 0;
+  if (subscriptions.length) {
+    try {
+      const server = await loadVapidServer();
+      for (const row of subscriptions) {
+        try {
+          const subscriber = server.subscribe(row.subscription as webpush.PushSubscription);
+          await subscriber.pushTextMessage(JSON.stringify({
+            action: "dismiss", campaign_id: id, tag: "momin-admin-" + id,
+          }), {
+            urgency: webpush.Urgency.High,
+            ttl: 300,
+            topic: "delete-" + id.replaceAll("-", "").slice(0, 24),
+          });
+          browserDismissalsSent++;
+        } catch (error) {
+          console.warn("MOMIN notification dismissal push:", error);
+        }
+      }
+    } catch (error) {
+      console.warn("MOMIN notification dismissal service unavailable:", error);
+    }
+  }
+  await audit(adminId, "notification.deleted", "notification", id, {
+    title: current.title, prior_status: current.status, browser_dismissals_sent: browserDismissalsSent,
+  });
+  return { success: true, id, browser_dismissals_sent: browserDismissalsSent };
 }
 async function uploadMedia(request: Request, session: { adminId: string }) {
   const form = await request.formData();
@@ -998,7 +1086,7 @@ Deno.serve(async (request: Request) => {
       case "update_user": return reply(await updateUser(body, session.adminId), 200, origin);
       case "set_user_status": return reply(await setUserStatus(body, session.adminId), 200, origin);
       case "notifications_history": {
-        const { data, error } = await db.from("momin_admin_notifications").select("*").order("created_at", { ascending: false }).limit(200);
+        const { data, error } = await db.from("momin_admin_notifications").select("*").is("deleted_at", null).order("created_at", { ascending: false }).limit(200);
         if (error) throw error;
         const ids = (data || []).map(x => x.id);
         const stats = ids.length ? await db.from("momin_admin_notification_stats")
@@ -1013,6 +1101,7 @@ Deno.serve(async (request: Request) => {
         }) }, 200, origin);
       }
       case "send_notification": return reply(await sendNotification(body, session.adminId), 200, origin);
+      case "delete_notification": return reply(await deleteNotification(body, session.adminId), 200, origin);
       case "campaigns": return reply({ campaigns: await listCampaigns() }, 200, origin);
       case "save_campaign": return reply(await saveCampaign(body, session.adminId), 200, origin);
       case "campaign_status": return reply(await setCampaignStatus(body, session.adminId), 200, origin);
