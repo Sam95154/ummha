@@ -1061,10 +1061,14 @@ async function completeAdminPasswordReset(body: Record<string, unknown>) {
   if (updateError) throw updateError;
   if (!updated) throw new Error("Admin account is unavailable. Contact the database owner.");
 
-  await db.from("momin_admin_sessions").update({ revoked_at: now })
-    .eq("admin_id", consumed.admin_id).is("revoked_at", null);
-  await db.from("momin_admin_password_reset_tokens").update({ used_at: now })
-    .eq("admin_id", consumed.admin_id).is("used_at", null);
+  const { error: revokeError } = await db.from("momin_admin_sessions")
+    .update({ revoked_at: now }).eq("admin_id", consumed.admin_id).is("revoked_at", null);
+  if (revokeError) throw new Error("Password changed, but active Admin sessions could not be revoked. Contact the database owner immediately.");
+
+  const { error: invalidateError } = await db.from("momin_admin_password_reset_tokens")
+    .update({ used_at: now }).eq("admin_id", consumed.admin_id).is("used_at", null);
+  if (invalidateError) throw invalidateError;
+
   await audit(consumed.admin_id, "admin.password_reset", "admin", consumed.admin_id);
   return { success: true, message: "Admin password reset successfully. Sign in using your new password." };
 }
