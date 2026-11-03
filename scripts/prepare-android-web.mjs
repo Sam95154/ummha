@@ -70,13 +70,21 @@ const googleOAuthClients = [
   ...(androidClient?.services?.appinvite_service?.other_platform_oauth_client || [])
 ];
 const googleWebClient = googleOAuthClients.find((entry) => Number(entry.client_type) === 3);
-if (!googleWebClient?.client_id || !/^[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(googleWebClient.client_id)) {
-  throw new Error("The MOMIN Web OAuth client ID (client_type 3) is missing from google-services.json. Configure the Web OAuth client in the same Google Cloud project as the Android app.");
+const configuredWebClientId = String(process.env.MOMIN_GOOGLE_WEB_CLIENT_ID || "").trim();
+const candidateWebClientId = configuredWebClientId || googleWebClient?.client_id || "";
+const validWebClientId = /^[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(candidateWebClientId);
+const isCiPreview = process.env.CI === "true" && !candidateWebClientId;
+if (!validWebClientId && !isCiPreview) {
+  throw new Error("Native Google sign-in needs a Web OAuth client ID. Set MOMIN_GOOGLE_WEB_CLIENT_ID or add a type 3 Web client to google-services.json.");
+}
+const webClientId = validWebClientId ? candidateWebClientId : "123456789012-preview.apps.googleusercontent.com";
+if (!validWebClientId) {
+  console.warn("MOMIN Android CI is using a build-only placeholder Google client ID. Native Google sign-in will not work until MOMIN_GOOGLE_WEB_CLIENT_ID is configured.");
 }
 const bridgeBundle = fs.readFileSync(bridgeOutput, "utf8");
 fs.writeFileSync(
   bridgeOutput,
-  "window.MOMIN_GOOGLE_WEB_CLIENT_ID = " + JSON.stringify(googleWebClient.client_id) + ";\n" + bridgeBundle,
+  "window.MOMIN_GOOGLE_WEB_CLIENT_ID = " + JSON.stringify(webClientId) + ";\n" + bridgeBundle,
   "utf8"
 );
 
