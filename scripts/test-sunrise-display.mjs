@@ -22,7 +22,7 @@ assert.match(home, /function doneCount\(\)\{var done=doneMap\(\);return prayerNa
 assert.match(prayer, /var P=\[\],sunriseM=null;/);
 assert.match(prayer, /sunriseM=mominMinutes\(timings\.Sunrise\)/);
 assert.match(prayer, /data-prayer-index=/, "Prayer chips must carry their original five-prayer index");
-assert.match(prayer, /#chips \\[data-prayer-index\\]/, "Active-prayer highlighting must exclude the Sunrise display chip");
+assert.ok(prayer.includes('document.querySelectorAll("#chips [data-prayer-index]")'), "Active-prayer highlighting must exclude the Sunrise display chip");
 const rowsStart = prayer.indexOf("function rows(anim){");
 const statsStart = prayer.indexOf("function stats(fx){", rowsStart);
 assert.ok(rowsStart >= 0 && statsStart > rowsStart, "Prayer rows renderer must exist");
