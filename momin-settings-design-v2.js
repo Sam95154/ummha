@@ -76,7 +76,7 @@ function initState(){
   nIsha:get("noor-notify-isha",get("noor-notifications","true"))!=="false",
   lead:get("noor-prayer-reminder-minutes","0"),
   festivals:get("noor-islamic-event-reminders","false")==="true",
-  admin:get("momin-announcements-enabled","false")==="true",
+  admin:get("momin-announcements-enabled","true")!=="false",
   translation:get("noor-quran-edition","en.sahih"),
   arSize:qSize(),
   showTr:get("noor-quran-show-translation-v8","true")!=="false",
@@ -163,13 +163,13 @@ function buildSections(){
  sections.push({id:"notif",ic:"bell",title:"Notifications",sub:"Prayer Azan · Islamic occasions · Admin announcements",body:
   note("<b>Three separate notification types</b><br>Prayer alerts can play your uploaded Makkah Azan at the actual prayer time. Festival reminders are normal notifications. Admin announcements are separate messages and never play the Azan.")+
   switchRow("notif","Enable notifications","Master switch for MOMIN notifications","","settingsPrayerNotificationsV1")+
-  note("<b>1 · Prayer-time alerts and Azan</b><br>Advance reminders are notification-only. The full Azan is played at the actual prayer time when Makkah Azan is selected.")+
+  note("<b>1 · Prayer-time alerts and Azan</b><br>Advance reminders are notification-only. The full Makkah Azan plays at the actual time for every enabled prayer. Advance reminders never play the Azan.")+
   [["Fajr","nFajr","fajr"],["Dhuhr","nDhuhr","dhuhr"],["Asr","nAsr","asr"],["Maghrib","nMaghrib","maghrib"],["Isha","nIsha","isha"]].map(function(p){return switchRow(p[1],p[0],"Prayer-time alert and Azan preference","notif","settingsNotify-"+p[2]);}).join("")+
-  selectRow("sound","Prayer-time sound","Sound used at the actual prayer time",[["azan","Makkah Azan · uploaded MP3"],["system","System notification sound"],["silent","Silent prayer alert"]],"settingsAdhanSound")+
+  selectRow("sound","Advance reminder notification sound","This only affects advance reminders; the full Makkah Azan always plays at the prayer time",[["azan","Makkah Azan · uploaded MP3"],["system","System notification sound"],["silent","Silent prayer alert"]],"settingsAdhanSound")+
   selectRow("lead","Advance reminder","A normal alert before prayer; it never plays the full Azan",[["0","At prayer time only"],["5","5 minutes before"],["10","10 minutes before"],["15","15 minutes before"],["30","30 minutes before"]],"settingsReminderMinutesV1")+
   note("<b>2 · Festival and Islamic-date reminders</b><br>Normal phone notifications for occasions such as Ramadan, Ashura and the two Eids. They do not play the Azan.")+
   switchRow("festivals","Festival reminders","Receive Islamic occasion reminders on this phone","","settingsFestivalNotificationsV1")+
-  note("<b>3 · Admin announcements</b><br>Admin announcements have their own phone notification category and never play the Azan. Remote delivery will be enabled when the replacement MOMIN admin message service is connected.")+
+  note("<b>3 · Admin announcements</b><br>Admin announcements have their own phone notification category and never play the Azan. They are enabled by default; turn them off here whenever you prefer.")+
   switchRow("admin","Admin notifications","Allow announcements from the MOMIN admin service","","settingsAdminNotificationsV1")+
   saveButton("Save notification settings","notif")+
   actions(button("Send test notification","ghost","testnote")+button("Preview Makkah Azan","ghost","azan"))});

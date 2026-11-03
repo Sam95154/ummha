@@ -173,6 +173,17 @@
     syncInFlight=true;
     try{
       await syncProfile(user);
+      // The signed-in account is authoritative for this cross-device preference.
+      // Missing local state must not overwrite an existing account opt-out.
+      try{
+        var announcementPreference=await supabase.from("momin_profiles")
+          .select("announcements_enabled").eq("user_id",user.id).maybeSingle();
+        if(!announcementPreference.error&&announcementPreference.data&&
+          typeof announcementPreference.data.announcements_enabled==="boolean"){
+          localStorage.setItem("momin-announcements-enabled",
+            announcementPreference.data.announcements_enabled?"true":"false");
+        }
+      }catch(error){console.warn("MOMIN announcement preference sync:",error.message);}
       await inspectCurrentDevice(user,session);
       refreshNativeFcmWhenReady();
       var devices=await profileApi.getDevices();

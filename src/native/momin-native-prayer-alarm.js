@@ -135,7 +135,7 @@ async function buildAlarms(prefs,loc) {
       alarms.push({
         id:iso+"-"+name.toLowerCase()+"-prayer",at,prayer:name,kind:"prayer",
         title:"MOMIN · "+name+" time",body:"It is time for "+name+".",
-        playAzan:prefs.sound==="azan" || prefs.sound==="makkah",sound:prefs.sound
+        playAzan:true,sound:prefs.sound
       });
     });
     if (prefs.dates) {
