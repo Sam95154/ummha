@@ -1,0 +1,168 @@
+name: MOMIN Android Build
+
+on:
+  push:
+    branches:
+      - noor-ul-islam-live
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: momin-android-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Prepare and build Android app
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out MOMIN
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
+
+      - name: Install Android 16 SDK
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Configure Firebase for Android
+        id: firebase-config
+        env:
+          MOMIN_GOOGLE_SERVICES_JSON: ${{ secrets.MOMIN_GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "${MOMIN_GOOGLE_SERVICES_JSON:-}" ]; then
+            printf '%s' "$MOMIN_GOOGLE_SERVICES_JSON" > google-services.json
+            echo "real_config=true" >> "$GITHUB_OUTPUT"
+          else
+            cat > google-services.json <<'JSON'
+          {
+            "project_info": {
+              "project_number": "123456789012",
+              "project_id": "momin-fcm-build-validation",
+              "storage_bucket": "momin-fcm-build-validation.appspot.com"
+            },
+            "client": [{
+              "client_info": {
+                "mobilesdk_app_id": "1:123456789012:android:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "android_client_info": {
+                  "package_name": "com.momin.noorulislam"
+                }
+              },
+              "oauth_client": [],
+              "api_key": [{
+                "current_key": "AIzaSyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              }],
+              "services": {
+                "appinvite_service": {
+                  "other_platform_oauth_client": []
+                }
+              }
+            }],
+            "configuration_version": "1"
+          }
+          JSON
+            echo "real_config=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Building a debug preview with placeholder Firebase settings. Remote FCM delivery will not work until MOMIN_GOOGLE_SERVICES_JSON is configured."
+          fi
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const config = JSON.parse(fs.readFileSync("google-services.json", "utf8"));
+            const packageId = "com.momin.noorulislam";
+            const matches = Array.isArray(config.client) && config.client.some((client) => client?.client_info?.android_client_info?.package_name === packageId);
+            if (!config.project_info?.project_id || !matches) {
+              console.error("Firebase config must contain the Android app package " + packageId + ".");
+              process.exit(1);
+            }
+            console.log("Firebase Android config validated for " + packageId + ".");
+          '
+
+      - name: Generate Capacitor Android project and assets
+        run: npm run android:prepare
+
+      - name: Verify Google Play target API level
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const source = fs.readFileSync("android/variables.gradle", "utf8");
+            const match = source.match(/targetSdkVersion\s*=\s*(\d+)/);
+            if (!match || Number(match[1]) !== 36) {
+              console.error("MOMIN must target Android 16 / API 36 for new Play Store submissions.");
+              process.exit(1);
+            }
+            console.log("MOMIN Android target SDK is API " + match[1] + ".");
+          '
+
+      - name: Build Android debug APK
+        working-directory: android
+        run: ./gradlew --no-daemon --stacktrace assembleDebug
+
+      - name: Prepare Android upload key (optional)
+        id: release-signing
+        env:
+          MOMIN_UPLOAD_KEYSTORE_BASE64: ${{ secrets.MOMIN_UPLOAD_KEYSTORE_BASE64 }}
+          MOMIN_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.MOMIN_UPLOAD_KEYSTORE_PASSWORD }}
+          MOMIN_UPLOAD_KEY_ALIAS: ${{ secrets.MOMIN_UPLOAD_KEY_ALIAS }}
+          MOMIN_UPLOAD_KEY_PASSWORD: ${{ secrets.MOMIN_UPLOAD_KEY_PASSWORD }}
+        run: |
+          if [ -z "${MOMIN_UPLOAD_KEYSTORE_BASE64:-}" ] || [ -z "${MOMIN_UPLOAD_KEYSTORE_PASSWORD:-}" ] || [ -z "${MOMIN_UPLOAD_KEY_ALIAS:-}" ] || [ -z "${MOMIN_UPLOAD_KEY_PASSWORD:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Signed Play Store AAB skipped. Configure all MOMIN_UPLOAD_KEYSTORE_* GitHub Actions secrets."
+            exit 0
+          fi
+          KEYSTORE_PATH="$RUNNER_TEMP/momin-upload.jks"
+          printf '%s' "$MOMIN_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          chmod 600 "$KEYSTORE_PATH"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          MOMIN_UPLOAD_KEYSTORE_PATH="$KEYSTORE_PATH" node scripts/configure-android-signing.mjs
+
+      - name: Build signed Play Store AAB
+        if: steps.firebase-config.outputs.real_config == 'true' && steps.release-signing.outputs.ready == 'true'
+        working-directory: android
+        env:
+          MOMIN_UPLOAD_KEYSTORE_PATH: ${{ runner.temp }}/momin-upload.jks
+          MOMIN_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.MOMIN_UPLOAD_KEYSTORE_PASSWORD }}
+          MOMIN_UPLOAD_KEY_ALIAS: ${{ secrets.MOMIN_UPLOAD_KEY_ALIAS }}
+          MOMIN_UPLOAD_KEY_PASSWORD: ${{ secrets.MOMIN_UPLOAD_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon --stacktrace bundleRelease
+
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: momin-android-debug-preview
+          if-no-files-found: error
+          retention-days: 14
+          path: android/app/build/outputs/apk/debug/*.apk
+
+      - name: Upload signed Play Store AAB
+        if: steps.firebase-config.outputs.real_config == 'true' && steps.release-signing.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: momin-android-release-aab
+          if-no-files-found: error
+          retention-days: 14
+          path: android/app/build/outputs/bundle/release/*.aab
+
+      - name: Remove Firebase config from runner workspace
+        if: always()
+        run: rm -f google-services.json android/app/google-services.json "$RUNNER_TEMP/momin-upload.jks"
