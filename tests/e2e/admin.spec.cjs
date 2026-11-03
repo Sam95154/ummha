@@ -204,7 +204,7 @@ test.describe("MOMIN Admin Panel", () => {
     await expect(page.getByText(/browser dismissals sent/i)).toBeVisible();
   });
 
-  test("Admin can create a Giving campaign as a Draft", async ({ page }) =>
+  test("Admin can create a Giving campaign as a Draft", async ({ page }) => {
     const state = makeState();
     await login(page, state);
     await page.getByRole("button", { name: "Giving Management" }).click();
