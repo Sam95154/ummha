@@ -262,6 +262,11 @@ if (Capacitor.isNativePlatform()) {
 
       try { await Browser.close(); } catch (_) {}
 
+      if (isPasswordRecovery) {
+        window.location.replace("/reset-password.html?nativeRecovery=1");
+        return;
+      }
+
       if (window.location.pathname.endsWith("/login.html")) {
         const requestedNext = new URLSearchParams(window.location.search).get("next") || "/";
         let safeNext = "/";
