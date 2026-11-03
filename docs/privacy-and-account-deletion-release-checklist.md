@@ -14,7 +14,7 @@ https://noor-ul-islam-dua.onrender.com/delete-account.html
 Dashboard:
 https://supabase.com/dashboard/project/qzwqpiquvhpjwqgaxorp/auth/url-configuration
 
-The page uses the Supabase passwordless email flow with account creation disabled. The email link verifies account control; final deletion still invokes the existing JWT-protected momin-delete-account Edge Function. Do not disable JWT verification or place a service-role key in browser code.
+The page uses Supabase's browser implicit email-link flow with account creation disabled (`shouldCreateUser: false`); the same registered email can be used for accounts originally created with Google. Verify the project's Magic Link email template and run an end-to-end test to confirm the confirmation link redirects back with a session that the page can read. If the template has been customized for PKCE token-hash verification, adapt the callback flow before release. Final deletion still invokes the existing JWT-protected momin-delete-account Edge Function. Do not disable JWT verification or place a service-role key in browser code.
 
 ## Required release testing
 1. Merge only after the draft PR CI passes and the policy text has been reviewed by the service owner.
