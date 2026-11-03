@@ -28,7 +28,7 @@ assert.ok(reminderStart >= 0 && reminderEnd > reminderStart, "Advance reminder r
 assert.match(native.slice(reminderStart, reminderEnd), /playAzan:false/, "Advance reminders must never start Azan.");
 
 const nativeSchedule = native.slice(native.indexOf("async function buildAlarms"), native.indexOf("async function scheduleFromPreferences"));
-assert.match(nativeSchedule, /if\(!prefs\.prayers\[index\]\) return;/, "Disabled prayer toggles must not schedule alarms.");
+assert.match(nativeSchedule, /if\s*\(!prefs\.prayers\[index\]\)\s*return;/, "Disabled prayer toggles must not schedule alarms.");
 assert.match(nativeSchedule, /reminderAt>now\+5000/, "Advance reminders must be scheduled before actual prayer time.");
 
 assert.match(bridge, /announcements:get\("momin-announcements-enabled","true"\)!=="false"/, "Bridge defaults Admin announcements on.");
