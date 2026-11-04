@@ -56,6 +56,11 @@ has(shell, "var previous=routeStack.pop();", "Shared Back pops the prior app rou
 has(shell, "navigate(previous,true);return true;", "Shared Back restores the prior app route");
 has(shell, "back:back,currentRoute:routeNow", "Expose shared Back action to Duas root");
 has(parent, "return window.MominSharedShellV1.back()", "Duas root Back uses shared app route history");
+has(parent, 'window.MominSharedShellV1.navigate(target);', "Duas app-section navigation uses the shared route stack");
+has(shell, "function recordRoute(target){", "Shared shell can record direct route entries");
+has(shell, "recordRoute:recordRoute,currentRoute:routeNow", "Expose shared route recorder");
+has(native, 'window.MominSharedShellV1.recordRoute("duas")', "Direct native entry into Duas records its actual previous app page");
+has(native, "window.MominSharedShellV1.navigate(target);", "Leaving native Duas updates shared app history");
 console.log("PASS: Inner Duas navigation and outer MOMIN navigation stay in their own stacks.");
 
 // The collection teaser rail is a responsive grid, not a horizontally clipped carousel.
