@@ -287,6 +287,30 @@ var entries = [
     var route = (hash || "").indexOf("#/") === 0 ? (hash.slice(2).split("/")[0] || "") : "";
     return ["duas","dua-category","dua-chapter","dua-detail","dua-special"].indexOf(route) >= 0;
   }
+  function resetDuaScrollTopV1(){
+    if(!document.body.classList.contains("dua-app-mode"))return;
+    function reset(){
+      try{
+        window.scrollTo(0,0);
+        var root=document.scrollingElement||document.documentElement;
+        if(root)root.scrollTop=0;
+        document.documentElement.scrollTop=0;
+        if(document.body)document.body.scrollTop=0;
+        var view=document.getElementById("view");
+        if(view)view.scrollTop=0;
+      }catch(_){}
+    }
+    reset();
+    var frames=0;
+    function afterLayout(){
+      reset();
+      frames++;
+      if(frames<3)window.requestAnimationFrame(afterLayout);
+    }
+    window.requestAnimationFrame(afterLayout);
+    window.setTimeout(reset,80);
+    window.setTimeout(reset,180);
+  }
   function renderDuaV1() {
     var parts = duaRoutePartsV1(), route = parts[0] || "duas", view = document.getElementById("view");
     if (!view) return;
@@ -337,7 +361,7 @@ var entries = [
       page = "duas";
       if (location.hash !== "#/duas") location.hash = "#/duas";
       renderDuaV1();
-      window.scrollTo(0,0);
+      resetDuaScrollTopV1();
       return;
     }
     if (document.body.classList.contains("dua-app-mode")) {
@@ -350,7 +374,7 @@ var entries = [
     if (isDuaRouteV1(location.hash)) {
       page = "duas";
       renderDuaV1();
-      window.scrollTo(0,0);
+      resetDuaScrollTopV1();
       return;
     }
     if (document.body.classList.contains("dua-app-mode") && location.hash && location.hash.indexOf("#/") === 0) {
@@ -443,9 +467,12 @@ var entries = [
       document.body.classList.add("dua-app-mode");
       var chapter=chapterDuaV1(entry.chapter);
       var target="#/dua-detail/"+encodeURIComponent(entry.id)+"/"+encodeURIComponent(chapter?chapter.slug:entry.chapter);
-      if(location.hash===target)renderDuaV1();
-      else location.hash=target;
-      window.scrollTo(0,0);
+      if(location.hash===target){
+        renderDuaV1();
+        resetDuaScrollTopV1();
+      }else{
+        location.hash=target;
+      }
       return true;
     },
     syncState:function(savedIds,seenIds){

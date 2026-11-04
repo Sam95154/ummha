@@ -7,6 +7,7 @@ const iframe = read("duas-page-v2.html");
 const parent = read("momin-duas-page-v2.js");
 const shell = read("momin-shared-shell-v1.js");
 const native = read("noor-duas.js");
+const design = read("momin-duas-design-v4.js");
 const index = read("index.html");
 
 function has(source, value, label) {
@@ -17,6 +18,7 @@ function has(source, value, label) {
 new vm.Script(parent, { filename: "momin-duas-page-v2.js" });
 new vm.Script(shell, { filename: "momin-shared-shell-v1.js" });
 new vm.Script(native, { filename: "noor-duas.js" });
+new vm.Script(design, { filename: "momin-duas-design-v4.js" });
 const inlineScripts = Array.from(iframe.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))
   .map((match) => match[1])
   .filter((source) => source.trim().length > 0);
@@ -47,6 +49,20 @@ has(parent, "var index = catalogueStack.lastIndexOf(catalogueReturnRoute)", "Ali
 has(parent, "renderRoot(catalogueReturnRoute, catalogueStack);", "Keep catalogue route when the parent rerenders");
 console.log("PASS: Native dua reader returns to the actual collection/category path.");
 
+// Opening a dua must reset both the embedded/native document and its outer MOMIN page
+// after the WebView has completed its layout/iframe resize work.
+has(native, "function resetDuaScrollTopV1()", "Native reader post-layout scroll reset");
+has(native, "window.requestAnimationFrame(afterLayout)", "Native reader waits for layout frames");
+has(native, "window.setTimeout(reset,180)", "Native reader applies a late WebView scroll correction");
+has(native, "resetDuaScrollTopV1();", "Apply reset after native reader route render");
+has(parent, "function resetParentScrollTop()", "Outer MOMIN page scroll reset");
+has(parent, "resetParentScrollTop();", "Apply outer reset after opening a dua");
+has(design, "overflow-anchor:none!important", "Disable scroll anchoring while Duas reader is active");
+has(index, "noor-duas.js?v=20261104-dua-scroll-reset-v1", "Fresh native reader cache key");
+has(index, "momin-duas-page-v2.js?v=20261104-dua-scroll-reset-v1", "Fresh parent bridge cache key");
+has(index, "momin-duas-design-v4.js?v=20261104-dua-scroll-reset-v1", "Fresh reader layout cache key");
+console.log("PASS: Native and outer page scroll remain at the top after Dua navigation.");
+
 // The shared app header Back handles the native reader locally, then pops the actual prior app route.
 has(shell, 'if(action==="back"){back();}', "Shared header Back uses the central Back handler");
 has(shell, "function back(){", "Shared app Back handler");
@@ -69,6 +85,8 @@ has(iframe, "@media(min-width:701px){.rail{grid-template-columns:repeat(3,minmax
 assert.ok(!iframe.includes(".rail{display:flex;gap:14px;overflow-x:auto"), "The collection rail must not be horizontally clipped.");
 console.log("PASS: Duas cards fit and align across phone, tablet and desktop.");
 
-has(index, "momin-duas-page-v2.js?v=20261104-dua-navigation-layout-v1", "Fresh Duas bridge cache key");
+has(index, "momin-duas-page-v2.js?v=20261104-dua-scroll-reset-v1", "Fresh Duas bridge cache key");
+has(index, "noor-duas.js?v=20261104-dua-scroll-reset-v1", "Fresh native reader cache key");
+has(index, "momin-duas-design-v4.js?v=20261104-dua-scroll-reset-v1", "Fresh reader layout cache key");
 has(index, "momin-shared-shell-v1.js?v=20261104-dua-navigation-layout-v1", "Fresh shared-shell cache key");
 console.log("MOMIN Duas navigation and layout QA passed.");
