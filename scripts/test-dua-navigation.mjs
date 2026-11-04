@@ -85,6 +85,8 @@ has(iframe, "@media(min-width:701px){.rail{grid-template-columns:repeat(3,minmax
 assert.ok(!iframe.includes(".rail{display:flex;gap:14px;overflow-x:auto"), "The collection rail must not be horizontally clipped.");
 console.log("PASS: Duas cards fit and align across phone, tablet and desktop.");
 
-has(index, "momin-duas-page-v2.js?v=20261104-dua-navigation-layout-v1", "Fresh Duas bridge cache key");
+has(index, "momin-duas-page-v2.js?v=20261104-dua-scroll-reset-v1", "Fresh Duas bridge cache key");
+has(index, "noor-duas.js?v=20261104-dua-scroll-reset-v1", "Fresh native reader cache key");
+has(index, "momin-duas-design-v4.js?v=20261104-dua-scroll-reset-v1", "Fresh reader layout cache key");
 has(index, "momin-shared-shell-v1.js?v=20261104-dua-navigation-layout-v1", "Fresh shared-shell cache key");
 console.log("MOMIN Duas navigation and layout QA passed.");
