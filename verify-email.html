@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Verify email · MOMIN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;--bg:#f3efe5;--card:#fdfbf6;--field:#f6f1e4;--ink:#1b1710;--muted:#7a7466;--line:#e6dfcc;--gold:#a97a22;--teal:#0b4f47;--err:#b3402f;--serif:"Playfair Display",Georgia,serif;--sans:"DM Sans",system-ui,sans-serif}
+@media(prefers-color-scheme:dark){:root{--bg:#0d120f;--card:#151c18;--field:#1b2420;--ink:#f1ecdf;--muted:#9aa196;--line:#25302a;--gold:#d9aa52;--teal:#0f5b52;--err:#ef8a78}}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center;padding:22px;background:radial-gradient(100% 55% at 50% 0%,#513c1e 0%,transparent 70%),var(--bg);font:16px/1.5 var(--sans);color:var(--ink)}
+.card{width:min(100%,450px);padding:30px;border:1px solid var(--line);border-radius:26px;background:var(--card);box-shadow:0 24px 70px #0003}
+.logo{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#f0d38f,#bb8b35);color:#19140b;font-size:25px;margin-bottom:18px}
+.kicker{font-size:11px;letter-spacing:.17em;font-weight:800;text-transform:uppercase;color:var(--gold)}
+h1{font:600 30px/1.2 var(--serif);margin:6px 0 8px}p{color:var(--muted);margin:0 0 20px}
+label{display:grid;gap:7px;margin-top:14px;font-size:13px;font-weight:650}
+input{width:100%;height:52px;padding:0 14px;border:1px solid var(--line);border-radius:14px;background:var(--field);color:var(--ink);font:inherit}
+input.code{font-size:25px;font-weight:800;letter-spacing:.35em;text-align:center}
+button{width:100%;height:54px;margin-top:20px;border:0;border-radius:99px;background:linear-gradient(135deg,#157064,var(--teal));color:#fff0cf;font:700 15px var(--sans);cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}.secondary{background:transparent;border:1px solid var(--line);color:var(--gold);margin-top:10px}
+.msg{display:none;margin-top:15px;padding:12px;border-radius:12px;font-size:13px;overflow-wrap:anywhere}.msg.show{display:block}.msg.error{color:var(--err);background:#b3402f12;border:1px solid #b3402f44}.msg.success{color:var(--teal);background:#0b4f4712;border:1px solid #0b4f4744}
+a{display:block;text-align:center;margin-top:18px;color:var(--gold);font-size:13px;text-decoration:none;font-weight:700}
+.hint{font-size:12px;margin-top:8px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main class="card">
+<div class="logo">م</div><span class="kicker">MOMIN · EMAIL VERIFICATION</span>
+<h1>Verify your email</h1>
+<p>Enter the eight-digit verification code sent to your email. You can complete this step here in MOMIN; you do not need to open an email link.</p>
+<form id="verifyForm">
+<label>Email address<input id="email" type="email" autocomplete="email" required></label>
+<label>Eight-digit verification code<input id="token" class="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" pattern="[0-9]{8}" placeholder="00000000" required></label>
+<div class="hint">Use the newest code. Each code can only be used once.</div>
+<button id="submit" type="submit">Verify email & continue</button>
+</form>
+<button id="resend" class="secondary" type="button">Resend verification code</button>
+<div id="message" class="msg" role="status" aria-live="polite"></div>
+<a href="/login.html">Back to sign in</a>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+"use strict";
+const SUPABASE_URL="https://qzwqpiquvhpjwqgaxorp.supabase.co";
+const SUPABASE_KEY="sb_publishable_SAHjdts8xtuQSXE_lPa1cw_V6J3PjQt";
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+ auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,flowType:"pkce"}
+});
+const form=document.getElementById("verifyForm");
+const submitButton=document.getElementById("submit");
+const resendButton=document.getElementById("resend");
+const message=document.getElementById("message");
+const emailInput=document.getElementById("email");
+const tokenInput=document.getElementById("token");
+emailInput.value=new URLSearchParams(location.search).get("email")||"";
+function show(text,type){message.textContent=text;message.className="msg show "+type;}
+tokenInput.addEventListener("input",function(){this.value=this.value.replace(/[^0-9]/g,"").slice(0,8);});
+form.addEventListener("submit",async function(event){
+ event.preventDefault();
+ const email=emailInput.value.trim().toLowerCase();
+ const token=tokenInput.value.trim();
+ if(!email){show("Enter the email address you used to create your MOMIN account.","error");return;}
+ if(!/^[0-9]{8}$/.test(token)){show("Enter the eight-digit code from your latest email.","error");return;}
+ submitButton.disabled=true;resendButton.disabled=true;submitButton.textContent="Verifying…";
+ try{
+  const result=await client.auth.verifyOtp({email:email,token:token,type:"signup"});
+  if(result.error)throw result.error;
+  if(!result.data||!result.data.session)throw new Error("Email verification did not create a session. Please request a fresh code and try again.");
+  show("Your email is verified. Opening your MOMIN profile…","success");
+  setTimeout(function(){location.replace("/profile-complete.html?next=%2F");},650);
+ }catch(error){
+  show(error&&error.message?error.message:"Could not verify this code. Check it and try again, or request a new code.","error");
+ }finally{
+  submitButton.disabled=false;resendButton.disabled=false;submitButton.textContent="Verify email & continue";
+ }
+});
+resendButton.addEventListener("click",async function(){
+ const email=emailInput.value.trim().toLowerCase();
+ if(!email){show("Enter your email address first.","error");emailInput.focus();return;}
+ resendButton.disabled=true;resendButton.textContent="Sending…";
+ try{
+  const result=await client.auth.resend({type:"signup",email:email});
+  if(result.error)throw result.error;
+  show("A new verification code has been requested. Check your inbox and spam folder.","success");
+  tokenInput.value="";
+ }catch(error){
+  show(error&&error.message?error.message:"Could not resend the code. Please wait briefly and try again.","error");
+ }finally{
+  resendButton.disabled=false;resendButton.textContent="Resend verification code";
+ }
+});
+</script>
+</body>
+</html>
