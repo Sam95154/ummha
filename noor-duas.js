@@ -311,6 +311,10 @@ var entries = [
     document.body.classList.remove("dua-app-mode");
     if (location.hash && location.hash.indexOf("#/") === 0) history.replaceState(null,"",location.pathname + location.search);
     page = target;
+    if (window.MominSharedShellV1 && typeof window.MominSharedShellV1.navigate === "function") {
+      window.MominSharedShellV1.navigate(target);
+      return;
+    }
     baseGoDuaV1(target);
   }
   var baseRenderDuaV1 = window.render;
@@ -327,6 +331,9 @@ var entries = [
   };
   window.go = function (target) {
     if (target === "duas") {
+      if (window.MominSharedShellV1 && typeof window.MominSharedShellV1.recordRoute === "function") {
+        window.MominSharedShellV1.recordRoute("duas");
+      }
       page = "duas";
       if (location.hash !== "#/duas") location.hash = "#/duas";
       renderDuaV1();
