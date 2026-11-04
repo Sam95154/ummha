@@ -109,10 +109,9 @@ svg{display:block}.i{width:22px;height:22px;flex:none;fill:none;stroke:currentCo
 .ccard b{font-size:16.5px;font-weight:600;line-height:1.2}
 .cn{align-self:flex-start;padding:3px 10px;border-radius:99px;background:var(--soft);color:var(--gold2);font-size:12.5px;font-weight:600}
 .cn.soon{background:rgba(255,255,255,.06);color:var(--muted)}
-.rail{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x proximity;margin-inline:-16px;padding:4px 16px 16px;scrollbar-width:none}
-.rail::-webkit-scrollbar{display:none}
-.rail .ccard{flex:none;width:min(62vw,236px);scroll-snap-align:start}
-.railwrap{position:relative}.railwrap::after{content:"";position:absolute;right:-16px;top:0;bottom:16px;width:36px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--bg))}
+.rail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;overflow:visible;margin:0;padding:4px 0 16px}
+.rail .ccard{width:auto;min-width:0;max-width:none}
+.railwrap{position:relative}.railwrap::after{display:none}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .note{margin-top:24px;padding:16px 18px;border-radius:20px;border:1px solid var(--line);color:var(--muted);font-size:13.5px}
 
@@ -135,7 +134,8 @@ svg{display:block}.i{width:22px;height:22px;flex:none;fill:none;stroke:currentCo
 .item .bm[aria-pressed="true"]{color:var(--gold2)}.item .bm[aria-pressed="true"] svg{fill:currentColor}
 .item .bm.pop{animation:pop .45s var(--ease)}@keyframes pop{40%{transform:scale(1.28)}}
 .item .go{flex:none;width:28px;color:var(--muted);transition:transform .3s var(--ease),color .25s}.item:hover .go{transform:translateX(3px);color:var(--gold)}
-@media(max-width:360px){.item .go{display:none}}
+@media(min-width:701px){.rail{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:360px){.item .go{display:none}.rail{gap:10px}.rail .ccard .cb{padding:11px 12px 13px}.rail .ccard b{font-size:14px}}
 mark{background:var(--soft);color:var(--gold2);border-radius:4px;padding:0 2px}
 .empty{margin-top:18px;padding:36px 24px;border-radius:26px;border:1px dashed var(--line);text-align:center;color:var(--muted)}
 .empty .eico{width:56px;height:56px;margin:0 auto 14px;border-radius:18px;display:grid;place-items:center;background:var(--soft);color:var(--gold2)}
@@ -744,10 +744,21 @@ body.momin-duas-embedded .toast{bottom:18px}
     pulseCounts();onScroll();notifyParentHeight();
   }
   window.addEventListener("hashchange",route);
+  function navigateLocal(target){
+    target=String(target||"home");
+    var next=target==="home"?"":("#"+target);
+    var url=location.pathname+location.search+next;
+    if(location.pathname+location.search+location.hash===url)return;
+    history.replaceState(history.state,"",url);
+    route();
+  }
   function goBack(){
-    if(stack.length>1){history.back();return}
     var h=key();
-    if(h!=="home"){location.hash=h.indexOf("c-")===0?"collections":"home";return}
+    if(stack.length>1){
+      navigateLocal(stack[stack.length-2]);
+      return;
+    }
+    if(h!=="home"){navigateLocal(h.indexOf("c-")===0?"collections":"home");return}
     var b=bridge();
     if(b&&b.navigate){b.navigate("home");return}
     toast("This is the first Duas screen");
@@ -762,7 +773,7 @@ body.momin-duas-embedded .toast{bottom:18px}
 
   /* actions */
   view.addEventListener("click",function(e){
-    var back=e.target.closest("[data-view-back]");if(back){location.hash=back.dataset.viewBack;return}
+    var back=e.target.closest("[data-view-back]");if(back){navigateLocal(back.dataset.viewBack);return}
     var st=e.target.closest("[data-st]");if(st){e.stopPropagation();toggle(st.dataset.st,st);return}
     var it=e.target.closest(".item");if(it){open(it.dataset.id);return}
     var g=e.target.closest("[data-go]");if(g){location.hash=g.dataset.go;return}
@@ -865,12 +876,32 @@ body.momin-duas-embedded .toast{bottom:18px}
   var hq=0;
   function notifyParentHeight(){
     if(window.parent===window||hq)return;
-    hq=requestAnimationFrame(function(){hq=0;try{window.parent.postMessage({type:"momin-duas-height-v1",height:Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)},location.origin)}catch(_){}});
+    hq=requestAnimationFrame(function(){
+      hq=0;
+      try{
+        window.parent.postMessage({
+          type:"momin-duas-height-v1",
+          height:Math.max(document.documentElement.scrollHeight,document.body.scrollHeight),
+          route:key(),
+          routeStack:stack.slice(-20)
+        },location.origin);
+      }catch(_){}
+    });
   }
   window.addEventListener("resize",notifyParentHeight);
   new MutationObserver(notifyParentHeight).observe(view,{childList:true,subtree:true});
 
-  stack=[key()];
+  function restoreRouteStack(){
+    var active=key(),raw="",items=[];
+    try{raw=new URLSearchParams(location.search).get("routeStack")||""}catch(_){}
+    items=raw.split(",").filter(function(route){
+      return route==="home"||route==="collections"||route==="saved"||route==="recent"||route==="daily"||
+        (route.indexOf("c-")===0&&!!CM[route.slice(2)]);
+    }).slice(-20);
+    if(!items.length||items[items.length-1]!==active)return [active];
+    return items;
+  }
+  stack=restoreRouteStack();
   route();
   setTimeout(notifyParentHeight,100);setTimeout(notifyParentHeight,450);
 })();

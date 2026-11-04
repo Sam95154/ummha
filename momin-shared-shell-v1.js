@@ -694,14 +694,38 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     if(action==="settings"){navigate("settings");return;}
     if(action==="notifications"){navigate("notifications");return;}
     if(action==="profile"){navigate("profile");return;}
-    if(action==="back"){
-      if(routeNow()==="duas"&&location.hash&&location.hash!=="#/duas"&&window.history&&window.history.length>1){window.history.back();return;}
-      if(routeNow()==="quran"&&document.querySelector(".quran-reader")&&typeof window.returnToQuranLibrary==="function"){
-        window.returnToQuranLibrary();scheduleSync();return;
-      }
-      if(routeStack.length){navigate(routeStack.pop(),true);return;}
-      navigate("home",true);
+    if(action==="back"){back();}
+  }
+  function recordRoute(target){
+    target=String(target||"");
+    var before=routeNow();
+    if(!target||before===target)return false;
+    scrollPositions[before]=window.scrollY||document.documentElement.scrollTop||0;
+    routeStack.push(before);
+    if(window.history&&window.history.pushState){
+      try{window.history.pushState({mominShellRoute:target},"",location.href)}catch(_){}
     }
+    return true;
+  }
+  function back(){
+    var current=routeNow();
+    var hash=location.hash||"";
+    var isDuaReader=hash.indexOf("#/dua-category/")===0||hash.indexOf("#/dua-chapter/")===0||
+      hash.indexOf("#/dua-detail/")===0||hash.indexOf("#/dua-special/")===0;
+    if(current==="duas"&&isDuaReader){
+      var duasApi=window.MominDuasPageV2;
+      if(duasApi&&typeof duasApi.returnToCatalogue==="function"){
+        duasApi.returnToCatalogue();scheduleSync();return true;
+      }
+    }
+    if(current==="quran"&&document.querySelector(".quran-reader")&&typeof window.returnToQuranLibrary==="function"){
+      window.returnToQuranLibrary();scheduleSync();return true;
+    }
+    if(routeStack.length){
+      var previous=routeStack.pop();
+      navigate(previous,true);return true;
+    }
+    navigate("home",true);return true;
   }
   function navigate(target,fromBack){
     if(!target||typeof originalGo!=="function")return;
@@ -771,7 +795,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     window.addEventListener("momin:app-resumed",updateNotificationBadge);
   }
   window.MominSharedShellV1={
-    initialized:true,sync:scheduleSync,navigate:navigate,currentRoute:routeNow,
+    initialized:true,sync:scheduleSync,navigate:navigate,back:back,recordRoute:recordRoute,currentRoute:routeNow,
     tokens:{
       dark:{background:"#0f0d0a",card:"#181510",card2:"#201b13",border:"#2f2819",goldBorder:"#5a4720",text:"#f3ecda",muted:"#a79f8a",gold:"#d9aa52",brightGold:"#e8c071",softGold:"#2b2312"},
       light:{background:"#f3efe5",card:"#fdfbf6",card2:"#f8f3e6",border:"#e6dfcc",goldBorder:"#d9c28a",text:"#1b1710",muted:"#7a7466",gold:"#a97a22",brightGold:"#d6a74a",softGold:"#efe2c2"}
