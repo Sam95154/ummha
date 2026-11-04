@@ -744,14 +744,21 @@ body.momin-duas-embedded .toast{bottom:18px}
     pulseCounts();onScroll();notifyParentHeight();
   }
   window.addEventListener("hashchange",route);
+  function navigateLocal(target){
+    target=String(target||"home");
+    var next=target==="home"?"":("#"+target);
+    var url=location.pathname+location.search+next;
+    if(location.pathname+location.search+location.hash===url)return;
+    history.replaceState(history.state,"",url);
+    route();
+  }
   function goBack(){
     var h=key();
     if(stack.length>1){
-      var previous=stack[stack.length-2];
-      location.hash=previous==="home"?"":"#"+previous;
+      navigateLocal(stack[stack.length-2]);
       return;
     }
-    if(h!=="home"){location.hash=h.indexOf("c-")===0?"collections":"home";return}
+    if(h!=="home"){navigateLocal(h.indexOf("c-")===0?"collections":"home");return}
     var b=bridge();
     if(b&&b.navigate){b.navigate("home");return}
     toast("This is the first Duas screen");
@@ -766,7 +773,7 @@ body.momin-duas-embedded .toast{bottom:18px}
 
   /* actions */
   view.addEventListener("click",function(e){
-    var back=e.target.closest("[data-view-back]");if(back){location.hash=back.dataset.viewBack;return}
+    var back=e.target.closest("[data-view-back]");if(back){navigateLocal(back.dataset.viewBack);return}
     var st=e.target.closest("[data-st]");if(st){e.stopPropagation();toggle(st.dataset.st,st);return}
     var it=e.target.closest(".item");if(it){open(it.dataset.id);return}
     var g=e.target.closest("[data-go]");if(g){location.hash=g.dataset.go;return}
