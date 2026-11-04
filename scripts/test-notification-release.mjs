@@ -61,6 +61,10 @@ has(pushRegister, 'if (action === "mark_all_read")', "Authenticated mark-all rea
 has(pushRegister, 'if (action === "mark_read")', "Authenticated single-read endpoint");
 has(pushRegister, '.eq("user_id", user.id)', "Push read endpoint scopes updates to the signed-in user");
 has(pushRegister, "read_at", "Push inbox reads return durable read timestamps");
+has(page, 'root.classList.add("momin-notifications-embedded")', "Embedded Notifications route is detected from trusted MOMIN parent");
+has(page, 'html.momin-notifications-embedded body>nav[aria-label="Main"]{display:none!important}', "Embedded Notifications hides its duplicate bottom navigation");
+has(page, 'html.momin-notifications-embedded body{padding-bottom:24px!important}', "Embedded Notifications does not reserve space for the hidden navigation");
+has(page, '<nav aria-label="Main">', "Standalone Notifications keeps its own bottom navigation");
 has(page, "Mark all read", "Notification page action label");
 has(page, "b.markAllInboxRead()", "Notification page invokes persistent mark all");
 notHas(page, "b.clearInbox()", "Mark all read handler must not delete inbox entries");
