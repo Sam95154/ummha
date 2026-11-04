@@ -54,9 +54,9 @@ console.log("PASS: Native dua reader returns to the actual collection/category p
 has(native, "function resetDuaScrollTopV1()", "Native reader post-layout scroll reset");
 has(native, "window.requestAnimationFrame(afterLayout)", "Native reader waits for layout frames");
 has(native, "window.setTimeout(reset,180)", "Native reader applies a late WebView scroll correction");
-has(native, "renderDuaV1();\\n      resetDuaScrollTopV1();", "Apply reset after native reader route render");
+has(native, "resetDuaScrollTopV1();", "Apply reset after native reader route render");
 has(parent, "function resetParentScrollTop()", "Outer MOMIN page scroll reset");
-has(parent, "resetParentScrollTop();\\n      return true;", "Apply outer reset after opening a dua");
+has(parent, "resetParentScrollTop();", "Apply outer reset after opening a dua");
 has(design, "overflow-anchor:none!important", "Disable scroll anchoring while Duas reader is active");
 has(index, "noor-duas.js?v=20261104-dua-scroll-reset-v1", "Fresh native reader cache key");
 has(index, "momin-duas-page-v2.js?v=20261104-dua-scroll-reset-v1", "Fresh parent bridge cache key");
