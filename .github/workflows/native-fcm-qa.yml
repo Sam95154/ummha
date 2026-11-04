@@ -65,6 +65,8 @@ jobs:
         run: npm run test:fcm
       - name: Run notification release QA
         run: npm run test:notifications
+      - name: Run Duas navigation and layout QA
+        run: npm run test:dua-navigation
       - name: Run profile details persistence QA
         run: npm run test:profile-details
       - name: Test exact prayer alarm timing
