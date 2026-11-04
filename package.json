@@ -16,7 +16,8 @@
     "test:sunrise": "node scripts/test-sunrise-display.mjs",
     "test:prayer-location": "node scripts/test-prayer-location-sync.mjs",
     "test:prayer-alarm-timing": "node scripts/test-prayer-alarm-timing.mjs",
-    "test:profile-details": "node scripts/test-profile-details-persistence.mjs"
+    "test:profile-details": "node scripts/test-profile-details-persistence.mjs",
+    "test:dua-navigation": "node scripts/test-dua-navigation.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",
