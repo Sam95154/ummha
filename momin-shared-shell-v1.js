@@ -698,7 +698,10 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
   }
   function back(){
     var current=routeNow();
-    if(current==="duas"&&/^#\\/dua-(?:category|chapter|detail|special)(?:\\/|$)/.test(location.hash||"")){
+    var hash=location.hash||"";
+    var isDuaReader=hash.indexOf("#/dua-category/")===0||hash.indexOf("#/dua-chapter/")===0||
+      hash.indexOf("#/dua-detail/")===0||hash.indexOf("#/dua-special/")===0;
+    if(current==="duas"&&isDuaReader){
       var duasApi=window.MominDuasPageV2;
       if(duasApi&&typeof duasApi.returnToCatalogue==="function"){
         duasApi.returnToCatalogue();scheduleSync();return true;
