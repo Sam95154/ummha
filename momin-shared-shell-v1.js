@@ -696,6 +696,17 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     if(action==="profile"){navigate("profile");return;}
     if(action==="back"){back();}
   }
+  function recordRoute(target){
+    target=String(target||"");
+    var before=routeNow();
+    if(!target||before===target)return false;
+    scrollPositions[before]=window.scrollY||document.documentElement.scrollTop||0;
+    routeStack.push(before);
+    if(window.history&&window.history.pushState){
+      try{window.history.pushState({mominShellRoute:target},"",location.href)}catch(_){}
+    }
+    return true;
+  }
   function back(){
     var current=routeNow();
     var hash=location.hash||"";
@@ -784,7 +795,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
     window.addEventListener("momin:app-resumed",updateNotificationBadge);
   }
   window.MominSharedShellV1={
-    initialized:true,sync:scheduleSync,navigate:navigate,back:back,currentRoute:routeNow,
+    initialized:true,sync:scheduleSync,navigate:navigate,back:back,recordRoute:recordRoute,currentRoute:routeNow,
     tokens:{
       dark:{background:"#0f0d0a",card:"#181510",card2:"#201b13",border:"#2f2819",goldBorder:"#5a4720",text:"#f3ecda",muted:"#a79f8a",gold:"#d9aa52",brightGold:"#e8c071",softGold:"#2b2312"},
       light:{background:"#f3efe5",card:"#fdfbf6",card2:"#f8f3e6",border:"#e6dfcc",goldBorder:"#d9c28a",text:"#1b1710",muted:"#7a7466",gold:"#a97a22",brightGold:"#d6a74a",softGold:"#efe2c2"}
