@@ -136,6 +136,9 @@
 
   function openDua(id, returnRoute) {
     catalogueReturnRoute = cleanCatalogueRoute(returnRoute || catalogueReturnRoute);
+    var index = catalogueStack.lastIndexOf(catalogueReturnRoute);
+    if (index >= 0) catalogueStack = catalogueStack.slice(0,index+1);
+    else catalogueStack = catalogueStack.concat([catalogueReturnRoute]).slice(-20);
     var native = window.MominDuasNativeV1;
     if (native && typeof native.openDua === "function" && native.openDua(id)) return true;
     if (typeof window.toast === "function") window.toast("This supplication is not available right now.");
