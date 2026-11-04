@@ -54,7 +54,7 @@ has(shell, 'hash.indexOf("#/dua-detail/")===0', "Native dua detail route detecti
 has(shell, "duasApi.returnToCatalogue();scheduleSync();return true;", "Return from native reader to its embedded catalogue");
 has(shell, "var previous=routeStack.pop();", "Shared Back pops the prior app route");
 has(shell, "navigate(previous,true);return true;", "Shared Back restores the prior app route");
-has(shell, "back:back,currentRoute:routeNow", "Expose shared Back action to Duas root");
+has(shell, "back:back,recordRoute:recordRoute,currentRoute:routeNow", "Expose shared Back and route recorder to Duas root");
 has(parent, "return window.MominSharedShellV1.back()", "Duas root Back uses shared app route history");
 has(parent, 'window.MominSharedShellV1.navigate(target);', "Duas app-section navigation uses the shared route stack");
 has(shell, "function recordRoute(target){", "Shared shell can record direct route entries");
