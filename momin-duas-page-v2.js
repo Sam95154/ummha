@@ -138,13 +138,40 @@
     return state;
   }
 
+  function resetParentScrollTop(){
+    function reset(){
+      try{
+        window.scrollTo(0,0);
+        var root=document.scrollingElement||document.documentElement;
+        if(root)root.scrollTop=0;
+        document.documentElement.scrollTop=0;
+        if(document.body)document.body.scrollTop=0;
+        var view=document.getElementById("view");
+        if(view)view.scrollTop=0;
+      }catch(_){}
+    }
+    reset();
+    var frames=0;
+    function afterLayout(){
+      reset();
+      frames++;
+      if(frames<3)window.requestAnimationFrame(afterLayout);
+    }
+    window.requestAnimationFrame(afterLayout);
+    window.setTimeout(reset,80);
+    window.setTimeout(reset,180);
+  }
+
   function openDua(id, returnRoute) {
     catalogueReturnRoute = cleanCatalogueRoute(returnRoute || catalogueReturnRoute);
     var index = catalogueStack.lastIndexOf(catalogueReturnRoute);
     if (index >= 0) catalogueStack = catalogueStack.slice(0,index+1);
     else catalogueStack = catalogueStack.concat([catalogueReturnRoute]).slice(-20);
     var native = window.MominDuasNativeV1;
-    if (native && typeof native.openDua === "function" && native.openDua(id)) return true;
+    if (native && typeof native.openDua === "function" && native.openDua(id)) {
+      resetParentScrollTop();
+      return true;
+    }
     if (typeof window.toast === "function") window.toast("This supplication is not available right now.");
     return false;
   }
