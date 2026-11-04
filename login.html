@@ -332,17 +332,16 @@ $("form").onsubmit=async function(event){
         email:email,
         password:password,
         options:{
-          data:{full_name:fullName,name:fullName},
-          emailRedirectTo:location.origin+"/"
+          data:{full_name:fullName,name:fullName}
         }
       });
       if(signUp.error)throw signUp.error;
       if(signUp.data.session){
         finish("Account created","Welcome to MOMIN. Opening your account…");
       }else{
-        showMessage("Your account has been created. Check your email and confirm your address, then return here to sign in.","success");
-        setMode("in");
-        $("email").value=email;
+        // Email confirmation is completed with a one-time code inside MOMIN.
+        // Do not send the user to a one-time confirmation URL in a browser.
+        location.assign("/verify-email.html?email="+encodeURIComponent(email));
       }
     }else{
       var signIn=await supabaseClient.auth.signInWithPassword({email:email,password:password});
