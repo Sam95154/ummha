@@ -84,6 +84,10 @@
     if (target === "home" && window.MominSharedShellV1 && typeof window.MominSharedShellV1.back === "function") {
       return window.MominSharedShellV1.back();
     }
+    if (window.MominSharedShellV1 && typeof window.MominSharedShellV1.navigate === "function") {
+      window.MominSharedShellV1.navigate(target);
+      return true;
+    }
     if (typeof window.go === "function") {
       window.go(target);
       return true;
