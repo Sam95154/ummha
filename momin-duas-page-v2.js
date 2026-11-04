@@ -155,7 +155,7 @@
 
   window.render = function () {
     if (page === "duas" && !isNativeReaderRoute()) {
-      renderRoot();
+      renderRoot(catalogueReturnRoute, catalogueStack);
       return;
     }
     return previousRender.apply(this, arguments);
