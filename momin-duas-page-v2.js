@@ -4,7 +4,7 @@
   if (window.MominDuasPageV2 && window.MominDuasPageV2.initialized) return;
 
   var FRAME_ID = "momin-duas-page-v2-frame";
-  var PAGE_URL = "./duas-page-v2.html?embed=1&v=20261103-device-responsive-v1";
+  var PAGE_URL = "./duas-page-v2.html?embed=1&v=20261104-dua-navigation-layout-v1";
   var previousRender = window.render;
   var previousGo = window.go;
 
@@ -13,6 +13,7 @@
   }
 
   var catalogueReturnRoute = "home";
+  var catalogueStack = ["home"];
   function cleanCatalogueRoute(route) {
     route = String(route || "home").replace(/^#/, "");
     if (route === "home" || route === "collections" || route === "saved" || route === "recent" || route === "daily") return route;
@@ -20,8 +21,11 @@
     return "home";
   }
 
-  function pageMarkup(route) {
+  function pageMarkup(route, routeStack) {
     var targetRoute = cleanCatalogueRoute(route || catalogueReturnRoute);
+    var stackQuery = Array.isArray(routeStack) && routeStack.length
+      ? "&routeStack=" + encodeURIComponent(routeStack.slice(-20).join(","))
+      : "";
     var wrap = document.createElement("div");
     wrap.className = "momin-duas-page-v2-wrap";
     wrap.style.width = "100%";
@@ -32,7 +36,7 @@
     var frame = document.createElement("iframe");
     frame.id = FRAME_ID;
     frame.title = "MOMIN Duas";
-    frame.src = PAGE_URL + (targetRoute === "home" ? "" : "#" + targetRoute);
+    frame.src = PAGE_URL + stackQuery + (targetRoute === "home" ? "" : "#" + targetRoute);
     frame.loading = "eager";
     frame.scrolling = "no";
     frame.referrerPolicy = "strict-origin-when-cross-origin";
@@ -52,25 +56,34 @@
     }
   }
 
-  function renderRoot(route) {
+  function renderRoot(route, routeStack) {
     catalogueReturnRoute = cleanCatalogueRoute(route || "home");
+    if (Array.isArray(routeStack) && routeStack.length) {
+      catalogueStack = routeStack.map(cleanCatalogueRoute).filter(Boolean).slice(-20);
+      if (catalogueStack[catalogueStack.length - 1] !== catalogueReturnRoute) catalogueStack = [catalogueReturnRoute];
+    } else {
+      catalogueStack = [catalogueReturnRoute];
+    }
     try { page = "duas"; } catch (_) {}
     document.body.classList.remove("dua-app-mode");
     document.body.dataset.route = "duas";
     clearNativeDuaHash();
     var view = document.getElementById("view");
     if (!view) return false;
-    view.innerHTML = pageMarkup(catalogueReturnRoute);
+    view.innerHTML = pageMarkup(catalogueReturnRoute, catalogueStack);
     window.scrollTo({ top: 0, behavior: "auto" });
     return true;
   }
 
   function returnToCatalogue() {
-    return renderRoot(catalogueReturnRoute);
+    return renderRoot(catalogueReturnRoute, catalogueStack);
   }
 
   function navigate(target) {
     target = String(target || "home");
+    if (target === "home" && window.MominSharedShellV1 && typeof window.MominSharedShellV1.back === "function") {
+      return window.MominSharedShellV1.back();
+    }
     if (typeof window.go === "function") {
       window.go(target);
       return true;
@@ -166,8 +179,14 @@
     var frame = document.getElementById(FRAME_ID);
     if (!frame || event.source !== frame.contentWindow) return;
     var data = event.data || {};
-    if (data.type === "momin-duas-height-v1" && Number.isFinite(Number(data.height))) {
-      frame.style.height = Math.max(700, Math.min(12000, Math.ceil(Number(data.height)))) + "px";
+    if (data.type === "momin-duas-height-v1") {
+      if (Number.isFinite(Number(data.height))) {
+        frame.style.height = Math.max(700, Math.min(12000, Math.ceil(Number(data.height)))) + "px";
+      }
+      if (Array.isArray(data.routeStack)) {
+        catalogueStack = data.routeStack.map(cleanCatalogueRoute).filter(Boolean).slice(-20);
+      }
+      if (data.route) catalogueReturnRoute = cleanCatalogueRoute(data.route);
     }
   });
 
