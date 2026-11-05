@@ -9,6 +9,7 @@ const home = read("momin-home-design-v2.js");
 const complaints = read("momin-giving-complaints-v1.js");
 const shell = read("momin-shared-shell-v1.js");
 const notificationBridge = read("momin-notifications-admin-inbox-v1.js");
+const notificationRouting = read("momin-notifications-bridge-v1.js");
 const serviceWorker = read("momin-sw.js");
 const api = read("supabase/functions/momin-admin-api/index.ts");
 const privacy = read("privacy.html");
@@ -25,7 +26,8 @@ assert.match(html, /if\(allowed\.indexOf\(route\)<0\)return/, "The main app must
 const routeAllowList = html.match(/var allowed=\[([^\]]+)\]/);
 assert.ok(routeAllowList, "Main app push route allow-list must be present.");
 assert.doesNotMatch(routeAllowList[1], /["']giving["']/i, "Old Giving push notifications must not navigate to a disabled route.");
-assert.doesNotMatch(notificationBridge, /["']giving["']/i, "Notification bridge must not accept a Giving deep link.");
+assert.doesNotMatch(notificationBridge, /["']giving["']/i, "Notification inbox must not accept a Giving deep link.");
+assert.doesNotMatch(notificationRouting, /["']giving["']/i, "Notification routing bridge must not accept a Giving deep link.");
 assert.doesNotMatch(serviceWorker, /["']giving["']/i, "Service worker must not accept a Giving deep link.");
 assert.doesNotMatch(shell, /giving\s*:\s*["']Giving["']/i, "Shared navigation titles must not advertise Giving.");
 console.log("PASS: Giving is absent from navigation, shortcuts, route maps and notification destinations.");
