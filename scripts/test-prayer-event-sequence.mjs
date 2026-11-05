@@ -107,7 +107,7 @@ assert.doesNotMatch(homeSunrise, /<button|role="checkbox"|togglePrayer/);
 const prayerSunrise = prayer.slice(prayer.indexOf("if(sunriseM!==null){", prayer.indexOf("function rows(anim)")), prayer.indexOf('$("rows").innerHTML', prayer.indexOf("function rows(anim)")));
 assert.ok(prayerSunrise.includes('aria-label="Sunrise time, informational only"'));
 assert.doesNotMatch(prayerSunrise, /<button|role="checkbox"|class="ck"|data-i=/);
-assert.match(prayer, /"of 5"/);
+assert.match(prayer, /\+" of 5"/);
 console.log("PASS: Sunrise never becomes a sixth salah or completion checkbox.");
 
 // Both views continue to consume timings from the existing location-aware prayer data bridge.
