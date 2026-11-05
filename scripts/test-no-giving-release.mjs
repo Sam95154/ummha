@@ -62,12 +62,12 @@ assert.match(terms, /does not offer fundraising, crowdfunding, giving campaigns/
 console.log("PASS: Privacy and Terms do not advertise active fundraising and accurately describe retained records.");
 
 // The new Android bundle has an explicit release identity, while existing profile saving remains in the release suite.
-assert.equal(pkg.version, "1.0.1", "Package version name must be 1.0.1.");
+assert.equal(pkg.version, "1.0.2", "Package version name must be 1.0.2.");
 assert.ok(androidPrep.includes("versionCode\\s*"), "Android Gradle versionCode patch uses a whitespace-tolerant Gradle matcher.");
 assert.ok(androidPrep.includes("versionName\\s*"), "Android Gradle versionName patch uses a whitespace-tolerant Gradle matcher.");
-assert.match(androidPrep, /versionCode.*"2"/);
+assert.match(androidPrep, /versionCode.*"3"/);
 assert.match(androidPrep, /1\.0\.1/);
 assert.match(complaints, /momin_complaints/);
-console.log("PASS: Android version is set to code 2 / name 1.0.1; complaint integration is preserved.");
+console.log("PASS: Android version is set to code 3 / name 1.0.2; complaint integration is preserved.");
 
 console.log("MOMIN personal-account no-Giving release QA passed.");
