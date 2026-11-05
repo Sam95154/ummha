@@ -98,7 +98,7 @@ for (const file of [
 }
 
 const frameCacheVersions = new Map([
-  ["momin-prayer-page-v1.js", "20261103-sunrise-time-v1"],
+  ["momin-prayer-page-v1.js", "20261105-sunrise-prayer-sequence-v1"],
   ["momin-journey-page-v1.js", "20261103-device-responsive-v1"],
   ["momin-mosque-page-v1.js", "20261103-device-responsive-v1"],
   ["momin-duas-page-v2.js", "20261104-dua-navigation-layout-v1"],
