@@ -52,11 +52,11 @@ The Android wrapper uses Capacitor 8 and the pinned `@capacitor/push-notificatio
 3. Run `npm install`, then `npm run android:prepare`. The preparation script copies the file into `android/app/google-services.json`, validates it exists, and generates the Android notification icon/channel metadata.
 4. Build and install the debug APK on a physical Android device. Sign in, allow Android notifications, then enable notifications in MOMIN Settings. The device FCM token is submitted to the authenticated Supabase Edge Function; it is never written to browser logs or returned to the Admin UI.
 
-### Notification inbox, badges, and Giving announcements
+### Notification inbox and badges in the no-Giving release
 
 The shared MOMIN home header displays a red unread counter on the notification bell. The count is refreshed when the signed-in user changes, when the app returns to the foreground, and whenever the notification inbox changes. The Notifications page supports opening an item and marking one or all items as read; reminder read timestamps and Admin announcement read timestamps are stored against the authenticated user.
 
-When an Admin creates a Giving campaign as Active, or changes a Draft/Paused campaign to Active, MOMIN publishes one announcement for that campaign. The announcement is written to each active user's in-app inbox and opens the Giving page when tapped. Repeated edits to an already-active campaign do not send another announcement. A failed announcement can be retried by moving the campaign out of Active and activating it again; previously accepted Web Push/FCM sends and in-app inbox rows are deduplicated.
+Admin notifications remain available for ordinary app destinations such as Home, Prayers, Quran, Duas, Calendar, Notifications, Settings, Journey and Complaints. Fundraising campaign announcements and the Giving destination are disabled in this release. Existing inbox history is not deleted.
 
 Apply these additional migrations before deploying the updated Admin API:
 
@@ -77,7 +77,7 @@ Admin announcements continue to be written to the MOMIN user inbox. Android push
 
 The current web app registers browser Web Push through the service worker `momin-sw.js`. Standard Android WebView does not support service-worker push notifications. The web notification implementation is deliberately left unchanged, but it is not sufficient for the native Android build.
 
-Before a public Play Store launch, complete the release gates above: apply the migration, deploy both updated Supabase functions, set the Firebase service-account secrets, build with the real `google-services.json`, and test foreground, background, terminated-app delivery, notification taps, and prayer reminders on real Android devices. The notification release branch contains the implementation. Deploy the matching migrations and Edge Functions with the app source so the inbox, unread badge, campaign publisher, and native delivery stay on the same version.
+Before a public Play Store launch, complete the release gates above: apply the migration, deploy both updated Supabase functions, set the Firebase service-account secrets, build with the real `google-services.json`, and test foreground, background, terminated-app delivery, notification taps, and prayer reminders on real Android devices. The notification release branch contains the implementation. Deploy the matching migrations and Edge Functions with the app source so the inbox, unread badge, and native notification delivery stay on the same version. Campaign publishing is disabled in this release.
 
 Location permissions are declared for prayer-time and Qibla features. Test the location prompt, denied-permission experience, and location refresh on a real device.
 

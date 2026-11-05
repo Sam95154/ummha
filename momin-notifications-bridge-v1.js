@@ -153,7 +153,7 @@
     window.addEventListener("focus",refreshPushSubscriptionIfNeeded);
     document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshPushSubscriptionIfNeeded()});
   }
-  window.addEventListener("message",function(event){if(event.origin!==location.origin||!event.data||event.data.type!=="MOMIN_PUSH_OPEN")return;var route=String(event.data.route||"home");if(["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"].indexOf(route)<0)route="home";navigate(route)});
+  window.addEventListener("message",function(event){if(event.origin!==location.origin||!event.data||event.data.type!=="MOMIN_PUSH_OPEN")return;var route=String(event.data.route||"home");if(["home","prayers","quran","duas","calendar","notifications","settings","journey","complaints"].indexOf(route)<0)route="home";navigate(route)});
 
   function get(key,fallback){try{var v=localStorage.getItem(key);return v===null?fallback:v}catch(_){return fallback}}
   function put(key,value){try{localStorage.setItem(key,String(value));return true}catch(_){return false}}
@@ -490,7 +490,7 @@
   };
   try{
     var query=new URL(location.href),route=query.searchParams.get("mominPushRoute");
-    if(route&&["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"].indexOf(route)>=0){
+    if(route&&["home","prayers","quran","duas","calendar","notifications","settings","journey","complaints"].indexOf(route)>=0){
       query.searchParams.delete("mominPushRoute");
       history.replaceState(history.state,"",query.pathname+query.search+query.hash);
       window.setTimeout(function(){navigate(route)},450);

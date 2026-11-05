@@ -21,7 +21,7 @@ on:
       - "momin-notifications-admin-inbox-v1.js"
       - "momin-giving-complaints-v1.js"
       - "supabase/migrations/20261102152955_momin_giving_user_read_access.sql"
-      - "scripts/test-giving-sync.mjs"
+      - "scripts/test-no-giving-release.mjs"
       - "journey-page-v1.html"
       - "mosques-page-v1.html"
       - "duas-page-v2.html"
@@ -71,5 +71,5 @@ jobs:
         run: npm run test:prayer-sequence
       - name: Run current-location prayer timing QA
         run: npm run test:prayer-location
-      - name: Run Admin-to-User Giving integration QA
-        run: npm run test:giving
+      - name: Run no-Giving release and preserved-feature QA
+        run: npm run test:no-giving

@@ -71,8 +71,8 @@ contains(adminFunction, '.select("id,user_id,device_key,fcm_token")', "FCM devic
 contains(adminFunction, '.from("momin_devices")', "Active device ownership lookup");
 contains(adminFunction, '.is("revoked_at", null)', "Revoked device filter");
 contains(adminFunction, "momin_fcm_deliveries", "FCM delivery audit writes");
-assert.equal(serviceWorker.split('["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"]').length - 1, 2,
-  "Push notification display and click handlers must both allow the complaints route.");
+assert.equal(serviceWorker.split('["home","prayers","quran","duas","calendar","notifications","settings","journey","complaints"]').length - 1, 2,
+  "Push notification display and click handlers must both allow the complaints route and reject Giving.");
 excludes(nativeBridge, "FCM_SERVICE_ACCOUNT_JSON", "Native client Firebase credentials");
 excludes(nativeBridge, "private_key", "Native client private-key material");
 excludes(notificationBridge, "FCM_SERVICE_ACCOUNT_JSON", "Web notification bridge Firebase credentials");
