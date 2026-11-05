@@ -4,13 +4,13 @@ Last reviewed: 3 November 2026
 
 This checklist is for the Android application `com.momin.noorulislam`. It records known repository/CI state separately from tasks that must be completed in Play Console or on a physical Android device.
 
-## Version 1.0.1 — personal-account no-Giving release
+## Version 1.0.2 — personal-account no-Giving release
 
 - Giving, fundraising, crowdfunding, donation instructions, campaigns and contribution tracking are not offered in the User app or Admin panel in this release.
 - Historical campaign/contribution tables and existing records are retained; no destructive database migration or record deletion is part of this release.
 - The privacy policy and Terms page disclose that these features are disabled while explaining any historical financial-record retention.
 - Suggested Play Store copy is maintained in `PLAY_STORE_DESCRIPTION_1.0.1.md`; make the Play Console listing consistent with that text and the tested app.
-- Android build identity is `versionCode 2`, `versionName 1.0.1`.
+- Android build identity is `versionCode 3`, `versionName 1.0.2`.
 
 
 ## 1. Build identity and signed bundle
