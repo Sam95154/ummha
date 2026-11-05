@@ -27,10 +27,10 @@ const versionNameMatches = appGradle.match(/versionName\s*(?:=\s*)?["'][^"']+["'
 if (versionCodeMatches.length !== 1 || versionNameMatches.length !== 1) {
   throw new Error("Expected exactly one Android versionCode and versionName in " + gradlePath);
 }
-appGradle = appGradle.replace(/versionCode\s*(?:=\s*)?\d+/, match => match.replace(/\d+$/, "2"));
-appGradle = appGradle.replace(/versionName\s*(?:=\s*)?["'][^"']+["']/, match => match.replace(/["'][^"']+["']$/, '"1.0.1"'));
+appGradle = appGradle.replace(/versionCode\s*(?:=\s*)?\d+/, match => match.replace(/\d+$/, "3"));
+appGradle = appGradle.replace(/versionName\s*(?:=\s*)?["'][^"']+["']/, match => match.replace(/["'][^"']+["']$/, '"1.0.2"'));
 fs.writeFileSync(gradlePath, appGradle, "utf8");
-console.log("MOMIN Android version: versionCode 2, versionName 1.0.1.");
+console.log("MOMIN Android version: versionCode 3, versionName 1.0.2.");
 
 const firebaseConfigSource = path.join(root, "google-services.json");
 const firebaseConfigTarget = path.join(androidDir, "app", "google-services.json");
