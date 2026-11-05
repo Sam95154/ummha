@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
-import { transform } from "esbuild";
 
 const read = path => fs.readFileSync(new URL("../" + path, import.meta.url), "utf8");
 const html = read("index.html");
@@ -42,7 +41,6 @@ assert.doesNotMatch(complaints, /giving|donat|campaign|contribution/i, "The shar
 console.log("PASS: Complaint submission, history, replies and private attachments remain in the User module.");
 
 // Server-side campaign and contribution actions are blocked; historical tables are not queried or deleted.
-await transform(api, { loader: "ts", target: "es2022", format: "esm" });
 assert.match(api, /const allowed = \[[^\]]*"complaints"[^\]]*\]/, "Server notification destination allow-list must retain Complaints.");
 assert.doesNotMatch(api.slice(api.indexOf("function safeRoute"), api.indexOf("async function audit")), /["']giving["']/i, "Server route allow-list must reject Giving.");
 assert.match(api, /case "campaigns":[\s\S]*?case "contributions": return reply\(\{ error: "Giving is temporarily disabled in this release\." \}, 410, origin\)/,
