@@ -15,6 +15,23 @@ if (!fs.existsSync(androidDir)) {
   run("npx", ["cap", "add", "android"]);
 }
 
+// Keep the Play Store release identity explicit for this no-Giving review build.
+const gradleGroovyPath = path.join(androidDir, "app", "build.gradle");
+const gradleKtsPath = path.join(androidDir, "app", "build.gradle.kts");
+const gradlePath = fs.existsSync(gradleGroovyPath) ? gradleGroovyPath :
+  fs.existsSync(gradleKtsPath) ? gradleKtsPath : null;
+if (!gradlePath) throw new Error("Android app Gradle file was not generated.");
+let appGradle = fs.readFileSync(gradlePath, "utf8");
+const versionCodeMatches = appGradle.match(/versionCode\s*(?:=\s*)?\d+/g) || [];
+const versionNameMatches = appGradle.match(/versionName\s*(?:=\s*)?["'][^"']+["']/g) || [];
+if (versionCodeMatches.length !== 1 || versionNameMatches.length !== 1) {
+  throw new Error("Expected exactly one Android versionCode and versionName in " + gradlePath);
+}
+appGradle = appGradle.replace(/versionCode\s*(?:=\s*)?\d+/, match => match.replace(/\d+$/, "2"));
+appGradle = appGradle.replace(/versionName\s*(?:=\s*)?["'][^"']+["']/, match => match.replace(/["'][^"']+["']$/, '"1.0.1"'));
+fs.writeFileSync(gradlePath, appGradle, "utf8");
+console.log("MOMIN Android version: versionCode 2, versionName 1.0.1.");
+
 const firebaseConfigSource = path.join(root, "google-services.json");
 const firebaseConfigTarget = path.join(androidDir, "app", "google-services.json");
 if (fs.existsSync(firebaseConfigSource)) {

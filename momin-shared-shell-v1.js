@@ -484,7 +484,7 @@ body.momin-app-shell-active .momin-support-card a{color:var(--momin-gold-bright)
       home:"Home",prayers:"Prayers",quran:"Quran",journey:"Journey",
       duas:"Duas",tasbeeh:"Tasbeeh",qibla:"Qibla",mosques:"Mosques near me",
       calendar:"Islamic Calendar",settings:"Settings",founder:"About the Founder",
-      giving:"Giving",inspiration:"Inspiration",profile:"Profile",notifications:"Notifications"
+      inspiration:"Inspiration",profile:"Profile",notifications:"Notifications",complaints:"Complaints"
     };
     return names[route]||"Home";
   }

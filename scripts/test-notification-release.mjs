@@ -70,15 +70,16 @@ has(page, "b.markAllInboxRead()", "Notification page invokes persistent mark all
 notHas(page, "b.clearInbox()", "Mark all read handler must not delete inbox entries");
 console.log("PASS: Single and bulk notification read state persists on the server.");
 
-// Charity / Giving campaign announcement lifecycle.
-has(admin, "async function announceGivingCampaign", "Campaign announcement helper");
-has(admin, "momin_giving_campaign_announcements", "Durable campaign announcement state");
-has(admin, 'route: "giving"', "Campaign push deep-link route");
-has(admin, 'status === "Active" && (!previous || previous.status !== "Active")', "Publish on new or newly activated campaign");
-has(admin, 'status === "Active" && previous.status !== "Active"', "Publish on status transition");
-has(admin, 'givingCampaignId: string | null = null', "Stable campaign sender identity");
-has(admin, 'onConflict: "notification_id,user_id"', "Deduplicated in-app inbox insert");
+// Ordinary Admin notifications continue; campaign publishing is disabled for this release.
+has(admin, 'onConflict: "notification_id,user_id"', "Deduplicated in-app Admin notification inbox insert");
 has(admin, 'onConflict: "event_key"', "Deduplicated Web Push delivery audit");
+has(admin, 'case "campaigns"', "Legacy campaign endpoint remains an explicit API case");
+has(admin, "Giving is temporarily disabled in this release.", "Legacy campaign API actions return a disabled response");
+notHas(admin, "async function announceGivingCampaign", "Automatic Giving campaign publisher");
+notHas(admin, 'route: "giving"', "Fundraising push deep-link destination");
+notHas(admin, "givingCampaignId", "Campaign-linked notification identity");
+notHas(admin, 'db.from("momin_giving_campaigns")', "Live campaign database query");
+notHas(admin, 'db.from("momin_contributions")', "Contribution tracking database query");
 notHas(admin, 'item.preferences?.announcements === true', "Web Push must not require announcement opt-in");
 notHas(admin, '.eq("announcements_enabled", true)', "FCM must not require announcement opt-in");
 has(settings, "admin:true,", "Admin announcements default to ON");
@@ -105,14 +106,14 @@ has(bridge, "MOMIN_ADMIN_NOTIFICATION_DELETED", "Open User app refreshes inbox a
 has(mandatoryMigration, "set announcements_enabled = true", "Existing profiles and tokens are enabled");
 has(admin, 'eq("status", "accepted")', "Previously accepted FCM sends are not repeated");
 has(admin, 'onConflict: "admin_notification_id,fcm_token_id"', "Idempotent FCM delivery audit");
-has(migration, "momin_giving_campaign_announcements", "Campaign announcement schema");
-has(migration, "unique index if not exists momin_admin_notifications_giving_campaign_uidx", "One Admin notification per campaign");
+has(migration, "momin_giving_campaign_announcements", "Historical campaign notification table remains in the untouched migration.");
+has(migration, "unique index if not exists momin_admin_notifications_giving_campaign_uidx", "Historical campaign notification uniqueness remains in the untouched migration.");
 has(migration, "momin_push_deliveries(user_id, created_at desc)", "Unread reminder inbox index");
-has(migration, "momin_user_notifications(notification_id, user_id)", "Unique in-app campaign inbox rows");
+has(migration, "momin_user_notifications(notification_id, user_id)", "Unique in-app notification inbox rows");
 has(migration, "enable row level security", "Campaign announcement RLS");
 has(migration, "revoke all on public.momin_giving_campaign_announcements from anon, authenticated", "Campaign announcement server-only policy");
 has(fcmMigration, "momin_fcm_deliveries_notification_device_uidx", "Unique FCM campaign/device delivery index");
-console.log("PASS: New Zakat, Sadaqah, Charity, and Other campaigns announce once with durable, retry-safe inbox delivery.");
+console.log("PASS: Ordinary Admin notifications remain active; legacy campaign publishing and financial tracking are disabled.");
 
 // Native app lifecycle, foreground receipt and tap routing.
 has(native, 'addListener("pushNotificationReceived"', "Native foreground push handling");
