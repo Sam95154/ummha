@@ -40,15 +40,39 @@ function prayerNames(){return ['Fajr','Dhuhr','Asr','Maghrib','Isha'];}
 function displayPrayerName(name){return name==='Dhuhr'&&new Date().getDay()===5?'Jumuʿah':name;}
 function prayerState(){
   var timings=prayerTimings();if(!timings)return null;
-  var names=prayerNames(),records=names.map(function(name){return {name:name,date:parsePrayerDate(timings[name],0)};});
-  if(records.some(function(item){return !item.date;}))return null;
-  var now=new Date(),nextIndex=records.findIndex(function(item){return item.date>now;}),currentIndex,nextDate,currentDate;
-  if(nextIndex===-1){currentIndex=4;nextIndex=0;currentDate=records[4].date;nextDate=parsePrayerDate(timings.Fajr,1);}
-  else if(nextIndex===0){currentIndex=4;currentDate=parsePrayerDate(timings.Isha,-1);nextDate=records[0].date;}
-  else{currentIndex=nextIndex-1;currentDate=records[currentIndex].date;nextDate=records[nextIndex].date;}
+  var names=prayerNames(),events=names.map(function(name,index){
+    return {name:name,date:parsePrayerDate(timings[name],0),prayerIndex:index};
+  });
+  if(events.some(function(item){return !item.date;}))return null;
+
+  // Sunrise is a timed milestone between Fajr and Dhuhr, not a sixth salah.
+  var sunrise=parsePrayerDate(timings.Sunrise,0);
+  if(sunrise&&sunrise>events[0].date&&sunrise<events[1].date){
+    events.splice(1,0,{name:"Sunrise",date:sunrise,prayerIndex:-1});
+  }
+
+  var now=new Date(),nextIndex=events.findIndex(function(item){return item.date>now;});
+  var currentEvent,nextEvent,currentDate,nextDate;
+  if(nextIndex===-1){
+    currentEvent=events[events.length-1];
+    nextEvent={name:"Fajr",date:parsePrayerDate(timings.Fajr,1),prayerIndex:0};
+    currentDate=currentEvent.date;nextDate=nextEvent.date;
+  }else if(nextIndex===0){
+    currentEvent={name:"Isha",date:parsePrayerDate(timings.Isha,-1),prayerIndex:4};
+    nextEvent=events[0];currentDate=currentEvent.date;nextDate=nextEvent.date;
+  }else{
+    currentEvent=events[nextIndex-1];nextEvent=events[nextIndex];
+    currentDate=currentEvent.date;nextDate=nextEvent.date;
+  }
+  if(!currentDate||!nextDate)return null;
   var total=Math.max(1,nextDate-currentDate),elapsed=Math.max(0,now-currentDate),remaining=Math.max(0,Math.floor((nextDate-now)/1000));
-  return {current:records[currentIndex].name,next:records[nextIndex].name,currentIndex:currentIndex,nextIndex:nextIndex,
-    currentDate:currentDate,nextDate:nextDate,seconds:remaining,progress:Math.min(100,Math.max(0,(elapsed/total)*100))};
+  var currentIndex=currentEvent.prayerIndex;
+  return {
+    current:currentEvent.name,next:nextEvent.name,
+    currentIndex:currentIndex,visualIndex:currentIndex>=0?currentIndex:0,
+    currentDate:currentDate,nextDate:nextDate,seconds:remaining,
+    progress:Math.min(100,Math.max(0,(elapsed/total)*100))
+  };
 }
 function hijriParts(date){
   try{var parts=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn',{day:'numeric',month:'numeric',year:'numeric'}).formatToParts(date),out={};
@@ -74,10 +98,10 @@ function prayerIcon(name){return {Fajr:'i-sunrise',Dhuhr:'i-sun',Asr:'i-asr',Mag
 function chipMarkup(state){
   var timings=prayerTimings();if(!timings)return '';
   var chips=prayerNames().map(function(name,index){var date=parsePrayerDate(timings[name],0);
-    return '<span class="'+(state&&state.currentIndex===index?'on':'')+'">'+esc(displayPrayerName(name))+' · '+esc(formatTime(date))+'</span>';
+    return '<span data-event-name="'+name+'" class="'+(state&&state.current===name?'on':'')+'">'+esc(displayPrayerName(name))+' · '+esc(formatTime(date))+'</span>';
   });
   var sunrise=parsePrayerDate(timings.Sunrise,0);
-  if(sunrise)chips.splice(1,0,'<span class="sunrise-chip" aria-label="Sunrise time, informational only">☀ Sunrise · '+esc(formatTime(sunrise))+'</span>');
+  if(sunrise)chips.splice(1,0,'<span data-event-name="Sunrise" class="sunrise-chip'+(state&&state.current==="Sunrise"?' on':'')+'" aria-label="Sunrise time, informational only">☀ Sunrise · '+esc(formatTime(sunrise))+'</span>');
   return chips.join('');
 }
 function trackerMarkup(state){
@@ -94,10 +118,14 @@ function trackerMarkup(state){
       '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></li>';
   });
   var sunrise=parsePrayerDate(timings.Sunrise,0);
-  if(sunrise)rows.splice(1,0,'<li class="row sunrise-info" role="group" aria-label="Sunrise time, informational only">'+
-    '<span class="pi"><svg class="i"><use href="#i-sunrise"/></svg></span>'+
-    '<div class="nm"><b>Sunrise</b><span>Daylight begins</span></div>'+
-    '<span class="tm">'+esc(formatTime(sunrise))+'</span></li>');
+  if(sunrise){
+    var sunriseCurrent=!!(state&&state.current==="Sunrise"),sunriseNext=!!(state&&state.next==="Sunrise");
+    var sunriseLabel=sunriseCurrent?"Now · Daylight":sunriseNext?"Next · Daylight begins":sunrise<=now?"Daylight":"Daylight begins";
+    rows.splice(1,0,'<li class="row sunrise-info'+(sunriseCurrent?' cur':'')+'" role="group" aria-label="Sunrise time, informational only">'+
+      '<span class="pi"><svg class="i"><use href="#i-sunrise"/></svg></span>'+
+      '<div class="nm"><b>Sunrise</b><span>'+sunriseLabel+'</span></div>'+
+      '<span class="tm">'+esc(formatTime(sunrise))+'</span></li>');
+  }
   return rows.join('');
 }
 function featureMarkup(){
@@ -126,7 +154,7 @@ function build(){
   var heroName=state?'Next: '+displayPrayerName(state.next):'Set your location';
   var heroTime=state?formatTime(state.nextDate):'Prayer times unavailable';
   var countdown=state?formatCountdown(state.seconds):'';
-  var status=state?displayPrayerName(state.current):'Prayer times',index=state?state.currentIndex:4;
+  var status=state?displayPrayerName(state.current):'Prayer times',index=state?state.visualIndex:4;
   return ICON_SPRITE+'<div class="app">'+
     '<header class="bar rise" style="--d:0"><div class="where"><b>Home</b><span id="hijriBar">'+esc(hijri||'Islamic date loading')+'</span></div>'+
     '<button class="ibtn" id="bellBtn" type="button" aria-label="Reminders" onclick="go(\'notifications\')"><svg class="i"><use href="#i-bell"/></svg><span class="dot"></span></button>'+
@@ -175,7 +203,7 @@ function sync(){
   var state=prayerState(),hero=document.getElementById('hero'),current=document.getElementById('nowName'),next=document.getElementById('heroName');
   var nextTime=document.getElementById('heroTime'),countdown=document.getElementById('cdTime'),fill=document.getElementById('fill');
   if(state){
-    if(hero)hero.dataset.p=String(state.currentIndex);
+    if(hero)hero.dataset.p=String(state.visualIndex);
     if(current)current.textContent=displayPrayerName(state.current);
     if(next)next.textContent='Next: '+displayPrayerName(state.next);
     if(nextTime)nextTime.textContent=formatTime(state.nextDate);
