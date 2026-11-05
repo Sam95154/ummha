@@ -277,7 +277,7 @@ function mominTimelineStateAt(seconds){
     nextEvent={name:"Fajr",seconds:events[0].seconds+86400,prayerIndex:0};
     startSeconds=currentEvent.seconds;nextSeconds=nextEvent.seconds;
   }else if(nextIndex===0){
-    currentEvent={name:"Isha",seconds:events[events.length-1].seconds-86400,prayerIndex:events.length-1};
+    currentEvent={name:"Isha",seconds:events[events.length-1].seconds-86400,prayerIndex:P.length-1};
     nextEvent=events[0];startSeconds=currentEvent.seconds;nextSeconds=nextEvent.seconds;
   }else{
     currentEvent=events[nextIndex-1];nextEvent=events[nextIndex];
@@ -415,23 +415,32 @@ function mominTickSafe(){
   if(!P.length){
     $("nowTxt").textContent="LOCATION REQUIRED";$("nextTxt").textContent="Set your location";$("nextTime").textContent="—";
     $("remain").textContent="Prayer schedule will appear here";$("bar").style.width="0%";
+    lastTimelineEvent=null;lastCur=-2;
     return;
   }
   if(dk(sel)!==dk(T)){
     $("nowTxt").textContent="SELECTED DATE";$("nextTxt").textContent=sel.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"short"});
     $("nextTime").textContent=fmt(P[0].m);$("remain").textContent="Prayer schedule for this date";
-    $("bar").style.width="0%";return;
+    $("bar").style.width="0%";lastTimelineEvent=null;lastCur=-2;return;
   }
-  var d=new Date(),seconds=d.getHours()*3600+d.getMinutes()*60+d.getSeconds(),f=P[0].m*60,last=P[P.length-1].m*60,cur,nx,st,nt;
-  if(seconds<f){cur=P.length-1;nx=0;st=last-86400;nt=f}
-  else if(seconds>=last){cur=P.length-1;nx=0;st=last;nt=f+86400}
-  else{cur=0;while(cur<P.length-1&&seconds>=P[cur+1].m*60)cur++;nx=Math.min(cur+1,P.length-1);st=P[cur].m*60;nt=P[nx].m*60}
-  var r=Math.max(0,nt-seconds),h=Math.floor(r/3600),m=Math.floor(r%3600/60),sc=r%60;
-  $("remain").textContent=(h?h+"h ":"")+m+"m "+String(sc).padStart(2,"0")+"s";
-  $("bar").style.width=Math.min(100,Math.max(0,(seconds-st)/(nt-st)*100))+"%";
-  $("hero").dataset.p=cur;$("nowTxt").textContent="NOW · "+P[cur].n;$("nextTxt").textContent="Next: "+P[nx].n;$("nextTime").textContent=fmt(P[nx].m);
-  document.querySelectorAll("#chips span").forEach(function(c,i){c.classList.toggle("on",i===cur)});
-  lastCur=cur;
+  var d=new Date(),seconds=d.getHours()*3600+d.getMinutes()*60+d.getSeconds();
+  var state=mominTimelineStateAt(seconds);
+  if(!state)return;
+  var remaining=Math.max(0,state.nextSeconds-seconds),hours=Math.floor(remaining/3600),minutes=Math.floor(remaining%3600/60),secs=remaining%60;
+  $("remain").textContent=(hours?hours+"h ":"")+minutes+"m "+String(secs).padStart(2,"0")+"s";
+  $("bar").style.width=state.progress+"%";
+  $("hero").dataset.p=state.visualIndex;
+  $("nowTxt").textContent="NOW · "+state.currentName;
+  $("nextTxt").textContent="Next: "+state.nextName;
+  $("nextTime").textContent=fmt(state.nextName==="Sunrise"?sunriseM:(P[state.nextPrayerIndex]&&P[state.nextPrayerIndex].m));
+  document.querySelectorAll("#chips [data-event-name]").forEach(function(chip){
+    chip.classList.toggle("on",chip.getAttribute("data-event-name")===state.currentName);
+  });
+  lastCur=state.currentPrayerIndex;
+  if(lastTimelineEvent!==state.currentName){
+    lastTimelineEvent=state.currentName;
+    rows(false);
+  }
 }
 tick=mominTickSafe;
 function mominLoadInitial(){
