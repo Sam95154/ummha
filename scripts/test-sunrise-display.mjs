@@ -52,6 +52,6 @@ assert.match(prayer, /function stats\(fx\)\{var n=done\.length;.*n\+" of 5"/);
 // All client entry points use the new cache version so the UI refreshes.
 assert.match(index, /momin-home-design-v2\.js\?v=20261105-sunrise-prayer-sequence-v1/);
 assert.match(index, /momin-prayer-page-v1\.js\?v=20261105-sunrise-prayer-sequence-v1/);
-assert.match(prayerPage, /prayers-page-v1\.html\?embed=1&amp;v=20261103-sunrise-time-v1/);
+assert.match(prayerPage, /prayers-page-v1\.html\?embed=1&amp;v=20261105-sunrise-prayer-sequence-v1/);
 
 console.log("MOMIN Sunrise display QA passed.");
