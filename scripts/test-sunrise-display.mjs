@@ -34,8 +34,8 @@ assert.doesNotMatch(homeSunriseRow, /<button|role="checkbox"|class="chk"|toggleP
 // Prayer page renders Sunrise as a separate informational row, not a checkbox.
 assert.match(prayer, /var P=\[\],sunriseM=null;/);
 assert.match(prayer, /sunriseM=mominMinutes\(timings\.Sunrise\)/);
-assert.match(prayer, /data-prayer-index=/, "Prayer chips must carry their original five-prayer index");
-assert.ok(prayer.includes('document.querySelectorAll("#chips [data-prayer-index]")'), "Active-prayer highlighting must exclude the Sunrise display chip");
+assert.match(prayer, /data-event-name=/, "Prayer timeline chips must identify each event by name");
+assert.ok(prayer.includes('document.querySelectorAll("#chips [data-event-name]")'), "Active-event highlighting must include Sunrise");
 const rowsStart = prayer.indexOf("function rows(anim){");
 const statsStart = prayer.indexOf("function stats(fx){", rowsStart);
 assert.ok(rowsStart >= 0 && statsStart > rowsStart, "Prayer rows renderer must exist");
@@ -50,8 +50,8 @@ assert.doesNotMatch(sunriseRowMarkup, /<button|role="checkbox"|class="ck"|toggle
 assert.match(prayer, /function stats\(fx\)\{var n=done\.length;.*n\+" of 5"/);
 
 // All client entry points use the new cache version so the UI refreshes.
-assert.match(index, /momin-home-design-v2\.js\?v=20261103-sunrise-home-tracker-v1/);
-assert.match(index, /momin-prayer-page-v1\.js\?v=20261103-sunrise-time-v1/);
+assert.match(index, /momin-home-design-v2\.js\?v=20261105-sunrise-prayer-sequence-v1/);
+assert.match(index, /momin-prayer-page-v1\.js\?v=20261105-sunrise-prayer-sequence-v1/);
 assert.match(prayerPage, /prayers-page-v1\.html\?embed=1&amp;v=20261103-sunrise-time-v1/);
 
 console.log("MOMIN Sunrise display QA passed.");
