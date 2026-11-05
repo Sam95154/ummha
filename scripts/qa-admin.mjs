@@ -30,7 +30,7 @@ check(html.includes("./admin.css") && html.includes("./admin.js"), "Admin entry 
 check(/viewport/i.test(html), "Admin page declares responsive viewport");
 check(css.includes("--gold:#D6AD60") && css.includes("--bg:#0C0A07"), "Admin theme includes approved black-and-gold design tokens");
 check(/@media\s*\(max-width:\s*760px\)/.test(css) && /@media\s*\(max-width:\s*480px\)/.test(css), "Admin stylesheet includes mobile and tablet responsive breakpoints");
-for (const label of ["Dashboard","Users","Notifications","Giving Management","Complaints","Admin Profile","Settings / Theme"]) {
+for (const label of ["Dashboard","Users","Notifications","Complaints","Admin Profile","Settings / Theme"]) {
   check(js.includes(label), "Admin navigation includes " + label);
 }
 check(js.includes('value="owner"') || js.includes('value=\"owner\"'), "Admin sign-in defaults to the owner login ID");
@@ -41,20 +41,21 @@ check(!js.includes("service_role") && !js.includes("sb_secret_"), "Admin browser
 check(api.includes("PBKDF2") && api.includes("momin_admin_sessions") && api.includes("token_hash"), "Admin API uses password derivation and hashed server-side sessions");
 check(api.includes('loginId !== "owner"'), "Admin API restricts the dedicated Admin identifier to owner");
 check(api.includes("session.account.force_password_change") && api.includes("Change the initial Admin password before continuing."), "Server blocks all Admin API operations until the initial password is changed");
+check(api.includes("Giving is temporarily disabled in this release.") && !api.includes('db.from("momin_giving_campaigns")') && !api.includes('db.from("momin_contributions")'), "Admin API disables campaign and contribution operations without querying historical records.");
 check(migration.includes("momin_admin_accounts") && migration.includes("momin_admin_sessions"), "Migration creates dedicated Admin account and session tables");
-check(migration.includes("momin_giving_campaigns") && migration.includes("momin_contributions"), "Migration creates Giving and contribution tables");
+check(migration.includes("momin_giving_campaigns") && migration.includes("momin_contributions"), "Historical Giving tables remain provisioned without destructive changes.");
 check(migration.includes("momin_complaints") && migration.includes("momin_complaint_replies"), "Migration creates complaint and reply tables");
 check(migration.includes("unique index if not exists momin_profiles_public_user_id_uidx"), "Migration enforces unique permanent User IDs");
 check(migration.includes("before insert or update on public.momin_profiles"), "Migration protects User ID and account status on inserts and updates");
 check(migration.includes("momin_admin_audit_log"), "Migration provisions Admin audit logging");
 check(migration.includes("enable row level security"), "Migration enables Row Level Security on new tables");
 check(migration.includes("deny_browser_access"), "Migration explicitly denies browser access to privileged Admin tables");
-check(userModule.includes("momin_giving_campaigns") && userModule.includes("momin_complaints"), "MOMIN User app includes Giving and complaint pages");
+check(userModule.includes("momin_complaints") && userModule.includes("momin_complaint_replies"), "MOMIN complaint workflow remains present in the combined support module.");
 check(userModule.includes("momin-complaint-attachments") && userModule.includes(".eq(\"user_id\",user.id)"), "User complaint reads and writes are scoped to the authenticated account");
-check(index.includes("momin-giving-complaints-v1.js"), "Main MOMIN app loads the Giving and complaint module");
+check(index.includes("momin-giving-complaints-v1.js"), "Main MOMIN app retains the existing complaint integration module.");
 check(bridge.includes("momin_user_notifications") && bridge.includes("markInboxRead"), "Admin announcements are connected to the existing User notification inbox");
 check(serviceWorker.includes('"complaints"'), "Push service worker accepts the Complaints destination");
-check(givingMigration.includes("momin_giving_totals_public") && givingMigration.includes("security_invoker = true"), "User Giving progress uses a privacy-safe aggregate table and invoker-secure compatibility view");
+check(givingMigration.includes("momin_giving_totals_public") && givingMigration.includes("security_invoker = true"), "Historical Giving schema migration remains present and untouched.");
 check(migration.includes("add column if not exists phone text"), "Migration stores optional Auth phone contact details");
 check(migration.includes("existing_public_id") && migration.includes("existing_status"), "Profile upserts preserve permanent User ID and account status");
 check(api.includes("account_status", api.indexOf("async function activeRecipientIds")), "Notification sends filter recipient accounts by active status");
@@ -78,7 +79,7 @@ check(!/as\s+\$\s*\n/i.test(migration), "Migration contains no malformed anonymo
 for (const [label, source, loader] of [
   ["Admin frontend JavaScript", js, "js"],
   ["Admin Edge Function TypeScript", api, "ts"],
-  ["MOMIN User Giving/Complaints module", userModule, "js"],
+  ["MOMIN User support module", userModule, "js"],
   ["MOMIN Auth bridge", authBridge, "js"],
   ["MOMIN notification bridge", bridge, "js"],
   ["MOMIN service worker", serviceWorker, "js"],

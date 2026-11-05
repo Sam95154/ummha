@@ -58,8 +58,8 @@ async function mockAdminApi(page, state) {
         break;
       case "dashboard":
         data = { metrics: { total_users: 2, active_users: 2, inactive_users: 0, new_registrations: 1,
-          notifications_sent: 3, active_campaigns: 1, contributions_total: 5000, open_complaints: 1, resolved_complaints: 2 },
-          campaigns: [], complaint_status: [], recent_users: [] };
+          notifications_sent: 3, open_complaints: 1, resolved_complaints: 2 },
+          complaint_status: [], recent_users: [] };
         break;
       case "users": {
         const query = String(body.q || "").trim().toLowerCase();
@@ -78,7 +78,7 @@ async function mockAdminApi(page, state) {
         data = { success: true, id: "complaint-created-id", ticket_id: "MOM-C-QA123" };
         break;
       case "user_detail":
-        data = { user: state.user, notifications: [], contributions: [], complaints: [] };
+        data = { user: state.user, notifications: [], complaints: [] };
         break;
       case "update_user":
         state.user = { ...state.user, name: body.name };
@@ -97,18 +97,6 @@ async function mockAdminApi(page, state) {
         break;
       case "send_notification":
         data = { success: true, id: "notification-test-id", recipient_count: 2, push_sent: 0, push_failed: 0, status: "sent" };
-        break;
-      case "campaigns":
-        data = { campaigns: [] };
-        break;
-      case "save_campaign":
-        data = { success: true, id: "campaign-test-id" };
-        break;
-      case "campaign_status":
-        data = { success: true };
-        break;
-      case "contributions":
-        data = { contributions: [] };
         break;
       case "complaints":
         data = { complaints: [state.complaint] };
@@ -204,25 +192,17 @@ test.describe("MOMIN Admin Panel", () => {
     await expect(page.getByText(/browser dismissals sent/i)).toBeVisible();
   });
 
-  test("Admin can create a Giving campaign as a Draft", async ({ page }) => {
+  test("Giving controls are absent and complaint categories remain available", async ({ page }) => {
     const state = makeState();
     await login(page, state);
-    await page.getByRole("button", { name: "Giving Management" }).click();
-    await expect(page.getByRole("heading", { name: "Giving Management" })).toBeVisible();
-    await page.locator(".tabs").getByRole("button", { name: "Create campaign" }).click();
-    const form = page.locator('form[data-form="campaign"]');
-    await form.locator('[name="name"]').fill("Community Water Project");
-    await form.locator('[name="category"]').selectOption("Sadaqah");
-    await form.locator('[name="target_amount"]').fill("250000");
-    await form.locator('[name="currency"]').selectOption("INR");
-    await form.locator('[name="status"]').selectOption("Draft");
-    await form.getByRole("button", { name: "Save campaign" }).click();
-    await expect(page.getByRole("heading", { name: "Giving Management" })).toBeVisible();
-    const saved = state.calls.find(x => x.action === "save_campaign");
-    expect(saved).toBeTruthy();
-    expect(saved.body.name).toBe("Community Water Project");
-    expect(saved.body.category).toBe("Sadaqah");
-    expect(saved.body.status).toBe("Draft");
+    await expect(page.getByRole("button", { name: "Giving Management" })).toHaveCount(0);
+    await expect(page.getByText(/Giving campaigns|Verified contributions/i)).toHaveCount(0);
+    await page.getByRole("button", { name: "Complaints" }).click();
+    await page.getByRole("button", { name: "Create for user" }).click();
+    const form = page.locator('form[data-form="create-complaint"]');
+    const category = form.locator('[name="category"]');
+    await expect(category.locator('option')).not.toContainText("Giving");
+    await expect(category.locator('option[value="Other"]')).toHaveCount(1);
   });
 
   test("Admin gets live complaint-user suggestions and can select by name, email, or MOMIN User ID", async ({ page }) => {
