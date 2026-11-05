@@ -104,7 +104,14 @@ assert.match(home, /function doneCount\(\)\{var done=doneMap\(\);return prayerNa
 const homeSunrise = home.slice(home.indexOf("var sunrise=parsePrayerDate(timings.Sunrise,0);", home.indexOf("function trackerMarkup")), home.indexOf("return rows.join", home.indexOf("function trackerMarkup")));
 assert.ok(homeSunrise.includes("Sunrise"));
 assert.doesNotMatch(homeSunrise, /<button|role="checkbox"|togglePrayer/);
-const prayerSunrise = prayer.slice(prayer.indexOf("if(sunriseM!==null){", prayer.indexOf("function rows(anim)")), prayer.indexOf('$("rows").innerHTML', prayer.indexOf("function rows(anim)")));
+const prayerRowsStart = prayer.indexOf("function rows(anim){");
+const prayerRowsEnd = prayer.indexOf('$("rows").innerHTML=renderedRows.join("");', prayerRowsStart);
+assert.ok(prayerRowsStart >= 0 && prayerRowsEnd > prayerRowsStart, "Prayer tracker row renderer must exist.");
+const prayerRowsSource = prayer.slice(prayerRowsStart, prayerRowsEnd);
+const prayerSunriseStart = prayerRowsSource.indexOf("renderedRows.splice(1,0,");
+const prayerSunriseEnd = prayerRowsSource.indexOf(");", prayerSunriseStart);
+assert.ok(prayerSunriseStart >= 0 && prayerSunriseEnd > prayerSunriseStart, "Prayer page must render Sunrise as an informational row.");
+const prayerSunrise = prayerRowsSource.slice(prayerSunriseStart, prayerSunriseEnd);
 assert.ok(prayerSunrise.includes('aria-label="Sunrise time, informational only"'));
 assert.doesNotMatch(prayerSunrise, /<button|role="checkbox"|class="ck"|data-i=/);
 assert.match(prayer, /\+" of 5"/);
