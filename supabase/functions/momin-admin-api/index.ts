@@ -64,7 +64,7 @@ function validText(value: unknown, min: number, max: number) {
   return typeof value === "string" && value.trim().length >= min && value.trim().length <= max;
 }
 function safeRoute(value: unknown) {
-  const allowed = ["home", "prayers", "quran", "duas", "calendar", "notifications", "settings", "journey", "giving", "complaints"];
+  const allowed = ["home", "prayers", "quran", "duas", "calendar", "notifications", "settings", "journey", "complaints"];
   return typeof value === "string" && allowed.includes(value) ? value : "home";
 }
 async function audit(adminId: string, action: string, targetType?: string, targetId?: string, details: Record<string, unknown> = {}) {
@@ -120,17 +120,14 @@ async function dashboard() {
   const monthAgo = new Date(Date.now() - 30 * 86400000);
   const weekAgo = new Date(Date.now() - 7 * 86400000);
   const [{ count: totalUsers }, { count: activeUsers }, { count: notifications },
-    { count: openComplaints }, { count: resolvedComplaints }, { data: campaigns },
-    { data: contributions }, { count: newRegistrationCount }, { data: weeklyProfiles },
-    { count: inboxCount }, { count: inboxReadCount }, { data: complaintRows },
-    { data: recentProfiles }] = await Promise.all([
+    { count: openComplaints }, { count: resolvedComplaints }, { count: newRegistrationCount },
+    { data: weeklyProfiles }, { count: inboxCount }, { count: inboxReadCount },
+    { data: complaintRows }, { data: recentProfiles }] = await Promise.all([
     db.from("momin_profiles").select("user_id", { count: "exact", head: true }),
     db.from("momin_profiles").select("user_id", { count: "exact", head: true }).eq("account_status", "Active"),
     db.from("momin_admin_notifications").select("id", { count: "exact", head: true }).is("deleted_at", null),
     db.from("momin_complaints").select("id", { count: "exact", head: true }).in("status", ["Open", "Pending", "In Progress"]),
     db.from("momin_complaints").select("id", { count: "exact", head: true }).eq("status", "Resolved"),
-    db.from("momin_giving_campaigns").select("id,name,category,target_amount,currency,status,created_at"),
-    db.from("momin_contributions").select("campaign_id,fund_category,amount,currency,payment_status"),
     db.from("momin_profiles").select("user_id", { count: "exact", head: true }).gte("created_at", monthAgo.toISOString()),
     db.from("momin_profiles").select("created_at").gte("created_at", weekAgo.toISOString()).order("created_at", { ascending: true }).limit(5000),
     db.from("momin_user_notifications").select("id", { count: "exact", head: true }),
@@ -138,8 +135,6 @@ async function dashboard() {
     db.from("momin_complaints").select("status"),
     db.from("momin_profiles").select("user_id,public_user_id,display_name,created_at").order("created_at", { ascending: false }).limit(8),
   ]);
-  const verified = (contributions || []).filter(x => x.payment_status === "verified");
-  const amount = verified.reduce((sum, x) => sum + Number(x.amount || 0), 0);
   const sevenDays = Array.from({ length: 7 }, (_, i) => {
     const day = new Date(Date.now() - (6 - i) * 86400000);
     return day.toISOString().slice(0, 10);
@@ -150,16 +145,6 @@ async function dashboard() {
     const day = new Date(row.created_at).toISOString().slice(0, 10);
     if (registrationsByDay.has(day)) registrationsByDay.set(day, (registrationsByDay.get(day) ?? 0) + 1);
   }
-  const givingByFund = ["Zakat", "Sadaqah", "Charity"].map(category => ({
-    label: category,
-    value: verified.filter(x => x.fund_category === category).reduce((sum, x) => sum + Number(x.amount || 0), 0),
-  }));
-  const campaignSummary = (campaigns || []).map(c => {
-    const campaignTx = verified.filter(x => x.campaign_id === c.id);
-    const received = campaignTx.reduce((sum, x) => sum + Number(x.amount || 0), 0);
-    return { ...c, received_amount: received, contribution_count: campaignTx.length,
-      progress: c.target_amount ? Math.min(100, Math.round(received / Number(c.target_amount) * 100)) : 0 };
-  });
   const inboxTotal = inboxCount ?? 0;
   const readRate = inboxTotal > 0 ? Math.round((inboxReadCount || 0) / inboxTotal * 100) : 0;
   return {
@@ -168,16 +153,12 @@ async function dashboard() {
       inactive_users: Math.max(0, (totalUsers || 0) - (activeUsers || 0)),
       new_registrations: newRegistrationCount || 0,
       notifications_sent: notifications || 0, notification_read_rate: readRate,
-      active_campaigns: campaignSummary.filter(x => x.status === "Active").length,
-      contributions_total: amount,
       open_complaints: openComplaints || 0, resolved_complaints: resolvedComplaints || 0,
     },
     registrations_series: sevenDays.map(day => ({
       label: new Date(day + "T00:00:00Z").toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" }),
       value: registrationsByDay.get(day) || 0,
     })),
-    giving_by_fund: givingByFund,
-    campaigns: campaignSummary,
     complaint_status: ["Open", "Pending", "In Progress", "Resolved", "Closed"].map(status => ({
       status, count: (complaintRows || []).filter(x => x.status === status).length,
     })),
@@ -559,84 +540,7 @@ async function sendFcmNotifications(
   return { sent, failed, devices: eligibleTokens.length, skipped: revokedTokens.length };
 }
 
-async function announceGivingCampaign(campaign: Record<string, any>, adminId: string) {
-  const campaignId = String(campaign.id || "");
-  if (!/^[0-9a-f-]{36}$/i.test(campaignId)) throw new Error("Invalid Giving campaign ID.");
-  const now = new Date();
-  const nowIso = now.toISOString();
-  const staleBefore = new Date(now.getTime() - 10 * 60 * 1000).toISOString();
-  let claimed = false;
-  const { error: insertError } = await db.from("momin_giving_campaign_announcements")
-    .insert({ campaign_id: campaignId, status: "sending", updated_at: nowIso });
-  if (!insertError) {
-    claimed = true;
-  } else if (insertError.code === "23505") {
-    const { data: existing, error: readError } = await db.from("momin_giving_campaign_announcements")
-      .select("campaign_id,notification_id,status,updated_at,recipient_count,push_sent,push_failed")
-      .eq("campaign_id", campaignId).maybeSingle();
-    if (readError) throw readError;
-    if (existing?.status === "sent") {
-      return { announced: false, already_announced: true, notification_id: existing.notification_id || null };
-    }
-    if (existing?.status === "sending" && String(existing.updated_at || "") >= staleBefore) {
-      return { announced: false, in_progress: true, notification_id: existing.notification_id || null };
-    }
-    let retry = db.from("momin_giving_campaign_announcements")
-      .update({ status: "sending", updated_at: nowIso, last_error: null })
-      .eq("campaign_id", campaignId).eq("status", existing?.status || "failed");
-    if (existing?.status === "sending") retry = retry.lt("updated_at", staleBefore);
-    const { data: claimedRow, error: retryError } = await retry.select("campaign_id").maybeSingle();
-    if (retryError) throw retryError;
-    if (claimedRow) claimed = true;
-    else {
-      const { data: latest, error: latestError } = await db.from("momin_giving_campaign_announcements")
-        .select("status,notification_id").eq("campaign_id", campaignId).maybeSingle();
-      if (latestError) throw latestError;
-      return { announced: false, in_progress: latest?.status === "sending", already_announced: latest?.status === "sent", notification_id: latest?.notification_id || null };
-    }
-  } else {
-    throw insertError;
-  }
-  if (!claimed) return { announced: false, in_progress: true };
-
-  const category = String(campaign.category || "Charity");
-  const name = String(campaign.name || "New Giving campaign");
-  const title = ("New " + category + " campaign").slice(0, 80);
-  const description = String(campaign.description || "").trim();
-  const amount = Number(campaign.target_amount || 0);
-  const currency = String(campaign.currency || "INR");
-  const message = [
-    name,
-    description || "A new MOMIN Giving campaign is now available.",
-    amount > 0 ? "Target: " + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(amount) + " " + currency : "",
-    "Open MOMIN Giving to learn more."
-  ].filter(Boolean).join(" · ").slice(0, 1000);
-  try {
-    const result = await sendNotification({
-      title, message, audience: "all", route: "giving", image_url: campaign.image_url || null,
-    }, adminId, campaignId);
-    const { error: updateError } = await db.from("momin_giving_campaign_announcements")
-      .update({
-        notification_id: result.id, status: "sent", recipient_count: result.recipient_count,
-        push_sent: result.push_sent, push_failed: result.push_failed,
-        last_error: result.fcm_configuration_error || null,
-        sent_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-      }).eq("campaign_id", campaignId);
-    if (updateError) throw updateError;
-    await audit(adminId, "giving.announcement_sent", "campaign", campaignId, {
-      notification_id: result.id, category, recipient_count: result.recipient_count,
-      push_sent: result.push_sent, push_failed: result.push_failed,
-    });
-    return { announced: true, notification_id: result.id, recipient_count: result.recipient_count, push_sent: result.push_sent, push_failed: result.push_failed };
-  } catch (error) {
-    const reason = String(error instanceof Error ? error.message : error).slice(0, 500);
-    await db.from("momin_giving_campaign_announcements")
-      .update({ status: "failed", last_error: reason, updated_at: new Date().toISOString() })
-      .eq("campaign_id", campaignId);
-    throw error;
-  }
-}
-async function sendNotification(body: Record<string, unknown>, adminId: string, givingCampaignId: string | null = null) {
+async function sendNotification(body: Record<string, unknown>, adminId: string) {
   const title = String(body.title || "").trim();
   const message = String(body.message || "").trim();
   const audience = String(body.audience || "all");
@@ -648,38 +552,15 @@ async function sendNotification(body: Record<string, unknown>, adminId: string, 
   const recipients = await activeRecipientIds(audience, ids);
   if (!recipients.length) throw new Error("No active MOMIN users were found.");
   const imageUrl = normalizeAdminMediaUrl(body.image_url);
-  let campaign: { id: string };
-  if (givingCampaignId) {
-    const { data: existingNotification, error: existingError } = await db.from("momin_admin_notifications")
-      .select("id").eq("giving_campaign_id", givingCampaignId).maybeSingle();
-    if (existingError) throw existingError;
-    if (existingNotification) {
-      const { data: updated, error: updateError } = await db.from("momin_admin_notifications")
-        .update({ title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
-          recipient_count: recipients.length, sent_count: 0, failed_count: 0, completed_at: null, deleted_at: null })
-        .eq("id", existingNotification.id).select("id").single();
-      if (updateError) throw updateError;
-      campaign = { id: updated.id };
-    } else {
-      const { data: created, error: createError } = await db.from("momin_admin_notifications").insert({
-        title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
-        recipient_count: recipients.length, created_by: adminId, giving_campaign_id: givingCampaignId,
-      }).select("id").single();
-      if (createError) throw createError;
-      campaign = { id: created.id };
-    }
-  } else {
-    const { data: created, error: createError } = await db.from("momin_admin_notifications").insert({
-      title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
-      recipient_count: recipients.length, created_by: adminId,
-    }).select("id").single();
-    if (createError) throw createError;
-    campaign = { id: created.id };
-  }
-  const inboxRows = recipients.map(user_id => ({ notification_id: campaign.id, user_id, title, message, route, image_url: imageUrl }));
+  const { data: notificationRecord, error: createError } = await db.from("momin_admin_notifications").insert({
+    title, message, audience_type: audience, route, image_url: imageUrl, status: "sending",
+    recipient_count: recipients.length, created_by: adminId,
+  }).select("id").single();
+  if (createError) throw createError;
+  const inboxRows = recipients.map(user_id => ({ notification_id: notificationRecord.id, user_id, title, message, route, image_url: imageUrl }));
   for (let i = 0; i < inboxRows.length; i += 500) {
-    if (!(await isAdminNotificationActive(campaign.id))) {
-      return { success: true, id: campaign.id, deleted: true, recipient_count: recipients.length, push_sent: 0, push_failed: 0, fcm_sent: 0, fcm_failed: 0 };
+    if (!(await isAdminNotificationActive(notificationRecord.id))) {
+      return { success: true, id: notificationRecord.id, deleted: true, recipient_count: recipients.length, push_sent: 0, push_failed: 0, fcm_sent: 0, fcm_failed: 0 };
     }
     const { error } = await db.from("momin_user_notifications").upsert(inboxRows.slice(i, i + 500), { onConflict: "notification_id,user_id", ignoreDuplicates: true });
     if (error) throw error;
@@ -688,7 +569,7 @@ async function sendNotification(body: Record<string, unknown>, adminId: string, 
   let server: webpush.ApplicationServer | null = null;
   try { server = await loadVapidServer(); } catch (_) { server = null; }
   for (let start = 0; start < recipients.length; start += 100) {
-    if (!(await isAdminNotificationActive(campaign.id))) { deletedDuringDelivery = true; break; }
+    if (!(await isAdminNotificationActive(notificationRecord.id))) { deletedDuringDelivery = true; break; }
     const userBatch = recipients.slice(start, start + 100);
     const { data: subscriptions, error: subError } = await db.from("momin_push_subscriptions")
       .select("id,user_id,device_key,subscription,is_active,preferences")
@@ -696,11 +577,11 @@ async function sendNotification(body: Record<string, unknown>, adminId: string, 
     if (subError) throw subError;
     let subscriptionIndex = 0;
     for (const row of subscriptions || []) {
-    if (subscriptionIndex++ % 10 === 0 && !(await isAdminNotificationActive(campaign.id))) {
+    if (subscriptionIndex++ % 10 === 0 && !(await isAdminNotificationActive(notificationRecord.id))) {
       deletedDuringDelivery = true;
       break;
     }
-    const eventKey = "admin:" + campaign.id + ":" + row.id;
+    const eventKey = "admin:" + notificationRecord.id + ":" + row.id;
     const { data: priorDelivery, error: priorError } = await db.from("momin_push_deliveries")
       .select("id,status").eq("event_key", eventKey).maybeSingle();
     if (priorError) throw priorError;
@@ -711,8 +592,8 @@ async function sendNotification(body: Record<string, unknown>, adminId: string, 
         const subscriber = server.subscribe(row.subscription as webpush.PushSubscription);
         await subscriber.pushTextMessage(JSON.stringify({
           title, body: message, route, icon: "b", image_url: imageUrl || undefined,
-          tag: "momin-admin-" + campaign.id,
-        }), { urgency: webpush.Urgency.High, ttl: 86400, topic: "momin-admin-" + campaign.id });
+          tag: "momin-admin-" + notificationRecord.id,
+        }), { urgency: webpush.Urgency.High, ttl: 86400, topic: "momin-admin-" + notificationRecord.id });
         status = "sent"; sent++;
       } catch (error) {
         errorText = String(error).slice(0, 500); failed++;
@@ -729,8 +610,8 @@ async function sendNotification(body: Record<string, unknown>, adminId: string, 
   }
   let fcm = { sent: 0, failed: 0, devices: 0, skipped: 0 } as { sent: number; failed: number; devices: number; skipped: number; configuration_error?: string };
   try {
-    if (!deletedDuringDelivery && await isAdminNotificationActive(campaign.id)) {
-      fcm = await sendFcmNotifications(campaign.id, recipients, title, message, route, imageUrl);
+    if (!deletedDuringDelivery && await isAdminNotificationActive(notificationRecord.id)) {
+      fcm = await sendFcmNotifications(notificationRecord.id, recipients, title, message, route, imageUrl);
     } else {
       deletedDuringDelivery = true;
     }
@@ -739,15 +620,15 @@ async function sendNotification(body: Record<string, unknown>, adminId: string, 
   } catch (error) {
     console.error("MOMIN FCM announcement delivery:", error);
   }
-  if (deletedDuringDelivery || !(await isAdminNotificationActive(campaign.id))) {
-    return { success: true, id: campaign.id, deleted: true, recipient_count: recipients.length, push_sent: sent, push_failed: failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed };
+  if (deletedDuringDelivery || !(await isAdminNotificationActive(notificationRecord.id))) {
+    return { success: true, id: notificationRecord.id, deleted: true, recipient_count: recipients.length, push_sent: sent, push_failed: failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed };
   }
   const overall = failed === 0 ? "sent" : sent > 0 ? "partial" : "failed";
   await db.from("momin_admin_notifications").update({
     status: overall, sent_count: sent, failed_count: failed, completed_at: new Date().toISOString(),
-  }).eq("id", campaign.id).is("deleted_at", null);
-  await audit(adminId, "notification.sent", "notification", campaign.id, { audience, recipient_count: recipients.length, sent, failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed, fcm_devices: fcm.devices });
-  return { success: true, id: campaign.id, recipient_count: recipients.length, push_sent: sent, push_failed: failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed, fcm_devices: fcm.devices, fcm_configuration_error: fcm.configuration_error || null, status: overall };
+  }).eq("id", notificationRecord.id).is("deleted_at", null);
+  await audit(adminId, "notification.sent", "notification", notificationRecord.id, { audience, recipient_count: recipients.length, sent, failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed, fcm_devices: fcm.devices });
+  return { success: true, id: notificationRecord.id, recipient_count: recipients.length, push_sent: sent, push_failed: failed, fcm_sent: fcm.sent, fcm_failed: fcm.failed, fcm_devices: fcm.devices, fcm_configuration_error: fcm.configuration_error || null, status: overall };
 }
 async function deleteNotification(body: Record<string, unknown>, adminId: string) {
   const id = String(body.id || "").trim();
@@ -816,7 +697,7 @@ async function uploadMedia(request: Request, session: { adminId: string }) {
   const file = form.get("file");
   const kind = String(form.get("kind") || "notification");
   if (!(file instanceof File)) throw new Error("Choose an image to upload.");
-  if (!["notification", "giving"].includes(kind)) throw new Error("Unsupported upload category.");
+  if (kind !== "notification") throw new Error("Unsupported upload category.");
   if (file.size < 1 || file.size > 2 * 1024 * 1024) throw new Error("Image must be 2 MB or smaller.");
   const mime = file.type.toLowerCase();
   const extensions: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
@@ -829,7 +710,7 @@ async function uploadMedia(request: Request, session: { adminId: string }) {
   const isWebp = mime === "image/webp" && bytes.length >= 12 &&
     String.fromCharCode(...bytes.slice(0,4)) === "RIFF" && String.fromCharCode(...bytes.slice(8,12)) === "WEBP";
   if (!(isJpeg || isPng || isWebp)) throw new Error("Image contents do not match the selected JPG, PNG, or WebP file type.");
-  const folder = kind === "giving" ? "giving" : "notifications";
+  const folder = "notifications";
   const path = folder + "/" + new Date().toISOString().slice(0, 10) + "/" + crypto.randomUUID() + "." + extensions[mime];
   const { error } = await db.storage.from("momin-admin-media").upload(path, bytes, {
     contentType: mime, upsert: false, cacheControl: "3600",
@@ -838,76 +719,6 @@ async function uploadMedia(request: Request, session: { adminId: string }) {
   const { data } = db.storage.from("momin-admin-media").getPublicUrl(path);
   await audit(session.adminId, "media.uploaded", kind, path, { size: file.size, content_type: mime });
   return { success: true, path, public_url: data.publicUrl };
-}
-async function listCampaigns() {
-  const { data, error } = await db.from("momin_giving_campaigns").select("*").order("created_at", { ascending: false });
-  if (error) throw error;
-  const { data: tx, error: txError } = await db.from("momin_contributions").select("campaign_id,amount,payment_status");
-  if (txError) throw txError;
-  return (data || []).map(c => {
-    const rows = (tx || []).filter(t => t.campaign_id === c.id && t.payment_status === "verified");
-    const raised = rows.reduce((sum, t) => sum + Number(t.amount || 0), 0);
-    return { ...c, received_amount: raised, contribution_count: rows.length, progress: Math.min(100, Math.round(raised / Number(c.target_amount) * 100)) };
-  });
-}
-async function saveCampaign(body: Record<string, unknown>, adminId: string) {
-  const id = typeof body.id === "string" ? body.id : null;
-  const name = String(body.name || "").trim();
-  const category = String(body.category || "");
-  const target = Number(body.target_amount);
-  const currency = String(body.currency || "INR").toUpperCase();
-  if (!validText(name, 2, 120) || !["Zakat", "Sadaqah", "Charity", "Other approved"].includes(category) || !Number.isFinite(target) || target <= 0 || !/^[A-Z]{3}$/.test(currency)) {
-    throw new Error("Complete the campaign name, category, target amount, and currency.");
-  }
-  let previous: Record<string, any> | null = null;
-  if (id) {
-    const { data, error } = await db.from("momin_giving_campaigns").select("id,status").eq("id", id).single();
-    if (error) throw error;
-    previous = data;
-  }
-  const payload = {
-    name, category, description: String(body.description || "").slice(0, 5000),
-    image_url: normalizeAdminMediaUrl(body.image_url),
-    target_amount: target, currency, starts_at: body.starts_at || null, ends_at: body.ends_at || null,
-    donation_instructions: String(body.donation_instructions || "").slice(0, 2000),
-    status: ["Draft", "Active", "Paused", "Completed"].includes(String(body.status)) ? String(body.status) : "Draft",
-    updated_at: new Date().toISOString(),
-  };
-  const result = id
-    ? await db.from("momin_giving_campaigns").update(payload).eq("id", id).select("*").single()
-    : await db.from("momin_giving_campaigns").insert({ ...payload, created_by: adminId }).select("*").single();
-  if (result.error) throw result.error;
-  await audit(adminId, id ? "giving.updated" : "giving.created", "campaign", result.data.id, { name, category, status: payload.status });
-  let announcement = null;
-  if (payload.status === "Active" && (!previous || previous.status !== "Active")) {
-    announcement = await announceGivingCampaign(result.data, adminId);
-  }
-  return { success: true, id: result.data.id, announcement };
-}
-async function setCampaignStatus(body: Record<string, unknown>, adminId: string) {
-  const id = String(body.id || "");
-  const status = String(body.status || "");
-  if (!/^[0-9a-f-]{36}$/i.test(id) || !["Active", "Paused", "Completed", "Draft"].includes(status)) throw new Error("Invalid campaign status.");
-  const { data: previous, error: readError } = await db.from("momin_giving_campaigns").select("*").eq("id", id).single();
-  if (readError) throw readError;
-  const { data: updated, error } = await db.from("momin_giving_campaigns")
-    .update({ status, updated_at: new Date().toISOString() }).eq("id", id).select("*").single();
-  if (error) throw error;
-  await audit(adminId, "giving.status_updated", "campaign", id, { status });
-  let announcement = null;
-  if (status === "Active" && previous.status !== "Active") {
-    announcement = await announceGivingCampaign(updated, adminId);
-  }
-  return { success: true, announcement };
-}
-async function getContributions() {
-  const { data, error } = await db.from("momin_contributions").select("*").order("created_at", { ascending: false }).limit(500);
-  if (error) throw error;
-  const ids = [...new Set((data || []).map(x => x.user_id).filter(Boolean))];
-  const names = ids.length ? await db.from("momin_profiles").select("user_id,display_name,public_user_id").in("user_id", ids) : { data: [], error: null };
-  if (names.error) throw names.error;
-  const byId = new Map((names.data || []).map(x => [x.user_id, x]));
-  return { contributions: (data || []).map(x => ({ ...x, user_name: byId.get(x.user_id)?.display_name || "Anonymous", user_public_id: byId.get(x.user_id)?.public_user_id || "—" })) };
 }
 async function getComplaints() {
   const { data, error } = await db.from("momin_complaints").select("*").order("updated_at", { ascending: false }).limit(500);
@@ -1157,16 +968,14 @@ Deno.serve(async (request: Request) => {
         const id = String(body.id || "");
         if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid User ID.");
         const [{ data: authData, error: authError }, { data: profile, error: profileError },
-          { data: inbox, error: inboxError }, { data: contributions, error: contributionError },
-          { data: complaints, error: complaintsError }] = await Promise.all([
+          { data: inbox, error: inboxError }, { data: complaints, error: complaintsError }] = await Promise.all([
           db.auth.admin.getUserById(id),
           db.from("momin_profiles").select("user_id,public_user_id,display_name,email,avatar_url,profile_image_path,birthday,gender,auth_provider,email_verified,account_status,created_at,updated_at,profile_completed,profile_completed_at").eq("user_id", id).maybeSingle(),
           db.from("momin_user_notifications").select("id,title,message,route,read_at,created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
-          db.from("momin_contributions").select("transaction_ref,campaign_id,amount,currency,fund_category,payment_status,receipt_status,created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
           db.from("momin_complaints").select("id,ticket_id,category,subject,priority,status,created_at,updated_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
         ]);
         if (authError || !authData.user) throw new Error("MOMIN user was not found.");
-        if (profileError || inboxError || contributionError || complaintsError) throw new Error("Unable to load all user detail records.");
+        if (profileError || inboxError || complaintsError) throw new Error("Unable to load all user detail records.");
         return reply({
           user: {
             id, user_id: profile?.public_user_id || "MOM-" + id.replaceAll("-", "").slice(0,10).toUpperCase(),
@@ -1181,7 +990,7 @@ Deno.serve(async (request: Request) => {
             profile_completed: !!profile?.profile_completed,
             profile_completed_at: profile?.profile_completed_at || null,
           },
-          notifications: inbox || [], contributions: contributions || [], complaints: complaints || [],
+          notifications: inbox || [], complaints: complaints || [],
         }, 200, origin);
       }
       case "update_user": return reply(await updateUser(body, session.adminId), 200, origin);
@@ -1203,10 +1012,10 @@ Deno.serve(async (request: Request) => {
       }
       case "send_notification": return reply(await sendNotification(body, session.adminId), 200, origin);
       case "delete_notification": return reply(await deleteNotification(body, session.adminId), 200, origin);
-      case "campaigns": return reply({ campaigns: await listCampaigns() }, 200, origin);
-      case "save_campaign": return reply(await saveCampaign(body, session.adminId), 200, origin);
-      case "campaign_status": return reply(await setCampaignStatus(body, session.adminId), 200, origin);
-      case "contributions": return reply(await getContributions(), 200, origin);
+      case "campaigns":
+      case "save_campaign":
+      case "campaign_status":
+      case "contributions": return reply({ error: "Giving is temporarily disabled in this release." }, 410, origin);
       case "complaints": return reply(await getComplaints(), 200, origin);
       case "complaint_detail": {
         const id = String(body.id || "");
@@ -1228,9 +1037,12 @@ Deno.serve(async (request: Request) => {
         const userId = String(body.user_id || "");
         const subject = String(body.subject || "").trim();
         const description = String(body.description || "").trim();
+        const requestedCategory = String(body.category || "Other");
+        const category = requestedCategory === "Giving" ? "Other" :
+          (["Login", "Notifications", "Quran", "Prayer Times", "Account", "Other"].includes(requestedCategory) ? requestedCategory : "Other");
         if (!/^[0-9a-f-]{36}$/i.test(userId) || !validText(subject, 2, 120) || !validText(description, 10, 5000)) throw new Error("Select a user and enter a subject and description.");
         const { data, error } = await db.from("momin_complaints").insert({
-          user_id: userId, category: String(body.category || "Other"), subject, description,
+          user_id: userId, category, subject, description,
           priority: ["Low", "Normal", "High"].includes(String(body.priority)) ? String(body.priority) : "Normal",
           created_by_admin: session.adminId,
         }).select("id,ticket_id").single();

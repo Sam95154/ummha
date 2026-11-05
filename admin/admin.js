@@ -6,20 +6,16 @@
   const root = document.getElementById("root");
   const state = {
     token: null, admin: null, page: "login", resetToken: new URLSearchParams(window.location.search).get("reset") || "", theme: localStorage.getItem("momin-admin-theme") || "dark",
-    busy: false, error: "", toastTimer: null, menu: false, notifTab: "create", givingTab: "campaigns",
-    dashboard: null, users: [], usersPage: 1, userTotal: 0, notificationUsers: [], notificationSelections: [], editCampaign: null, userQuery: "", userStatus: "all", notifications: [],
-    campaigns: [], contributions: [], complaints: [], profile: null, selectedComplaint: null,
-    notificationImage: null, campaignImage: null
+    busy: false, error: "", toastTimer: null, menu: false, notifTab: "create",
+    dashboard: null, users: [], usersPage: 1, userTotal: 0, notificationUsers: [], notificationSelections: [], userQuery: "", userStatus: "all", notifications: [],
+    complaints: [], profile: null, selectedComplaint: null,
+    notificationImage: null
   };
   document.documentElement.dataset.theme = state.theme;
 
   const escapeHtml = value => String(value == null ? "" : value).replace(/[&<>"']/g, c => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[c]));
-  const money = (n, currency = "INR") => {
-    try { return new Intl.NumberFormat("en-IN", { style: "currency", currency, maximumFractionDigits: 0 }).format(Number(n || 0)); }
-    catch (_) { return String(n || 0); }
-  };
   const date = value => value ? new Date(value).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—";
   const badge = status => {
     const s = String(status || "");
@@ -36,6 +32,9 @@
     state.toastTimer = setTimeout(() => { host.innerHTML = ""; }, 4200);
   }
   async function api(action, params = {}) {
+    if (["campaigns", "save_campaign", "campaign_status", "contributions"].includes(action)) {
+      throw new Error("Giving is temporarily disabled in this release.");
+    }
     const headers = { "Content-Type": "application/json", "apikey": PUBLISHABLE_KEY };
     if (state.token) headers.Authorization = "Bearer " + state.token;
     const response = await fetch(API_URL, {
@@ -47,6 +46,7 @@
     return data;
   }
   async function upload(file, kind) {
+    if (kind !== "notification") throw new Error("Only notification images can be uploaded in this release.");
     const form = new FormData();
     form.append("action", "upload_media");
     form.append("kind", kind);
@@ -126,7 +126,7 @@
   }
   const nav = [
     ["dash","Dashboard","▦"],["users","Users","♙"],["notif","Notifications","♧"],
-    ["giving","Giving Management","♡"],["complaints","Complaints","✉"],["profile","Admin Profile","⚙"],["settings","Settings / Theme","◐"]
+    ["complaints","Complaints","✉"],["profile","Admin Profile","⚙"],["settings","Settings / Theme","◐"]
   ];
   function renderShell(content) {
     root.innerHTML = '<div class="shell ' + (state.menu ? "menu-open" : "") + '">' +
@@ -158,26 +158,19 @@
       ["Total users", m.total_users || 0], ["Active users", m.active_users || 0],
       ["Inactive users", m.inactive_users || 0], ["New registrations · 30 days", m.new_registrations || 0],
       ["Notifications sent", m.notifications_sent || 0], ["Notification read rate", (m.notification_read_rate || 0) + "%"],
-      ["Active campaigns", m.active_campaigns || 0], ["Verified contributions", money(m.contributions_total || 0)],
       ["Open complaints", m.open_complaints || 0], ["Resolved complaints", m.resolved_complaints || 0]
     ];
     return heading("Dashboard", "Live overview of MOMIN administration") +
       '<div class="grid grid-4">' + cards.map(c => metric(c[0], c[1])).join("") + "</div>" +
       '<div class="grid grid-2 mt"><section class="card"><h3>New registrations · last 7 days</h3>' +
       chart(state.dashboard.registrations_series || []) +
-      '</section><section class="card"><h3>Verified giving by fund</h3>' +
-      chart((state.dashboard.giving_by_fund || []).map(x => ({ label: x.label + " · " + money(x.value), value: x.value }))) +
       '</section><section class="card"><h3>Complaint status</h3>' +
       chart((state.dashboard.complaint_status || []).map(x => ({ label: x.status, value: x.count }))) +
-      '</section><section class="card"><h3>Giving campaigns</h3>' +
-      ((state.dashboard.campaigns || []).slice(0, 6).map(c => '<div class="status-row"><span>' + escapeHtml(c.name) +
-        '<br><small class="muted">' + money(c.received_amount || 0, c.currency) + ' of ' + money(c.target_amount, c.currency) +
-        '</small></span>' + badge(c.status) + "</div><div class=\"progress mt\"><i style=\"width:" + (c.progress || 0) + '%"></i></div>').join("") || '<p class="muted">No campaigns created yet.</p>') +
       '</section><section class="card"><h3>Recent registrations</h3>' +
       table(["User ID","Name","Registered"], (state.dashboard.recent_users || []).map(u =>
         "<tr><td>" + escapeHtml(u.public_user_id || "—") + "</td><td>" + escapeHtml(u.display_name || "MOMIN User") +
         "</td><td>" + date(u.created_at) + "</td></tr>")) + "</section>" +
-      '<section class="card"><h3>System overview</h3><p class="muted">Statistics are calculated from current MOMIN backend records. Only verified contributions count toward Giving totals.</p>' +
+      '<section class="card"><h3>System overview</h3><p class="muted">Statistics are calculated from current MOMIN user, notification and complaint records.</p>' +
       '<p>Registered users: <b>' + escapeHtml(m.total_users || 0) + "</b></p><p>Active accounts: <b>" +
       escapeHtml(m.active_users || 0) + "</b></p><p>Notifications read: <b>" + escapeHtml(m.notification_read_rate || 0) + "%</b></p></section></div>";
   }
@@ -228,50 +221,10 @@
       '<div class="pill-row mt" id="selected-recipients">' + (selected || '<small class="hint">No users selected.</small>') + '</div></div>' +
       field("Notification title","title","", "text", true, 'maxlength="80"') +
       '<div class="field"><label for="message">Message *</label><textarea class="control" id="message" name="message" maxlength="1000" required></textarea></div>' +
-      selectField("Open in MOMIN","route",["home","prayers","quran","duas","calendar","notifications","settings","journey","giving","complaints"].map(x=>({value:x,label:x[0].toUpperCase()+x.slice(1)})),"home",true) +
+      selectField("Open in MOMIN","route",["home","prayers","quran","duas","calendar","notifications","settings","journey","complaints"].map(x=>({value:x,label:x[0].toUpperCase()+x.slice(1)})),"home",true) +
       '<div class="field"><label for="notification-image">Image (optional · JPG/PNG/WebP · max 2 MB)</label><input class="control" id="notification-image" name="image" type="file" accept="image/jpeg,image/png,image/webp"><small class="hint">Skip this field to send a text-only notification.</small></div>' +
       '<div id="notification-image-preview"></div><div class="field"><button class="btn primary" type="submit">Send notification</button></div></form></section>' +
       '<section class="card"><h3>Preview in MOMIN</h3><div class="preview-phone"><div class="preview-item"><b style="color:var(--gold)">MOMIN</b> · now<br><b id="notice-preview-title">Notification title</b><p id="notice-preview-message">Your message will appear here.</p><div id="notice-preview-image"></div></div></div></section></div>';
-  }
-  function renderGiving() {
-    const rows = state.campaigns.map(c => '<tr><td><b>' + escapeHtml(c.name) + '</b></td><td>' + badge(c.category) +
-      '</td><td>' + money(c.target_amount, c.currency) + '</td><td>' + money(c.received_amount, c.currency) +
-      '</td><td><div class="progress" style="min-width:90px"><i style="width:' + (c.progress || 0) + '%"></i></div>' +
-      '<small>' + escapeHtml(c.progress || 0) + '%</small></td><td>' + badge(c.status) + '</td><td>' +
-      '<button class="btn small" data-action="edit-campaign" data-id="' + escapeHtml(c.id) + '">Edit</button> ' +
-      '<button class="btn small" data-action="campaign-status" data-id="' + escapeHtml(c.id) + '" data-status="' +
-      (c.status === "Active" ? "Paused" : "Active") + '">' + (c.status === "Active" ? "Pause" : "Activate") + "</button> " +
-      '<button class="btn small" data-action="campaign-status" data-id="' + escapeHtml(c.id) + '" data-status="Completed" ' +
-      (c.status === "Completed" ? "disabled" : "") + ">Complete</button></td></tr>");
-    if (state.givingTab === "contributions") {
-      const tx = state.contributions.map(c => "<tr><td>" + escapeHtml(c.transaction_ref) + "</td><td>" +
-        escapeHtml(c.user_public_id || "Anonymous") + "</td><td>" + escapeHtml(c.user_name) + "</td><td>" +
-        escapeHtml(c.fund_category) + "</td><td>" + money(c.amount,c.currency) + "</td><td>" +
-        badge(c.payment_status) + "</td><td>" + badge(c.receipt_status) + "</td></tr>");
-      return heading("Giving Management", "Verified contribution records · Zakat tracked separately") +
-        '<div class="tabs"><button data-action="giving-tab" data-tab="campaigns">Campaigns</button><button data-action="giving-tab" data-tab="create">Create campaign</button><button class="active" data-action="giving-tab" data-tab="contributions">Contributions</button></div>' +
-        '<section class="card">' + table(["Transaction","User ID","Contributor","Fund","Amount","Payment","Receipt"], tx) + "</section>";
-    }
-    if (state.givingTab === "create") return heading("Giving Management", "Create and publish a Zakat, Sadaqah, or Charity campaign") +
-      '<div class="tabs"><button data-action="giving-tab" data-tab="campaigns">Campaigns</button><button class="active" data-action="giving-tab" data-tab="create">Create campaign</button><button data-action="giving-tab" data-tab="contributions">Contributions</button></div>' +
-      '<div class="split"><section class="card"><form data-form="campaign">' +
-      field("Campaign name","name",state.editCampaign?.name || "","text",true,'maxlength="120"') +
-      selectField("Category","category",["Zakat","Sadaqah","Charity","Other approved"].map(x=>({value:x,label:x})),state.editCampaign?.category || "Sadaqah",true) +
-      '<div class="field wide"><label>Description</label><textarea class="control" name="description" maxlength="5000">' + escapeHtml(state.editCampaign?.description || "") + '</textarea></div>' +
-      field("Target amount","target_amount",state.editCampaign?.target_amount || "","number",true,'min="1" step="0.01"') +
-      selectField("Currency","currency",[{value:"INR",label:"INR – Indian Rupee"},{value:"AED",label:"AED – UAE Dirham"},{value:"USD",label:"USD – US Dollar"},{value:"GBP",label:"GBP – Pound Sterling"}],state.editCampaign?.currency || "INR") +
-      field("Start date","starts_at",state.editCampaign?.starts_at || "","date") + field("End date","ends_at",state.editCampaign?.ends_at || "","date") +
-      '<div class="field wide"><label>Donation instructions</label><textarea class="control" name="donation_instructions" maxlength="2000">' + escapeHtml(state.editCampaign?.donation_instructions || "") + '</textarea></div>' +
-      '<div class="field wide"><label>Cover image (optional)</label><input class="control" type="file" name="image" accept="image/jpeg,image/png,image/webp"><input type="hidden" name="existing_image_url" value="' + escapeHtml(state.editCampaign?.image_url || "") + '"><small class="hint">JPG, PNG or WebP · max 2 MB. Upload a new file to replace it.</small>' + (state.editCampaign?.image_url ? '<img src="' + escapeHtml(state.editCampaign.image_url) + '" alt="" style="max-width:180px;border-radius:9px;margin-top:8px">' : '') + '<div id="campaign-image-preview"></div></div>' +
-      selectField("Publish status","status",[{value:"Draft",label:"Save as Draft"},{value:"Active",label:"Publish as Active"},{value:"Paused",label:"Paused"},{value:"Completed",label:"Completed"}], state.editCampaign?.status || "Draft") +
-      '<input type="hidden" name="id" value="' + escapeHtml(state.editCampaign?.id || "") + '">' +
-      '<div class="field wide"><button class="btn primary" type="submit">' + (state.editCampaign ? "Save campaign changes" : "Save campaign") + '</button> ' +
-      (state.editCampaign ? '<button class="btn" type="button" data-action="cancel-campaign-edit">Cancel</button>' : '') + '</div></form></section>' +
-      '<section class="card"><h3>Fund separation</h3><p class="muted">Zakat, Sadaqah, and Charity are separately categorized in campaign and contribution records. Only verified contributions count toward totals.</p></section></div>';
-    return heading("Giving Management", "Manage campaigns and monitor verified contributions") +
-      '<div class="tabs"><button class="active" data-action="giving-tab" data-tab="campaigns">Campaigns</button><button data-action="giving-tab" data-tab="create">Create campaign</button><button data-action="giving-tab" data-tab="contributions">Contributions</button></div>' +
-      '<div class="card"><div class="toolbar"><span class="muted">Campaign list</span><span class="spacer"></span>' +
-      button("+ Create campaign","giving-tab","primary",'data-tab="create"') + "</div>" + table(["Campaign","Fund","Target","Verified received","Progress","Status","Action"], rows) + "</div>";
   }
   function renderComplaints() {
     const rows = state.complaints.map(c => '<tr data-open="complaint" data-id="' + escapeHtml(c.id) + '"><td><b>' +
@@ -311,12 +264,12 @@
     if (state.resetToken) return renderResetPassword();
     if (!state.token) return renderLogin();
     if (state.admin?.force_password_change) return renderPasswordRequired();
+    if (state.page === "giving") state.page = "dash";
     let content = "";
     switch (state.page) {
       case "dash": content = renderDashboard(); break;
       case "users": content = renderUsers(); break;
       case "notif": content = renderNotifications(); break;
-      case "giving": content = renderGiving(); break;
       case "complaints": content = renderComplaints(); break;
       case "profile": content = renderProfile(); break;
       case "settings": content = renderSettings(); break;
@@ -325,6 +278,7 @@
     renderShell(content);
   }
   async function goto(page) {
+    if (page === "giving") page = "dash";
     state.page = page; state.menu = false; state.error = ""; render();
     try {
       if (page === "dash") state.dashboard = await api("dashboard");
@@ -337,10 +291,6 @@
           api("users", { q: "", status: "Active", page: 1 }), api("notifications_history")
         ]);
         state.notificationUsers = users.users || []; state.notifications = history.notifications || [];
-      }
-      if (page === "giving") {
-        if (state.givingTab === "contributions") state.contributions = (await api("contributions")).contributions || [];
-        else state.campaigns = (await api("campaigns")).campaigns || [];
       }
       if (page === "complaints") state.complaints = (await api("complaints")).complaints || [];
       if (page === "profile") state.profile = (await api("me")).admin;
@@ -380,8 +330,6 @@
     const u = data.user || {};
     const noteRows = (data.notifications || []).map(n => "<tr><td>" + escapeHtml(n.title) + "</td><td>" +
       escapeHtml(n.route) + "</td><td>" + date(n.created_at) + "</td><td>" + (n.read_at ? "Read" : "Unread") + "</td></tr>");
-    const givingRows = (data.contributions || []).map(x => "<tr><td>" + escapeHtml(x.transaction_ref) + "</td><td>" +
-      escapeHtml(x.fund_category) + "</td><td>" + money(x.amount, x.currency) + "</td><td>" + badge(x.payment_status) + "</td></tr>");
     const complaintRows = (data.complaints || []).map(x => "<tr><td>" + escapeHtml(x.ticket_id) + "</td><td>" +
       escapeHtml(x.subject) + "</td><td>" + badge(x.status) + "</td></tr>");
     const birthday = u.birthday
@@ -404,7 +352,6 @@
       '</p><b>Profile status</b><p>' + badge(completion) + '</p><b>Registered</b><p>' + date(u.registered_at) +
       '</p><b>Last active</b><p>' + date(u.last_active) + '</p></div></div></div>' +
       '<h3>Recent notifications</h3>' + table(["Title","Destination","Created","Read"], noteRows, "No notifications recorded.") +
-      '<h3 class="mt">Giving history</h3>' + table(["Reference","Fund","Amount","Payment"], givingRows, "No contributions recorded.") +
       '<h3 class="mt">Complaints</h3>' + table(["Ticket","Subject","Status"], complaintRows, "No complaints recorded.") +
       '<div class="modal-actions"><button type="button" class="btn" data-action="modal-close">Close</button></div>';
   }
@@ -558,22 +505,6 @@
     toast("Notification processed. " + result.recipient_count + " user inbox record(s); push sent to " + result.push_sent + " device(s).");
     state.notificationSelections = []; state.notifTab = "history"; await goto("notif");
   }
-  async function saveCampaign(form) {
-    const data = new FormData(form);
-    let imageUrl = data.get("existing_image_url") || null;
-    const image = data.get("image");
-    if (image instanceof File && image.size) imageUrl = (await upload(image, "giving")).public_url;
-    await api("save_campaign", {
-      id: data.get("id") || null,
-      name: data.get("name"), category: data.get("category"), description: data.get("description"),
-      target_amount: data.get("target_amount"), currency: data.get("currency"), starts_at: data.get("starts_at") || null,
-      ends_at: data.get("ends_at") || null, donation_instructions: data.get("donation_instructions"),
-      status: data.get("status"), image_url: imageUrl
-    });
-    toast("Campaign saved.");
-    state.editCampaign = null;
-    state.givingTab = "campaigns"; await goto("giving");
-  }
   function updateSelectedRecipients() {
     const host = document.getElementById("selected-recipients");
     if (!host) return;
@@ -611,7 +542,6 @@
         closeModal(); toast("User name updated. Permanent User ID unchanged."); return await goto("users");
       }
       if (type === "notification") return await sendNotification(form);
-      if (type === "campaign") return await saveCampaign(form);
       if (type === "complaint-update") {
         await api("update_complaint", { id: form.dataset.id, status: form.elements.status.value, message: form.elements.message.value.trim() });
         closeModal(); toast("Complaint updated. The user inbox was notified."); return await goto("complaints");
@@ -708,19 +638,6 @@
           : "Notification deleted and removed from User inboxes.");
         return await goto("notif");
       }
-      if (action === "giving-tab") { state.givingTab = el.dataset.tab; return await goto("giving"); }
-      if (action === "edit-campaign") {
-        state.editCampaign = state.campaigns.find(x => x.id === el.dataset.id) || null;
-        state.givingTab = "create"; return await goto("giving");
-      }
-      if (action === "cancel-campaign-edit") {
-        state.editCampaign = null; state.givingTab = "campaigns"; return await goto("giving");
-      }
-      if (action === "campaign-status") {
-        if (!confirm("Set campaign status to " + el.dataset.status + "?")) return;
-        await api("campaign_status", { id: el.dataset.id, status: el.dataset.status });
-        toast("Campaign status updated."); return await goto("giving");
-      }
       if (action === "new-complaint") {
         showModal('<h2>Create complaint for a user</h2><form data-form="create-complaint">' +
           '<div class="field"><label for="complaint-user-search">Find MOMIN user by name, email, or permanent User ID *</label>' +
@@ -730,7 +647,7 @@
           '<input type="hidden" id="complaint-user-id" name="user_id">' +
           '<div class="selected-user mt" id="complaint-user-selection" aria-live="polite" hidden></div>' +
           '<small class="hint" id="complaint-user-search-status">Type at least 2 characters. Matching names will appear here as you type.</small></div>' +
-          selectField("Category","category",["Login","Notifications","Giving","Quran","Prayer Times","Account","Other"].map(x=>({value:x,label:x})),"Other",true) +
+          selectField("Category","category",["Login","Notifications","Quran","Prayer Times","Account","Other"].map(x=>({value:x,label:x})),"Other",true) +
           selectField("Priority","priority",["Low","Normal","High"].map(x=>({value:x,label:x})),"Normal") +
           '<div class="field"><label>Subject</label><input class="control" name="subject" maxlength="120" required></div>' +
           '<div class="field"><label>Description</label><textarea class="control" name="description" minlength="10" maxlength="5000" required></textarea></div>' +

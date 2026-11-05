@@ -24,11 +24,11 @@ The Admin Panel is a separate browser application under `/admin/`. It shares MOM
   - `supabase/migrations/20261102000200_momin_giving_public_aggregate_table.sql`
   - `supabase/migrations/20261102000300_momin_admin_policy_cleanup.sql`
 
-Do not merge this branch into `main`, `responsive-layout`, or `noor-ul-islam-live` without explicit approval.
+Do not merge this branch into `main`, `responsive-layout`, `noor-ul-islam-live`, or the Render-connected `feature/momin-admin-panel` branch without explicit approval.
 
 ## Current production database state
 
-The Admin schema has been applied to the connected MOMIN Supabase production project. It adds Admin accounts and opaque sessions, login attempts, Admin notifications and per-user inbox rows, Giving campaigns, contribution records, complaint tickets/replies, audit history, permanent User IDs, and the two media buckets.
+The Admin schema has been applied to the connected MOMIN Supabase production project. It includes Admin accounts and opaque sessions, login attempts, Admin notifications and per-user inbox rows, historical Giving campaign and contribution tables, complaint tickets/replies, audit history, permanent User IDs, and the two media buckets. The no-Giving review branch preserves these historical tables and records without destructive changes.
 
 The owner account is seeded as `owner`; its initial password is stored only as a PBKDF2-SHA-256 hash and salt. The initial password hash was checked against the requested initial password. The first successful login is forced to change that password.
 
@@ -48,13 +48,13 @@ The Admin migration changes were executed directly against the project database 
 
 ## User application integration status
 
-The Admin Panel is live as a separate site. The corresponding User-side Giving/Complaints module and Admin-announcement inbox changes are on `feature/momin-admin-panel`, but the existing User app Render service still deploys from `noor-ul-islam-live`. That original User app service and branch have not been changed or replaced.
+The production Admin Panel remains on the Render-connected `feature/momin-admin-panel` branch. The separate `personal-account-no-giving-admin` review branch removes Giving management, contribution reporting and fundraising announcement access from the Admin interface. It is not connected to the production Render service. The User app review is maintained separately on `personal-account-no-giving`.
 
 At the last production check there were zero active rows in `momin_push_subscriptions`. Do not assume push alerts are reaching devices. Users need the updated User app and active push subscriptions for end-to-end delivery. Until the User app integration is released, do not send real announcement campaigns expecting them to appear in the current production User app inbox.
 
 ## Known limitations
 
-- Online Giving checkout is not activated because no verified payment-provider configuration has been confirmed. Campaign management and verified contribution reporting are available; the User page must not simulate successful payments.
+- In the personal-account no-Giving release, campaign management, contribution reporting and fundraising announcements are disabled in the Admin UI and API. Historical campaign/contribution records remain in the database and are not deleted. This release does not provide active fundraising functionality.
 - Forgot-password email recovery is not activated because a verified Admin recovery contact and mail-delivery configuration have not been confirmed. Admins can change their password while authenticated.
 - The static Admin page has been verified live. CI browser flows use mocked API responses; they do not constitute a real production credential login or real database-write test.
 - The existing MOMIN User app has not been redeployed from this feature branch. Keep its production service unchanged until a separate User-app release is approved.
