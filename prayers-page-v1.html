@@ -262,18 +262,51 @@ $("week").onclick=async function(e){
 
 /* hero static bits */
 $("chips").innerHTML=P.map(function(p){return "<span>"+p.n+" · "+fmt(p.m)+"</span>"}).join("");
-var lastCur=-2;
+var lastCur=-2,lastTimelineEvent=null;
+function mominTimelineStateAt(seconds){
+  if(!P.length)return null;
+  var events=P.map(function(prayer,index){return{name:prayer.n,seconds:prayer.m*60,prayerIndex:index};});
+  var sunriseSeconds=sunriseM===null?null:sunriseM*60;
+  if(sunriseSeconds!==null&&events.length>1&&sunriseSeconds>events[0].seconds&&sunriseSeconds<events[1].seconds){
+    events.splice(1,0,{name:"Sunrise",seconds:sunriseSeconds,prayerIndex:-1});
+  }
+  var nextIndex=events.findIndex(function(event){return event.seconds>seconds;});
+  var currentEvent,nextEvent,startSeconds,nextSeconds;
+  if(nextIndex===-1){
+    currentEvent=events[events.length-1];
+    nextEvent={name:"Fajr",seconds:events[0].seconds+86400,prayerIndex:0};
+    startSeconds=currentEvent.seconds;nextSeconds=nextEvent.seconds;
+  }else if(nextIndex===0){
+    currentEvent={name:"Isha",seconds:events[events.length-1].seconds-86400,prayerIndex:P.length-1};
+    nextEvent=events[0];startSeconds=currentEvent.seconds;nextSeconds=nextEvent.seconds;
+  }else{
+    currentEvent=events[nextIndex-1];nextEvent=events[nextIndex];
+    startSeconds=currentEvent.seconds;nextSeconds=nextEvent.seconds;
+  }
+  return{
+    currentName:currentEvent.name,nextName:nextEvent.name,
+    currentPrayerIndex:currentEvent.prayerIndex,nextPrayerIndex:nextEvent.prayerIndex,
+    visualIndex:currentEvent.prayerIndex>=0?currentEvent.prayerIndex:0,
+    currentSeconds:startSeconds,nextSeconds:nextSeconds,
+    progress:Math.min(100,Math.max(0,((seconds-startSeconds)/Math.max(1,nextSeconds-startSeconds))*100))
+  };
+}
 function tick(){
-  var d=new Date(),s=d.getHours()*3600+d.getMinutes()*60+d.getSeconds(),cur,st,nx,nt;
-  var f=P[0].m*60,is=P[4].m*60;
-  if(s<f){cur=4;st=is-86400;nx=0;nt=f}else if(s>=is){cur=4;st=is;nx=0;nt=f+86400}else{for(var i=0;i<4;i++)if(s>=P[i].m*60&&s<P[i+1].m*60){cur=i;st=P[i].m*60;nx=i+1;nt=P[i+1].m*60}}
-  var r=nt-s,h=Math.floor(r/3600),m=Math.floor(r%3600/60),sc=r%60;
-  $("remain").textContent=(h?h+"h ":"")+m+"m "+(sc<10?"0":"")+sc+"s";
-  $("bar").style.width=Math.min(100,Math.max(0,(s-st)/(nt-st)*100))+"%";
-  if(cur!==lastCur){lastCur=cur;var hero=$("hero");hero.dataset.p=cur;
-    $("nowTxt").textContent="NOW · "+P[cur].n;$("nextTxt").textContent="Next: "+P[nx].n;$("nextTime").textContent=fmt(P[nx].m);
-    
-    document.querySelectorAll("#chips [data-prayer-index]").forEach(function(c){c.classList.toggle("on",Number(c.getAttribute("data-prayer-index"))===cur)});rows(false)}}
+  var d=new Date(),seconds=d.getHours()*3600+d.getMinutes()*60+d.getSeconds();
+  var state=mominTimelineStateAt(seconds);if(!state)return;
+  var remaining=Math.max(0,state.nextSeconds-seconds),hours=Math.floor(remaining/3600),minutes=Math.floor(remaining%3600/60),secs=remaining%60;
+  $("remain").textContent=(hours?hours+"h ":"")+minutes+"m "+String(secs).padStart(2,"0")+"s";
+  $("bar").style.width=state.progress+"%";
+  $("hero").dataset.p=state.visualIndex;
+  $("nowTxt").textContent="NOW · "+state.currentName;
+  $("nextTxt").textContent="Next: "+state.nextName;
+  $("nextTime").textContent=fmt(state.nextName==="Sunrise"?sunriseM:P[state.nextPrayerIndex]&&P[state.nextPrayerIndex].m);
+  document.querySelectorAll("#chips [data-event-name]").forEach(function(chip){
+    chip.classList.toggle("on",chip.getAttribute("data-event-name")===state.currentName);
+  });
+  lastCur=state.currentPrayerIndex;
+  if(lastTimelineEvent!==state.currentName){lastTimelineEvent=state.currentName;rows(false);}
+}
 
 /* rows */
 function rows(anim){
@@ -284,9 +317,16 @@ function rows(anim){
     $("rows").innerHTML='<p class="info">Set your location below to load accurate prayer times.</p>';
     stats(false);return;
   }
-  var renderedRows=P.map(function(p,i){var on=done.indexOf(i)>-1,cur=isToday&&i===lastCur,nx=isToday&&i===(lastCur+1)%5&&!cur;
+  var now=new Date(),seconds=now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
+  var timeline=isToday?mominTimelineStateAt(seconds):null;
+  var currentPrayerIndex=timeline?timeline.currentPrayerIndex:-2,nextPrayerIndex=timeline?timeline.nextPrayerIndex:-2;
+  var renderedRows=P.map(function(p,i){var on=done.indexOf(i)>-1,cur=isToday&&i===currentPrayerIndex,nx=isToday&&i===nextPrayerIndex&&!cur;
     return '<div class="row'+(cur?" now":"")+(anim?" flash":"")+'" style="--i:'+i+'"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+IC[p.n]+'"/></svg></span><span class="n">'+p.n+(cur?'<span class="tag">Now</span>':nx?'<span class="tag nx">Next</span>':"")+'</span><span class="tm">'+fmt(p.m)+'</span><button class="ck" role="checkbox" aria-checked="'+on+'" aria-label="Mark '+p.n+' as prayed" data-i="'+i+'"'+(future?" disabled":"")+'><svg viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg></button></div>'});
-  if(sunriseM!==null)renderedRows.splice(1,0,'<div class="row sunrise-info" role="group" aria-label="Sunrise time, informational only"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+IC.Fajr+'"/></svg></span><span class="n">Sunrise</span><span class="tm">'+fmt(sunriseM)+'</span></div>');
+  if(sunriseM!==null){
+    var sunriseCurrent=!!(timeline&&timeline.currentName==="Sunrise"),sunriseNext=!!(timeline&&timeline.nextName==="Sunrise");
+    var sunriseTag=sunriseCurrent?'<span class="tag">Now</span>':sunriseNext?'<span class="tag nx">Next</span>':"";
+    renderedRows.splice(1,0,'<div class="row sunrise-info'+(sunriseCurrent?" now":"")+'" role="group" aria-label="Sunrise time, informational only"><span class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+IC.Fajr+'"/></svg></span><span class="n">Sunrise '+sunriseTag+'</span><span class="tm">'+fmt(sunriseM)+'</span></div>');
+  }
   $("rows").innerHTML=renderedRows.join("");
   stats(false)}
 function stats(fx){var n=done.length;$("count").textContent=n+" of 5";$("pbar").style.width=n*20+"%";
@@ -345,9 +385,10 @@ function mominApplyPrayerData(data){
   if(timings){
     P=["Fajr","Dhuhr","Asr","Maghrib","Isha"].map(function(n){return {n:n,m:mominMinutes(timings[n])}}).filter(function(x){return x.m!==null});
     sunriseM=mominMinutes(timings.Sunrise);
-  }else{P=[];sunriseM=null}
-  var prayerChips=P.map(function(p,index){return '<span data-prayer-index="'+index+'">'+p.n+" · "+fmt(p.m)+"</span>"});
-  if(sunriseM!==null)prayerChips.splice(1,0,'<span class="sunrise-chip" aria-label="Sunrise time, informational only">☀ Sunrise · '+fmt(sunriseM)+'</span>');
+    lastTimelineEvent=null;lastCur=-2;
+  }else{P=[];sunriseM=null;lastTimelineEvent=null;lastCur=-2}
+  var prayerChips=P.map(function(p,index){return '<span data-event-name="'+p.n+'">'+p.n+" · "+fmt(p.m)+"</span>"});
+  if(sunriseM!==null)prayerChips.splice(1,0,'<span data-event-name="Sunrise" class="sunrise-chip" aria-label="Sunrise time, informational only">☀ Sunrise · '+fmt(sunriseM)+'</span>');
   $("chips").innerHTML=prayerChips.length?prayerChips.join(""):'<span>Set your location to see prayer times</span>';
   if(data&&data.date&&data.date.hijri){
     var h=data.date.hijri,month=h.month&&(h.month.en||h.month.ar)||"";
@@ -374,23 +415,32 @@ function mominTickSafe(){
   if(!P.length){
     $("nowTxt").textContent="LOCATION REQUIRED";$("nextTxt").textContent="Set your location";$("nextTime").textContent="—";
     $("remain").textContent="Prayer schedule will appear here";$("bar").style.width="0%";
+    lastTimelineEvent=null;lastCur=-2;
     return;
   }
   if(dk(sel)!==dk(T)){
     $("nowTxt").textContent="SELECTED DATE";$("nextTxt").textContent=sel.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"short"});
     $("nextTime").textContent=fmt(P[0].m);$("remain").textContent="Prayer schedule for this date";
-    $("bar").style.width="0%";return;
+    $("bar").style.width="0%";lastTimelineEvent=null;lastCur=-2;return;
   }
-  var d=new Date(),seconds=d.getHours()*3600+d.getMinutes()*60+d.getSeconds(),f=P[0].m*60,last=P[P.length-1].m*60,cur,nx,st,nt;
-  if(seconds<f){cur=P.length-1;nx=0;st=last-86400;nt=f}
-  else if(seconds>=last){cur=P.length-1;nx=0;st=last;nt=f+86400}
-  else{cur=0;while(cur<P.length-1&&seconds>=P[cur+1].m*60)cur++;nx=Math.min(cur+1,P.length-1);st=P[cur].m*60;nt=P[nx].m*60}
-  var r=Math.max(0,nt-seconds),h=Math.floor(r/3600),m=Math.floor(r%3600/60),sc=r%60;
-  $("remain").textContent=(h?h+"h ":"")+m+"m "+String(sc).padStart(2,"0")+"s";
-  $("bar").style.width=Math.min(100,Math.max(0,(seconds-st)/(nt-st)*100))+"%";
-  $("hero").dataset.p=cur;$("nowTxt").textContent="NOW · "+P[cur].n;$("nextTxt").textContent="Next: "+P[nx].n;$("nextTime").textContent=fmt(P[nx].m);
-  document.querySelectorAll("#chips span").forEach(function(c,i){c.classList.toggle("on",i===cur)});
-  lastCur=cur;
+  var d=new Date(),seconds=d.getHours()*3600+d.getMinutes()*60+d.getSeconds();
+  var state=mominTimelineStateAt(seconds);
+  if(!state)return;
+  var remaining=Math.max(0,state.nextSeconds-seconds),hours=Math.floor(remaining/3600),minutes=Math.floor(remaining%3600/60),secs=remaining%60;
+  $("remain").textContent=(hours?hours+"h ":"")+minutes+"m "+String(secs).padStart(2,"0")+"s";
+  $("bar").style.width=state.progress+"%";
+  $("hero").dataset.p=state.visualIndex;
+  $("nowTxt").textContent="NOW · "+state.currentName;
+  $("nextTxt").textContent="Next: "+state.nextName;
+  $("nextTime").textContent=fmt(state.nextName==="Sunrise"?sunriseM:(P[state.nextPrayerIndex]&&P[state.nextPrayerIndex].m));
+  document.querySelectorAll("#chips [data-event-name]").forEach(function(chip){
+    chip.classList.toggle("on",chip.getAttribute("data-event-name")===state.currentName);
+  });
+  lastCur=state.currentPrayerIndex;
+  if(lastTimelineEvent!==state.currentName){
+    lastTimelineEvent=state.currentName;
+    rows(false);
+  }
 }
 tick=mominTickSafe;
 function mominLoadInitial(){

@@ -67,6 +67,8 @@ jobs:
         run: npm run test:tablet
       - name: Run Sunrise display regression QA
         run: npm run test:sunrise
+      - name: Run prayer event sequence QA
+        run: npm run test:prayer-sequence
       - name: Run current-location prayer timing QA
         run: npm run test:prayer-location
       - name: Run Admin-to-User Giving integration QA
